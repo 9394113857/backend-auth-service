@@ -1,0 +1,54 @@
+# ===============================
+# Python / Flask Microservice Gitignore
+# ===============================
+
+# Python cache / temp
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.tmp
+*.log
+
+# Virtual environment
+venv/
+env/
+
+# SQLite database (auto-generated)
+*.db
+instance/
+*.sqlite3
+
+# Logs (commit structure but not log files)
+logs/
+!logs/.gitkeep
+
+# Flask environment files
+.env
+*.env
+.env.*
+
+# IDE / Editor files
+.vscode/
+.idea/
+.DS_Store
+
+# Bytecode, wheels, build artifacts
+build/
+dist/
+pip-wheel-metadata/
+*.egg-info/
+wheelhouse/
+
+# pytest, coverage
+.pytest_cache/
+htmlcov/
+.coverage*
+.cache/
+
+# Migrations (ALLOW THEM — IMPORTANT)
+!migrations/
+!migrations/**
+
+# Allow docs folder
+!docs/

@@ -1,0 +1,140 @@
+{
+  "info": {
+    "name": "Auth Service API",
+    "_postman_id": "b1d78b65-1f9b-4e6f-8d3e-9a8712df9abc",
+    "description": "Postman Collection for Flask Auth Microservice",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5001/api/v1/auth/register",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5001",
+          "path": ["api", "v1", "auth", "register"]
+        }
+      }
+    },
+
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5001/api/v1/auth/login",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5001",
+          "path": ["api", "v1", "auth", "login"]
+        }
+      },
+      "response": []
+    },
+
+    {
+      "name": "Get Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:5001/api/v1/auth/profile",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5001",
+          "path": ["api", "v1", "auth", "profile"]
+        }
+      }
+    },
+
+    {
+      "name": "Update Profile – Email & Password",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"updated@example.com\",\n    \"password\": \"newpass123\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5001/api/v1/auth/profile",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5001",
+          "path": ["api", "v1", "auth", "profile"]
+        }
+      }
+    },
+
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:5001/api/v1/auth/logout",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5001",
+          "path": ["api", "v1", "auth", "logout"]
+        }
+      }
+    },
+
+    {
+      "name": "Profile After Logout (Should Fail)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:5001/api/v1/auth/profile",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5001",
+          "path": ["api", "v1", "auth", "profile"]
+        }
+      }
+    }
+  ]
+}

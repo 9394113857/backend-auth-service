@@ -1,0 +1,79 @@
+##############################################################
+# AUTH SERVICE SETUP + MIGRATIONS + RUN COMMANDS (POWERSHELL)
+##############################################################
+
+==============================================================
+# 1. UPGRADE PIP (Optional, good practice)
+==============================================================
+python -m pip install --upgrade pip
+
+
+==============================================================
+# 2. SET FLASK_APP (POWERSHELL VERSION)
+# This tells Flask which file contains create_app()
+==============================================================
+$env:FLASK_APP = "run.py"
+
+# Confirm by running:
+# echo $env:FLASK_APP
+
+
+==============================================================
+# 3. INITIALIZE MIGRATIONS (FIRST TIME ONLY)
+# Creates the /migrations folder.
+==============================================================
+flask db init
+
+
+==============================================================
+# 4. GENERATE MIGRATION SCRIPT
+# Reads your SQLAlchemy models and creates migration file.
+==============================================================
+flask db migrate -m "initial models"
+
+
+==============================================================
+# 5. APPLY MIGRATIONS
+# Creates users + token_blocklist tables in auth.db
+==============================================================
+flask db upgrade
+
+
+##############################################################
+# RUNNING THE SERVER IN POWERSHELL
+##############################################################
+
+==============================================================
+# OPTION A (RECOMMENDED): Run with Python
+# This ALWAYS uses port 5001 because run.py contains:
+# app.run(port=5001, debug=True)
+==============================================================
+python run.py
+
+# App runs at:
+# http://127.0.0.1:5001
+
+
+
+==============================================================
+# OPTION B: Run using 'flask run'
+# WARNING: Flask defaults to PORT 5000.
+# Must manually specify port=5001 to match your microservice.
+==============================================================
+flask run --port 5001
+
+# Now app runs at:
+# http://127.0.0.1:5001
+
+
+##############################################################
+# WHY POWERSHELL NEEDS DIFFERENT SYNTAX?
+##############################################################
+# CMD uses:   set FLASK_APP=run.py
+# PS uses:    $env:FLASK_APP="run.py"
+#
+# CMD uses ^ for line breaks
+# PS does NOT use ^
+#
+# Both are correct, but cannot mix.
+##############################################################

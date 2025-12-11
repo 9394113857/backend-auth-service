@@ -1,0 +1,10 @@
+If you want I can also modify the logger to:
+
+✔ Rotate logs every hour
+✔ Rotate logs every 5 minutes
+✔ Rotate logs when file becomes 5 MB
+✔ Rotate logs weekly
+✔ Create separate logs: error.log, info.log, debug.log
+
+Just say:
+👉 "Give me advanced logging setup"
