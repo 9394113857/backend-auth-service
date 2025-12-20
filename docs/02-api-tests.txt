@@ -1,0 +1,116 @@
+====================================================================
+COMMON API INTEGRATION TESTS
+Auth Service + Product Service
+====================================================================
+
+USAGE INSTRUCTIONS (IMPORTANT):
+1) Run LOGIN command first
+2) Copy access_token from response
+3) Paste it once below in ACCESS_TOKEN
+4) Run all remaining commands without changes
+
+====================================================================
+COMMON VARIABLES (SET ONCE)
+====================================================================
+
+# 🔑 Paste JWT token here AFTER login
+SET ACCESS_TOKEN=PASTE_ACCESS_TOKEN_HERE
+
+# 🆔 Paste product_id here AFTER create product
+SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
+
+====================================================================
+AUTH SERVICE (http://127.0.0.1:5001)
+====================================================================
+
+--------------------------------------------------
+1️⃣ Health Check
+--------------------------------------------------
+curl http://127.0.0.1:5001/api/v1/auth/
+
+--------------------------------------------------
+2️⃣ Register User
+--------------------------------------------------
+curl -X POST http://127.0.0.1:5001/api/v1/auth/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"testuser@example.com\",\"password\":\"password123\"}"
+
+--------------------------------------------------
+3️⃣ Login User (COPY access_token)
+--------------------------------------------------
+curl -X POST http://127.0.0.1:5001/api/v1/auth/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"testuser@example.com\",\"password\":\"password123\"}"
+
+# ⬆ COPY access_token from response
+# ⬆ Paste it in ACCESS_TOKEN above
+
+--------------------------------------------------
+4️⃣ Get User Profile
+--------------------------------------------------
+curl -X GET http://127.0.0.1:5001/api/v1/auth/profile ^
+-H "Authorization: Bearer %ACCESS_TOKEN%"
+
+--------------------------------------------------
+5️⃣ Update User Profile
+--------------------------------------------------
+curl -X PUT http://127.0.0.1:5001/api/v1/auth/profile ^
+-H "Authorization: Bearer %ACCESS_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"updateduser@example.com\"}"
+
+--------------------------------------------------
+6️⃣ Logout User
+--------------------------------------------------
+curl -X POST http://127.0.0.1:5001/api/v1/auth/logout ^
+-H "Authorization: Bearer %ACCESS_TOKEN%"
+
+====================================================================
+PRODUCT SERVICE (http://127.0.0.1:5002)
+====================================================================
+
+--------------------------------------------------
+7️⃣ Health Check
+--------------------------------------------------
+curl http://127.0.0.1:5002/api/v1/products/
+
+--------------------------------------------------
+8️⃣ Create Product
+--------------------------------------------------
+curl -X POST http://127.0.0.1:5002/api/v1/products/ ^
+-H "Authorization: Bearer %ACCESS_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"name\":\"Laptop\",\"price\":55000,\"description\":\"Gaming laptop\"}"
+
+# ⬆ COPY product_id from response
+# ⬆ Paste it in PRODUCT_ID above
+
+--------------------------------------------------
+9️⃣ Get All Products
+--------------------------------------------------
+curl -X GET http://127.0.0.1:5002/api/v1/products/all ^
+-H "Authorization: Bearer %ACCESS_TOKEN%"
+
+--------------------------------------------------
+🔟 Get Product By ID
+--------------------------------------------------
+curl -X GET http://127.0.0.1:5002/api/v1/products/%PRODUCT_ID% ^
+-H "Authorization: Bearer %ACCESS_TOKEN%"
+
+--------------------------------------------------
+1️⃣1️⃣ Update Product
+--------------------------------------------------
+curl -X PUT http://127.0.0.1:5002/api/v1/products/%PRODUCT_ID% ^
+-H "Authorization: Bearer %ACCESS_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"name\":\"Laptop Pro\",\"price\":65000,\"description\":\"Upgraded gaming laptop\"}"
+
+--------------------------------------------------
+1️⃣2️⃣ Delete Product
+--------------------------------------------------
+curl -X DELETE http://127.0.0.1:5002/api/v1/products/%PRODUCT_ID% ^
+-H "Authorization: Bearer %ACCESS_TOKEN%"
+
+====================================================================
+END OF COMMON API TEST FILE
+====================================================================
