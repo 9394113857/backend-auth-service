@@ -18,6 +18,8 @@ $env:FLASK_APP = "run.py"
 # echo $env:FLASK_APP
 
 
+pip install -r requirements.txt
+
 ==============================================================
 # 3. INITIALIZE MIGRATIONS (FIRST TIME ONLY)
 # Creates the /migrations folder.
