@@ -8,9 +8,9 @@ class User(db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
 
-    # ------------------------------
-    # Password Hashing
-    # ------------------------------
+    # NEW FIELD (Angular alignment)
+    role = db.Column(db.String(20), default="user")  # user | seller
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -18,4 +18,4 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
-        return f"<User {self.email}>"
+        return f"<User {self.email} ({self.role})>"

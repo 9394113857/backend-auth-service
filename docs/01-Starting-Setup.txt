@@ -2,6 +2,11 @@
 # AUTH SERVICE SETUP + MIGRATIONS + RUN COMMANDS (POWERSHELL)
 ##############################################################
 
+
+py -m venv venv
+.\venv\Scripts\activate 
+(venv)
+
 ==============================================================
 # 1. UPGRADE PIP (Optional, good practice)
 ==============================================================

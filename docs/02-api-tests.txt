@@ -1,22 +1,26 @@
 ====================================================================
-COMMON API INTEGRATION TESTS
+FULL E-COMMERCE BACKEND INTEGRATION TESTS (SELLER + CUSTOMER)
 Auth Service + Product Service
 ====================================================================
 
 USAGE INSTRUCTIONS (IMPORTANT):
-1) Run LOGIN command first
-2) Copy access_token from response
-3) Paste it once below in ACCESS_TOKEN
-4) Run all remaining commands without changes
+1) Run commands in sequence (TOP → BOTTOM)
+2) After LOGIN, copy access_token
+3) Paste token once in variable section
+4) Do NOT modify payloads
+5) Backend must be running on ports 5001 & 5002
 
 ====================================================================
-COMMON VARIABLES (SET ONCE)
+COMMON VARIABLES (SET MANUALLY)
 ====================================================================
 
-# 🔑 Paste JWT token here AFTER login
-SET ACCESS_TOKEN=PASTE_ACCESS_TOKEN_HERE
+# 🔑 Paste SELLER JWT token here after seller login
+SET SELLER_TOKEN=PASTE_SELLER_ACCESS_TOKEN_HERE
 
-# 🆔 Paste product_id here AFTER create product
+# 🔑 Paste CUSTOMER JWT token here after customer login
+SET CUSTOMER_TOKEN=PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+
+# 🆔 Paste product _id here after product creation
 SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
 
 ====================================================================
@@ -24,93 +28,114 @@ AUTH SERVICE (http://127.0.0.1:5001)
 ====================================================================
 
 --------------------------------------------------
-1️⃣ Health Check
+1️⃣ AUTH HEALTH CHECK
 --------------------------------------------------
 curl http://127.0.0.1:5001/api/v1/auth/
 
 --------------------------------------------------
-2️⃣ Register User
+2️⃣ SELLER REGISTRATION
 --------------------------------------------------
-curl -X POST http://127.0.0.1:5001/api/v1/auth/register ^
+curl -X POST http://127.0.0.1:5001/api/v1/auth/angularUser/register ^
 -H "Content-Type: application/json" ^
--d "{\"email\":\"testuser@example.com\",\"password\":\"password123\"}"
+-d "{\"email\":\"seller@test.com\",\"password\":\"seller123\",\"role\":\"seller\"}"
 
 --------------------------------------------------
-3️⃣ Login User (COPY access_token)
+3️⃣ SELLER LOGIN (COPY access_token)
 --------------------------------------------------
-curl -X POST http://127.0.0.1:5001/api/v1/auth/login ^
+curl -X POST http://127.0.0.1:5001/api/v1/auth/angularUser/login ^
 -H "Content-Type: application/json" ^
--d "{\"email\":\"testuser@example.com\",\"password\":\"password123\"}"
+-d "{\"email\":\"seller@test.com\",\"password\":\"seller123\"}"
 
-# ⬆ COPY access_token from response
-# ⬆ Paste it in ACCESS_TOKEN above
+# ⬆ COPY access_token
+# ⬆ PASTE INTO SELLER_TOKEN ABOVE
+
+# 🔑 Paste SELLER JWT token here after seller login
+SET SELLER_TOKEN=PASTE_SELLER_ACCESS_TOKEN_HERE
+
 
 --------------------------------------------------
-4️⃣ Get User Profile
+4️⃣ SELLER PROFILE (JWT VERIFY)
 --------------------------------------------------
 curl -X GET http://127.0.0.1:5001/api/v1/auth/profile ^
--H "Authorization: Bearer %ACCESS_TOKEN%"
-
---------------------------------------------------
-5️⃣ Update User Profile
---------------------------------------------------
-curl -X PUT http://127.0.0.1:5001/api/v1/auth/profile ^
--H "Authorization: Bearer %ACCESS_TOKEN%" ^
--H "Content-Type: application/json" ^
--d "{\"email\":\"updateduser@example.com\"}"
-
---------------------------------------------------
-6️⃣ Logout User
---------------------------------------------------
-curl -X POST http://127.0.0.1:5001/api/v1/auth/logout ^
--H "Authorization: Bearer %ACCESS_TOKEN%"
+-H "Authorization: Bearer %SELLER_TOKEN%"
 
 ====================================================================
 PRODUCT SERVICE (http://127.0.0.1:5002)
 ====================================================================
 
 --------------------------------------------------
-7️⃣ Health Check
+5️⃣ PRODUCT SERVICE HEALTH CHECK
 --------------------------------------------------
-curl http://127.0.0.1:5002/api/v1/products/
+curl http://127.0.0.1:5002/api/angularProduct/health
 
 --------------------------------------------------
-8️⃣ Create Product
+6️⃣ SELLER ADDS PRODUCT
 --------------------------------------------------
-curl -X POST http://127.0.0.1:5002/api/v1/products/ ^
--H "Authorization: Bearer %ACCESS_TOKEN%" ^
+curl -X POST http://127.0.0.1:5002/api/angularProduct/add ^
+-H "Authorization: Bearer %SELLER_TOKEN%" ^
 -H "Content-Type: application/json" ^
 -d "{\"name\":\"Laptop\",\"price\":55000,\"description\":\"Gaming laptop\"}"
 
-# ⬆ COPY product_id from response
-# ⬆ Paste it in PRODUCT_ID above
+# ⬆ COPY _id FROM RESPONSE
+# ⬆ PASTE INTO PRODUCT_ID ABOVE
 
 --------------------------------------------------
-9️⃣ Get All Products
+7️⃣ SELLER VIEWS ALL PRODUCTS
 --------------------------------------------------
-curl -X GET http://127.0.0.1:5002/api/v1/products/all ^
--H "Authorization: Bearer %ACCESS_TOKEN%"
+curl -X GET http://127.0.0.1:5002/api/angularProduct/get
 
 --------------------------------------------------
-🔟 Get Product By ID
+8️⃣ SELLER LOGOUT
 --------------------------------------------------
-curl -X GET http://127.0.0.1:5002/api/v1/products/%PRODUCT_ID% ^
--H "Authorization: Bearer %ACCESS_TOKEN%"
-
---------------------------------------------------
-1️⃣1️⃣ Update Product
---------------------------------------------------
-curl -X PUT http://127.0.0.1:5002/api/v1/products/%PRODUCT_ID% ^
--H "Authorization: Bearer %ACCESS_TOKEN%" ^
--H "Content-Type: application/json" ^
--d "{\"name\":\"Laptop Pro\",\"price\":65000,\"description\":\"Upgraded gaming laptop\"}"
-
---------------------------------------------------
-1️⃣2️⃣ Delete Product
---------------------------------------------------
-curl -X DELETE http://127.0.0.1:5002/api/v1/products/%PRODUCT_ID% ^
--H "Authorization: Bearer %ACCESS_TOKEN%"
+curl -X POST http://127.0.0.1:5001/api/v1/auth/logout ^
+-H "Authorization: Bearer %SELLER_TOKEN%"
 
 ====================================================================
-END OF COMMON API TEST FILE
+CUSTOMER / USER FLOW
+====================================================================
+
+--------------------------------------------------
+9️⃣ CUSTOMER REGISTRATION
+--------------------------------------------------
+curl -X POST http://127.0.0.1:5001/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user@test.com\",\"password\":\"user123\",\"role\":\"user\"}"
+
+--------------------------------------------------
+🔟 CUSTOMER LOGIN (COPY access_token)
+--------------------------------------------------
+curl -X POST http://127.0.0.1:5001/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user@test.com\",\"password\":\"user123\"}"
+
+# ⬆ COPY access_token
+# ⬆ PASTE INTO CUSTOMER_TOKEN ABOVE
+
+# 🔑 Paste CUSTOMER JWT token here after customer login
+SET CUSTOMER_TOKEN=PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+
+--------------------------------------------------
+1️⃣1️⃣ CUSTOMER PROFILE (JWT VERIFY)
+--------------------------------------------------
+curl -X GET http://127.0.0.1:5001/api/v1/auth/profile ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+--------------------------------------------------
+1️⃣2️⃣ CUSTOMER VIEWS ALL PRODUCTS
+--------------------------------------------------
+curl -X GET http://127.0.0.1:5002/api/angularProduct/get
+
+--------------------------------------------------
+1️⃣3️⃣ CUSTOMER VIEWS SINGLE PRODUCT
+--------------------------------------------------
+curl -X GET http://127.0.0.1:5002/api/angularProduct/get/%PRODUCT_ID%
+
+--------------------------------------------------
+1️⃣4️⃣ CUSTOMER LOGOUT
+--------------------------------------------------
+curl -X POST http://127.0.0.1:5001/api/v1/auth/logout ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+====================================================================
+END OF BACKEND INTEGRATION TEST FILE
 ====================================================================

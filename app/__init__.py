@@ -6,7 +6,7 @@ from flask import Flask
 from .config import Config
 from .extensions import db, migrate, jwt, cors
 
-# import models so Flask-Migrate can detect them
+# Import models for migration detection
 from .models.user import User
 from .models.token_blacklist import TokenBlocklist
 
@@ -22,7 +22,7 @@ def create_app():
     jwt.init_app(app)
 
     # --------------------------
-    # Logging Setup (Daily Rotation)
+    # Logging Setup
     # --------------------------
     logs_path = os.path.join(os.getcwd(), "logs")
     os.makedirs(logs_path, exist_ok=True)
@@ -50,11 +50,12 @@ def create_app():
     from .api.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
-    # JWT token revoked checker
+    # JWT revoked token checker
     @jwt.token_in_blocklist_loader
     def token_revoked(jwt_header, jwt_payload):
+        from .models.token_blacklist import TokenBlocklist
         jti = jwt_payload.get("jti")
         return TokenBlocklist.query.filter_by(jti=jti).first() is not None
 
-    app.logger.info("Auth service started and routes registered.")
+    app.logger.info("Auth service started successfully.")
     return app
