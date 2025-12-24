@@ -1,0 +1,146 @@
+====================================================================
+FULL E-COMMERCE BACKEND – LIVE PRODUCTION INTEGRATION TESTS
+SELLER + CUSTOMER FLOW
+(Auth Service + Product Service on Render)
+====================================================================
+
+USAGE INSTRUCTIONS (IMPORTANT):
+1) Run commands in sequence (TOP → BOTTOM)
+2) After LOGIN, copy access_token
+3) Paste token once in variable section
+4) Do NOT modify payloads
+5) Services are LIVE on Render (HTTPS)
+
+====================================================================
+COMMON VARIABLES (SET MANUALLY)
+====================================================================
+
+REM 🔑 Paste SELLER JWT token here after seller login
+SET SELLER_TOKEN=PASTE_SELLER_ACCESS_TOKEN_HERE
+
+REM 🔑 Paste CUSTOMER JWT token here after customer login
+SET CUSTOMER_TOKEN=PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+
+REM 🆔 Paste product ID here after product creation
+SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
+
+====================================================================
+AUTH SERVICE – LIVE (RENDER)
+Base URL:
+https://backend-auth-service-dkn7.onrender.com
+====================================================================
+
+--------------------------------------------------
+1️⃣ AUTH SERVICE – HEALTH CHECK
+--------------------------------------------------
+curl https://backend-auth-service-dkn7.onrender.com/api/v1/auth/
+
+--------------------------------------------------
+2️⃣ SELLER REGISTRATION (LIVE)
+--------------------------------------------------
+curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"seller@test.com\",\"password\":\"seller123\",\"role\":\"seller\"}"
+
+--------------------------------------------------
+3️⃣ SELLER LOGIN (COPY access_token)
+--------------------------------------------------
+curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"seller@test.com\",\"password\":\"seller123\"}"
+
+REM ⬆ COPY access_token FROM RESPONSE
+REM ⬆ PASTE INTO SELLER_TOKEN ABOVE
+
+SET SELLER_TOKEN=PASTE_SELLER_ACCESS_TOKEN_HERE
+
+--------------------------------------------------
+4️⃣ SELLER PROFILE (JWT VERIFY – LIVE)
+--------------------------------------------------
+curl -X GET https://backend-auth-service-dkn7.onrender.com/api/v1/auth/profile ^
+-H "Authorization: Bearer %SELLER_TOKEN%"
+
+====================================================================
+PRODUCT SERVICE – LIVE (RENDER)
+Base URL:
+https://backend-product-service.onrender.com
+(Replace if your product service URL differs)
+====================================================================
+
+--------------------------------------------------
+5️⃣ PRODUCT SERVICE – HEALTH CHECK
+--------------------------------------------------
+curl https://backend-product-service.onrender.com/api/angularProduct/health
+
+--------------------------------------------------
+6️⃣ SELLER ADDS PRODUCT (JWT REQUIRED)
+--------------------------------------------------
+curl -X POST https://backend-product-service.onrender.com/api/angularProduct/add ^
+-H "Authorization: Bearer %SELLER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"name\":\"Laptop\",\"price\":55000,\"description\":\"Gaming laptop\"}"
+
+REM ⬆ COPY product ID FROM RESPONSE
+REM ⬆ PASTE INTO PRODUCT_ID ABOVE
+
+SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
+
+--------------------------------------------------
+7️⃣ SELLER VIEWS ALL PRODUCTS
+--------------------------------------------------
+curl -X GET https://backend-product-service.onrender.com/api/angularProduct/get
+
+--------------------------------------------------
+8️⃣ SELLER LOGOUT (AUTH SERVICE)
+--------------------------------------------------
+curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/logout ^
+-H "Authorization: Bearer %SELLER_TOKEN%"
+
+====================================================================
+CUSTOMER / USER FLOW – LIVE
+====================================================================
+
+--------------------------------------------------
+9️⃣ CUSTOMER REGISTRATION
+--------------------------------------------------
+curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user@test.com\",\"password\":\"user123\",\"role\":\"user\"}"
+
+--------------------------------------------------
+🔟 CUSTOMER LOGIN (COPY access_token)
+--------------------------------------------------
+curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user@test.com\",\"password\":\"user123\"}"
+
+REM ⬆ COPY access_token
+REM ⬆ PASTE INTO CUSTOMER_TOKEN ABOVE
+
+SET CUSTOMER_TOKEN=PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+
+--------------------------------------------------
+1️⃣1️⃣ CUSTOMER PROFILE (JWT VERIFY)
+--------------------------------------------------
+curl -X GET https://backend-auth-service-dkn7.onrender.com/api/v1/auth/profile ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+--------------------------------------------------
+1️⃣2️⃣ CUSTOMER VIEWS ALL PRODUCTS
+--------------------------------------------------
+curl -X GET https://backend-product-service.onrender.com/api/angularProduct/get
+
+--------------------------------------------------
+1️⃣3️⃣ CUSTOMER VIEWS SINGLE PRODUCT
+--------------------------------------------------
+curl -X GET https://backend-product-service.onrender.com/api/angularProduct/get/%PRODUCT_ID%
+
+--------------------------------------------------
+1️⃣4️⃣ CUSTOMER LOGOUT
+--------------------------------------------------
+curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/logout ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+====================================================================
+END OF LIVE PRODUCTION BACKEND INTEGRATION TEST FILE
+====================================================================

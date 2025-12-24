@@ -1,0 +1,67 @@
+====================================================
+AUTH SERVICE – NEON DATABASE MIGRATION (LOCAL)
+====================================================
+
+PURPOSE:
+--------
+- Apply Flask-Migrate migrations to Neon PostgreSQL
+- Required because Render Free Tier has no shell access
+- This step creates tables in Neon DB automatically
+
+----------------------------------------------------
+STEP 1️⃣ : SET DATABASE_URL (PowerShell ONLY)
+----------------------------------------------------
+# Temporarily point Flask to Neon PostgreSQL
+# This overrides SQLite for THIS terminal session only
+
+$env:DATABASE_URL="postgresql+psycopg://neondb_owner:npg_FYH5UE6CBrwa@ep-morning-shape-a10y37q7-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+----------------------------------------------------
+STEP 2️⃣ : INSTALL POSTGRES DRIVER (ONE-TIME)
+----------------------------------------------------
+# Install psycopg (PostgreSQL driver)
+# Required only once per virtual environment
+# Skip this step if already installed
+
+pip install psycopg[binary]>=3.3.0
+
+----------------------------------------------------
+STEP 3️⃣ : VERIFY FLASK-MIGRATE IS AVAILABLE
+----------------------------------------------------
+# This confirms:
+# - Flask app loads correctly
+# - Flask-Migrate is installed
+# - DB connection works
+
+flask db --help
+
+----------------------------------------------------
+STEP 4️⃣ : APPLY MIGRATIONS TO NEON (IMPORTANT)
+----------------------------------------------------
+# This creates/updates tables in Neon DB
+# Safe to run multiple times
+# DO NOT run 'flask db migrate' on production
+
+flask db upgrade
+
+----------------------------------------------------
+STEP 5️⃣ : (OPTIONAL) CLEAR DATABASE_URL
+----------------------------------------------------
+# Removes Neon URL from terminal session
+# Good practice but not mandatory
+
+Remove-Item Env:DATABASE_URL
+
+----------------------------------------------------
+EXPECTED RESULT:
+----------------------------------------------------
+- Tables created in Neon:
+  • users
+  • token_blocklist
+  • alembic_version
+- Auth Service APIs start working on Render
+- No 500 errors on register/login
+
+====================================================
+END OF FILE
+====================================================
