@@ -8,3 +8,7 @@ If you want I can also modify the logger to:
 
 Just say:
 👉 "Give me advanced logging setup"
+
+=============================================================
+
+Ready to connect Flask with Neon
