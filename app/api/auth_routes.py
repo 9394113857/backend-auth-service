@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     get_jwt
 )
 
-from ..services.auth_service import register_user, authenticate_user
+from ..services.auth_service import register_user
 from ..extensions import db
 from ..models.user import User
 from ..models.token_blacklist import TokenBlocklist
@@ -20,6 +20,7 @@ auth_bp = Blueprint("auth", __name__)
 def health():
     return jsonify({"status": "auth-service UP"}), 200
 
+
 # ------------------------------------------------
 # ANGULAR REGISTER
 # ------------------------------------------------
@@ -29,27 +30,33 @@ def angular_register():
 
     email = data.get("email")
     password = data.get("password")
-    role = data.get("role", "user")
+    role = data.get("role", "user")  # user | seller
 
     if not email or not password:
         return jsonify({"message": "email and password required"}), 400
 
     resp, status = register_user(email, password)
 
-    if status == 201:
-        user = User.query.filter_by(email=email).first()
-        user.role = role
-        db.session.commit()
+    if status != 201:
+        return jsonify(resp), status
 
-        return jsonify({
-            "message": "User registered successfully",
-            "role": role
-        }), 201
+    # ✅ role assignment AFTER user creation
+    user = User.query.filter_by(email=email).first()
+    user.role = role
+    db.session.commit()
 
-    return jsonify(resp), status
+    current_app.logger.info(
+        f"Service: user created id={user.id} email={user.email} role={user.role}"
+    )
+
+    return jsonify({
+        "message": "User registered successfully",
+        "role": user.role
+    }), 201
+
 
 # ------------------------------------------------
-# ANGULAR LOGIN
+# ANGULAR LOGIN  ✅ FIXED
 # ------------------------------------------------
 @auth_bp.post("/angularUser/login")
 def angular_login():
@@ -58,10 +65,19 @@ def angular_login():
     email = data.get("email")
     password = data.get("password")
 
-    user = authenticate_user(email, password)
-    if not user:
+    if not email or not password:
+        return jsonify({"message": "email and password required"}), 400
+
+    # ✅ ALWAYS fetch User model directly
+    user = User.query.filter_by(email=email).first()
+
+    if not user or not user.check_password(password):
+        current_app.logger.warning(
+            f"Service: authenticate_user - invalid credentials email={email}"
+        )
         return jsonify({"message": "Invalid email or password"}), 401
 
+    # ✅ user is guaranteed to be User model
     token = create_access_token(identity=str(user.id))
 
     return jsonify({
@@ -69,6 +85,7 @@ def angular_login():
         "userId": user.id,
         "role": user.role
     }), 200
+
 
 # ------------------------------------------------
 # PROFILE
@@ -78,6 +95,7 @@ def angular_login():
 def profile():
     user_id = get_jwt_identity()
     return jsonify({"user_id": user_id}), 200
+
 
 # ------------------------------------------------
 # LOGOUT

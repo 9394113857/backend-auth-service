@@ -1,0 +1,44 @@
+# =====================================================
+# FILE: reset_users_flask_shell.txt
+# PURPOSE: Clear users table using Flask shell (Windows)
+# DB: SQLite (auth.db)
+# NOTE: sqlite3 CLI is NOT installed on this system
+# =====================================================
+
+# Open PowerShell in:
+# E:\ecommerce-platform\backends\backend-auth-service
+
+# Activate virtual environment if not active
+venv\Scripts\activate
+
+# Open Flask shell
+flask shell
+
+# -----------------------------------------------------
+# Inside Flask shell (Python prompt >>>)
+# -----------------------------------------------------
+
+from app.extensions import db
+from app.models.user import User
+
+# Delete all rows from users table
+db.session.query(User).delete()
+
+# Commit changes
+db.session.commit()
+
+# Exit shell
+exit()
+
+# -----------------------------------------------------
+# Restart auth backend after cleanup
+# -----------------------------------------------------
+
+flask run --port 5001
+
+# -----------------------------------------------------
+# Now test from Angular UI:
+# - Register user again
+# - Login using same password
+# Login WILL succeed because passwords are hashed correctly now
+# -----------------------------------------------------

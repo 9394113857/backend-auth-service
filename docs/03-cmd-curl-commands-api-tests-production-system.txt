@@ -64,7 +64,6 @@ curl -X GET https://backend-auth-service-dkn7.onrender.com/api/v1/auth/profile ^
 PRODUCT SERVICE – LIVE (RENDER)
 Base URL:
 https://backend-product-service.onrender.com
-(Replace if your product service URL differs)
 ====================================================================
 
 --------------------------------------------------
