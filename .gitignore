@@ -1,54 +1,62 @@
-# ===============================
-# Python / Flask Microservice Gitignore
-# ===============================
-
-# Python cache / temp
+# ============================================
+# PYTHON BYTECODE & CACHE
+# ============================================
 __pycache__/
 *.pyc
+*.py[cod]
 *.pyo
 *.pyd
-*.tmp
-*.log
 
-# Virtual environment
+# ============================================
+# ENVIRONMENT FILES
+# ============================================
 venv/
-env/
+.env
+.env.*
+*.env
 
-# SQLite database (auto-generated)
+# ============================================
+# DATABASE FILES (SQLite - local only)
+# ============================================
 *.db
-instance/
 *.sqlite3
 
-# Logs (commit structure but not log files)
+# ============================================
+# LOG FILES
+# ============================================
 logs/
-!logs/.gitkeep
+*.log
+*.gz
 
-# Flask environment files
-.env
-*.env
-.env.*
+# ============================================
+# DOCS
+# ============================================
+docs/
+!docs/.gitkeep  # Keep .gitkeep but allow everything else in docs/
 
-# IDE / Editor files
-.vscode/
-.idea/
+# ============================================
+# FLASK MIGRATIONS (IMPORTANT)
+# ============================================
+# DO NOT IGNORE migrations folder
+# Migrations must be committed for Neon / prod
+migrations/versions/*.pyc
+
+# ============================================
+# OS / EDITOR FILES
+# ============================================
+Thumbs.db
 .DS_Store
 
-# Bytecode, wheels, build artifacts
-build/
-dist/
-pip-wheel-metadata/
-*.egg-info/
-wheelhouse/
+# VSCode
+.vscode/
+*.code-workspace
 
-# pytest, coverage
-.pytest_cache/
-htmlcov/
-.coverage*
-.cache/
+# PyCharm
+.idea/
 
-# Migrations (ALLOW THEM — IMPORTANT)
-!migrations/
-!migrations/**
-
-# Allow docs folder
-!docs/
+# ============================================
+# OTHER TEMP FILES
+# ============================================
+*.tmp
+*.bak
+*.swp
