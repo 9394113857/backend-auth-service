@@ -1,13 +1,26 @@
 import os
 
+
 class Config:
     """
-    Base configuration for auth-service.
+    Unified configuration for:
+    - Local development (SQLite)
+    - Production on Render + Neon PostgreSQL
     """
 
+    # -------------------------------------------------
+    # SECURITY
+    # -------------------------------------------------
     SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jwt-secret-key")
 
-    # DB (SQLite local, Neon on Render)
+    # -------------------------------------------------
+    # DATABASE
+    # -------------------------------------------------
+    # Local:
+    #   sqlite:///auth.db
+    # Production (Render):
+    #   DATABASE_URL = postgresql://... (Neon)
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         "sqlite:///auth.db"
@@ -15,4 +28,10 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jwt-secret-key")
+    # -------------------------------------------------
+    # ✅ CRITICAL FIX FOR RENDER + NEON (SSL DISCONNECT)
+    # -------------------------------------------------
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,   # Reconnect if SSL connection dropped
+        "pool_recycle": 300,     # Recycle connections every 5 minutes
+    }
