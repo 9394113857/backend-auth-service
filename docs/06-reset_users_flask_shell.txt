@@ -1,21 +1,28 @@
 # =====================================================
 # FILE: reset_users_flask_shell.txt
 # PURPOSE: Clear users table using Flask shell (Windows)
-# DB: SQLite (auth.db)
-# NOTE: sqlite3 CLI is NOT installed on this system
+# DATABASE: SQLite (auth.db) OR Neon (if DATABASE_URL set)
+# NOTE: sqlite3 CLI is NOT required
 # =====================================================
 
-# Open PowerShell in:
+# -----------------------------------------------------
+# Open PowerShell in this directory:
 # E:\ecommerce-platform\backends\backend-auth-service
+# -----------------------------------------------------
 
-# Activate virtual environment if not active
+# Step 1: Activate virtual environment
 venv\Scripts\activate
 
-# Open Flask shell
+# -----------------------------------------------------
+# Step 2: Open Flask shell
+# IMPORTANT:
+# - If DATABASE_URL is NOT set → SQLite (auth.db)
+# - If DATABASE_URL IS set     → Neon PostgreSQL
+# -----------------------------------------------------
 flask shell
 
 # -----------------------------------------------------
-# Inside Flask shell (Python prompt >>>)
+# Step 3: Inside Flask shell (Python prompt >>>)
 # -----------------------------------------------------
 
 from app.extensions import db
@@ -31,14 +38,13 @@ db.session.commit()
 exit()
 
 # -----------------------------------------------------
-# Restart auth backend after cleanup
+# Step 4: Restart auth backend
 # -----------------------------------------------------
-
 flask run --port 5001
 
 # -----------------------------------------------------
-# Now test from Angular UI:
-# - Register user again
-# - Login using same password
-# Login WILL succeed because passwords are hashed correctly now
+# After this:
+# - Re-register seller / user from Angular or curl
+# - Login will succeed (password hashing OK)
+# - IDs reset for SQLite (may continue for Postgres)
 # -----------------------------------------------------
