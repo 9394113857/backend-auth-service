@@ -42,6 +42,11 @@ flask db migrate -m "initial models"
 ==============================================================
 # 5. APPLY MIGRATIONS
 # Creates users + token_blocklist tables in auth.db
+
+==============================================================
+If code cloned means then directly run upgrade commnad 
+for local dvelopment or any cloud also, 
+so this is the standard industry flow:-
 ==============================================================
 flask db upgrade
 
