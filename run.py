@@ -12,6 +12,13 @@ if __name__ == "__main__":
 // Start the virtual environment and run the Flask app on port 5001:
 
 .\venv\Scripts\activate  # Activate the virtual environment
+
+$env:FLASK_APP = "run.py"
+
+# Confirm by running:
+echo $env:FLASK_APP
+
+
 flask run --port 5001   # Run the Flask app on port 5001
 
 

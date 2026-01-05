@@ -20,7 +20,7 @@ python -m pip install --upgrade pip
 $env:FLASK_APP = "run.py"
 
 # Confirm by running:
-# echo $env:FLASK_APP
+echo $env:FLASK_APP
 
 
 pip install -r requirements.txt
