@@ -1,0 +1,77 @@
+# =========================================================
+# FILE: 06-Git-View-Pushed-Commits-And-Files.txt
+# PURPOSE:
+#   - See what commits were pushed
+#   - See which files were pushed
+#   - See exact changes already pushed
+#   - Verify repo is clean and up-to-date
+# =========================================================
+
+
+# ---------------------------------------------------------
+# STEP 1: CHECK CURRENT STATE (MOST IMPORTANT)
+# ---------------------------------------------------------
+git status
+# Expected:
+# - On branch main
+# - Your branch is up to date with 'origin/main'
+# - nothing to commit, working tree clean
+
+
+# ---------------------------------------------------------
+# STEP 2: SEE LAST PUSHED COMMITS (ON REMOTE)
+# ---------------------------------------------------------
+git log origin/main --oneline -5
+# Shows last 5 commits that are already on GitHub
+
+
+# ---------------------------------------------------------
+# STEP 3: SEE FILES CHANGED IN LAST 5 COMMITS
+# ---------------------------------------------------------
+git log --name-only --oneline -5
+# Best command to know exactly what files were pushed
+
+
+# ---------------------------------------------------------
+# STEP 4: SEE FILES CHANGED IN LATEST COMMIT ONLY
+# ---------------------------------------------------------
+git show --name-only
+# Clean view: filenames only
+
+
+# ---------------------------------------------------------
+# STEP 5: SEE EXACT CODE / TEXT CHANGES (FULL DIFF)
+# Replace commit hashes if needed
+# ---------------------------------------------------------
+git diff ee98bc6..09cc183
+# Shows full content changes pushed to remote
+
+
+# ---------------------------------------------------------
+# STEP 6: SEE ONLY FILE NAMES FROM PUSH RANGE (FAST)
+# ---------------------------------------------------------
+git diff --name-only ee98bc6..09cc183
+
+
+# ---------------------------------------------------------
+# STEP 7: INSPECT A SPECIFIC COMMIT (OPTIONAL)
+# ---------------------------------------------------------
+git show ee98bc6
+git show 09cc183
+
+
+# ---------------------------------------------------------
+# STEP 8: FINAL CONFIRMATION (REPO IDLE)
+# ---------------------------------------------------------
+git status
+# Expected:
+# working tree clean
+# branch up to date
+
+
+# =========================================================
+# REMEMBER:
+# - git status  → tells NOW
+# - git log     → tells WHAT
+# - git diff    → tells HOW
+# =========================================================
