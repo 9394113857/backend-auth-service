@@ -16,6 +16,8 @@ STEP 1️⃣ : SET DATABASE_URL (PowerShell ONLY)
 
 $env:DATABASE_URL="postgresql+psycopg://neondb_owner:npg_FYH5UE6CBrwa@ep-morning-shape-a10y37q7-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
+flask db current
+
 ----------------------------------------------------
 STEP 2️⃣ : INSTALL POSTGRES DRIVER (ONE-TIME)
 ----------------------------------------------------
