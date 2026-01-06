@@ -27,13 +27,13 @@ SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
 ====================================================================
 AUTH SERVICE – LIVE (RENDER)
 Base URL:
-https://backend-auth-service-dkn7.onrender.com
+https://backend-auth-service-6zwi.onrender.com
 ====================================================================
 
 --------------------------------------------------
 1️⃣ AUTH SERVICE – HEALTH CHECK
 --------------------------------------------------
-curl https://backend-auth-service-dkn7.onrender.com/api/v1/auth/
+curl https://backend-auth-service-6zwi.onrender.com/api/v1/auth/
 
 --------------------------------------------------
 2️⃣ SELLER REGISTRATION (LIVE)

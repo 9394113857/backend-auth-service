@@ -52,7 +52,7 @@ flask db upgrade
 
 
 ---------------------------------------------------------
-5️⃣ REMOVE DATABASE_URL (CLEAN & SAFE)
+Step 5️⃣ REMOVE DATABASE_URL (CLEAN & SAFE)
 ---------------------------------------------------------
 if (Test-Path Env:DATABASE_URL) {
     Remove-Item Env:DATABASE_URL
