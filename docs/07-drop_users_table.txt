@@ -1,0 +1,67 @@
+# =====================================================
+# FILE: 07-drop_users_table.txt
+# PROJECT: backend-auth-service
+# PURPOSE: DROP users table completely
+# DB: SQLite (local) OR Neon (Render)
+# WARNING: THIS DELETES THE TABLE (IRREVERSIBLE)
+# =====================================================
+
+# -----------------------------------------------------
+# IMPORTANT RULE:
+# Whatever DATABASE_URL is set → THAT database is affected
+# -----------------------------------------------------
+
+# -----------------------------------------------------
+# STEP 1: Open PowerShell in this directory
+# -----------------------------------------------------
+# E:\ecommerce-platform\backends\backend-auth-service
+
+# -----------------------------------------------------
+# STEP 2: Activate virtual environment
+# -----------------------------------------------------
+venv\Scripts\activate
+
+# -----------------------------------------------------
+# STEP 3: (OPTIONAL) Set Neon DB if needed
+# -----------------------------------------------------
+# For LOCAL → SKIP this
+# For NEON  → SET DATABASE_URL before continuing
+#
+# Example:
+# $env:DATABASE_URL="postgresql+psycopg://neondb_owner:npg_FYH5UE6CBrwa@ep-morning-shape-a10y37q7-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+# -----------------------------------------------------
+# STEP 4: Open Flask shell
+# -----------------------------------------------------
+flask shell
+
+# -----------------------------------------------------
+# STEP 5: Inside Flask shell (>>>)
+# -----------------------------------------------------
+from app.extensions import db
+from sqlalchemy import text
+
+# DROP users table completely
+db.session.execute(text("DROP TABLE IF EXISTS users CASCADE"))
+db.session.commit()
+
+# Exit shell
+exit()
+
+# -----------------------------------------------------
+# STEP 6: Recreate tables via migrations
+# -----------------------------------------------------
+flask db upgrade
+
+# -----------------------------------------------------
+# STEP 7: Restart service
+# -----------------------------------------------------
+flask run --port 5001
+
+# -----------------------------------------------------
+# RESULT:
+# - users table fully recreated
+# - clean schema
+# - ready for fresh registrations
+# -----------------------------------------------------
+ 

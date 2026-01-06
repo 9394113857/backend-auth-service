@@ -1,0 +1,92 @@
+# =========================================================
+# REAL-WORLD FLOW: git stash → pull → add → commit → vi
+# =========================================================
+
+# ---------------------------------------------------------
+# STEP 1: STASH LOCAL CHANGES
+# ---------------------------------------------------------
+git stash
+
+# ---------------------------------------------------------
+# STEP 2: PULL LATEST CHANGES FROM REMOTE
+# ---------------------------------------------------------
+git pull origin main
+
+# ---------------------------------------------------------
+# STEP 3: CHECK STATUS (After pull)
+# ---------------------------------------------------------
+git status
+# (If files changed or conflicts resolved, continue)
+
+# ---------------------------------------------------------
+# STEP 4: ADD FILES (After resolving conflicts / applying stash)
+# ---------------------------------------------------------
+git add .
+
+# ---------------------------------------------------------
+# STEP 5: COMMIT (vi EDITOR OPENS AUTOMATICALLY)
+# ---------------------------------------------------------
+git commit
+
+# =========================================================
+# NOW vi EDITOR IS OPEN — DO THIS EXACTLY
+# =========================================================
+
+# 1️⃣ Press 'i'  → enter INSERT mode
+i
+
+# 2️⃣ Type commit message
+Resolve merge conflict after stash pop
+
+# 3️⃣ Press ESC → exit INSERT mode
+ESC
+
+# 4️⃣ Save and exit vi
+:wq
+
+# 5️⃣ Press ENTER
+
+# =========================================================
+# RESULT:
+# - vi editor closes
+# - Commit is created
+# - Git operation continues
+# =========================================================
+
+
+# =========================================================
+# CASE A: EXIT vi WITHOUT SAVING (Cancel commit)
+# =========================================================
+ESC
+:q!
+ENTER
+
+
+# =========================================================
+# CASE B: vi OPENS AFTER MERGE / STASH POP (Same steps)
+# =========================================================
+# i → type message → ESC → :wq → ENTER
+
+
+# =========================================================
+# STEP 6: FINAL VERIFY (VERY IMPORTANT)
+# =========================================================
+git status
+# Expected:
+# nothing to commit, working tree clean
+
+
+# =========================================================
+# OPTIONAL: DELETE STASH IF STILL EXISTS
+# =========================================================
+git stash list
+git stash drop
+
+
+# =========================================================
+# OPTIONAL: NEVER SEE vi AGAIN (RECOMMENDED)
+# =========================================================
+git config --global core.editor "code --wait"
+# OR
+git config --global core.editor notepad
+ 

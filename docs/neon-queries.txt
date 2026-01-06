@@ -1,0 +1,150 @@
+=========================================================
+NEON DATABASE – INSPECTION & SAFE QUERY FILE
+Project : backend-auth-service
+Database: Neon PostgreSQL
+=========================================================
+
+---------------------------------------------------------
+1️⃣ ACTIVATE VIRTUAL ENVIRONMENT (PowerShell)
+---------------------------------------------------------
+.\venv\Scripts\activate
+
+
+---------------------------------------------------------
+2️⃣ SET NEON DATABASE_URL (TEMPORARY – SAFE)
+---------------------------------------------------------
+$env:DATABASE_URL="postgresql+psycopg://neondb_owner:npg_Z2AynLcN0eVH@ep-bitter-lab-a1o801hx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+ 
+---------------------------------------------------------
+3️⃣ START FLASK SHELL
+---------------------------------------------------------
+flask shell
+
+ 
+---------------------------------------------------------
+4️⃣ PYTHON / FLASK SHELL COMMANDS
+---------------------------------------------------------
+
+from app.extensions import db
+from app.models.user import User
+from app.models.token_blacklist import TokenBlocklist
+
+
+print("\n==============================")
+print("📦 DATABASE METADATA")
+print("==============================")
+
+print("Tables present in database:")
+print(db.metadata.tables.keys())
+
+
+print("\n==============================")
+print("👤 USERS TABLE DATA")
+print("==============================")
+
+users = User.query.all()
+
+print(f"Total users count: {len(users)}\n")
+
+for u in users:
+    print(f"""
+ID      : {u.id}
+EMAIL   : {u.email}
+ROLE    : {u.role}
+--------------------------------
+""")
+
+
+print("\n==============================")
+print("🚫 TOKEN BLOCKLIST DATA")
+print("==============================")
+
+tokens = TokenBlocklist.query.all()
+
+print(f"Blocked tokens count: {len(tokens)}\n")
+
+for t in tokens:
+    print(f"""
+ID  : {t.id}
+JTI : {t.jti}
+--------------------------------
+""")
+
+
+print("\n==============================")
+print("✅ DONE – FLASK SHELL OUTPUT")
+print("==============================")
+
+
+---------------------------------------------------------
+5️⃣ EXIT FLASK SHELL
+---------------------------------------------------------
+exit()
+
+
+---------------------------------------------------------
+6️⃣ REMOVE DATABASE_URL (CLEAN & SAFE)
+---------------------------------------------------------
+if (Test-Path Env:DATABASE_URL) {
+    Remove-Item Env:DATABASE_URL
+    Write-Host "DATABASE_URL removed" -ForegroundColor Green
+} else {
+    Write-Host "DATABASE_URL not set" -ForegroundColor Yellow
+}
+
+
+=========================================================
+7️⃣ OPTIONAL: RAW SQL QUERIES (REFERENCE ONLY)
+=========================================================
+
+-- 🔍 SHOW ALL TABLES
+SELECT tablename
+FROM pg_tables
+WHERE schemaname = 'public';
+
+
+-- 👤 USERS TABLE
+SELECT id, email, role
+FROM users
+ORDER BY id DESC;
+
+
+-- 👤 USERS COUNT
+SELECT COUNT(*) AS total_users
+FROM users;
+
+
+-- 🚫 TOKEN BLOCKLIST
+SELECT id, jti
+FROM token_blocklist
+ORDER BY id DESC;
+
+
+-- 🚫 TOKEN COUNT
+SELECT COUNT(*) AS blocked_tokens
+FROM token_blocklist;
+
+
+---------------------------------------------------------
+⚠️ DANGEROUS COMMANDS (COMMENTED – USE CAREFULLY)
+---------------------------------------------------------
+
+-- ❌ DELETE ALL USERS (NOT REVERSIBLE)
+-- DELETE FROM users;
+
+-- ❌ DELETE ALL TOKEN BLOCKLIST
+-- DELETE FROM token_blocklist;
+
+-- ❌ TRUNCATE TABLES (RESET IDS)
+-- TRUNCATE TABLE users RESTART IDENTITY CASCADE;
+-- TRUNCATE TABLE token_blocklist RESTART IDENTITY CASCADE;
+
+-- ❌ DROP TABLES (DESTROYS STRUCTURE)
+-- DROP TABLE users CASCADE;
+-- DROP TABLE token_blocklist CASCADE;
+
+
+=========================================================
+END OF FILE – docs\neon-queries.txt
+=========================================================

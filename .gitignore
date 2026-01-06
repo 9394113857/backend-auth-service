@@ -3,12 +3,12 @@
 # ============================================
 __pycache__/
 *.pyc
-*.py[cod]
 *.pyo
 *.pyd
+*.py[cod]
 
 # ============================================
-# ENVIRONMENT FILES
+# VIRTUAL ENVIRONMENTS
 # ============================================
 venv/
 .env
@@ -16,7 +16,7 @@ venv/
 *.env
 
 # ============================================
-# DATABASE FILES (SQLite - local only)
+# DATABASE FILES (LOCAL ONLY)
 # ============================================
 *.db
 *.sqlite3
@@ -29,16 +29,13 @@ logs/
 *.gz
 
 # ============================================
-# DOCS
+# DOCUMENTATION
 # ============================================
-docs/
-!docs/.gitkeep  # Keep .gitkeep but allow everything else in docs/
 
 # ============================================
-# FLASK MIGRATIONS (IMPORTANT)
+# FLASK MIGRATIONS
 # ============================================
-# DO NOT IGNORE migrations folder
-# Migrations must be committed for Neon / prod
+# Keep migration source files
 migrations/versions/*.pyc
 
 # ============================================
@@ -47,7 +44,7 @@ migrations/versions/*.pyc
 Thumbs.db
 .DS_Store
 
-# VSCode
+# VS Code
 .vscode/
 *.code-workspace
 
@@ -55,7 +52,7 @@ Thumbs.db
 .idea/
 
 # ============================================
-# OTHER TEMP FILES
+# TEMP / BACKUP FILES
 # ============================================
 *.tmp
 *.bak
