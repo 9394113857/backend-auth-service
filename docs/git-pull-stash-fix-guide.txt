@@ -1,0 +1,95 @@
+# =========================================================
+# FILE: git-pull-stash-fix-guide.txt
+# PURPOSE:
+# Safely pull remote changes when local changes exist,
+# fix Vim merge errors, and restore local work without loss.
+# =========================================================
+
+
+# ---------------------------------------------------------
+# STEP 0: Ensure you are on main branch
+# ---------------------------------------------------------
+git checkout main
+
+
+# ---------------------------------------------------------
+# STEP 1: Check current status
+# (Shows local changes & divergence)
+# ---------------------------------------------------------
+git status
+
+
+# ---------------------------------------------------------
+# STEP 2: Stash ALL local changes (safe temporary save)
+# WHY:
+# Git blocks pull to protect local files from overwrite
+# ---------------------------------------------------------
+git stash push -m "temp-save before pulling main"
+
+
+# ---------------------------------------------------------
+# STEP 3: Verify working tree is clean
+# ---------------------------------------------------------
+git status
+
+
+# ---------------------------------------------------------
+# STEP 4: EXIT VIM if it opens unexpectedly
+# (Press inside Vim)
+# :q!
+# ---------------------------------------------------------
+
+
+# ---------------------------------------------------------
+# STEP 5: Remove broken Vim swap file (safe)
+# WHY:
+# Previous merge editor crashed and left lock file
+# ---------------------------------------------------------
+rm -f .git/.MERGE_MSG.swp
+
+
+# ---------------------------------------------------------
+# STEP 6: Abort any half-finished merge (safety net)
+# ---------------------------------------------------------
+git merge --abort || true
+
+
+# ---------------------------------------------------------
+# STEP 7: Pull latest changes from remote main
+# ---------------------------------------------------------
+git pull origin main
+
+
+# ---------------------------------------------------------
+# STEP 8: Restore your local stashed work
+# ---------------------------------------------------------
+git stash pop
+
+
+# ---------------------------------------------------------
+# STEP 9: If conflict appears in docs/flask-shell.txt
+# Resolve manually, then run:
+# ---------------------------------------------------------
+# git add docs/flask-shell.txt
+# git commit -m "Resolve flask-shell docs conflict"
+
+
+# ---------------------------------------------------------
+# STEP 10: Final verification (must be clean)
+# ---------------------------------------------------------
+git status
+git log --oneline --graph --decorate -5
+
+
+# ---------------------------------------------------------
+# IMPORTANT NOTES (READ ONCE, REMEMBER FOREVER)
+# ---------------------------------------------------------
+# ❌ git pull --force DOES NOT WORK (ignored by Git)
+# ✅ --force works ONLY with git push
+# ✅ Always stash or commit before pulling
+# ✅ .swp files are editor temp files, safe to delete
+# ✅ Git blocks you to PROTECT your code
+# ---------------------------------------------------------
+ 
+
+ 
