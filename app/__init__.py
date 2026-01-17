@@ -11,10 +11,25 @@ from .models.user import User
 from .models.token_blacklist import TokenBlocklist
 
 
-def create_app():
+def create_app(testing: bool = False):
     app = Flask(__name__)
+
+    # --------------------------
+    # Base config
+    # --------------------------
     app.config.from_object(Config)
 
+    # --------------------------
+    # Testing override (CRITICAL FIX)
+    # --------------------------
+    if testing:
+        app.config["TESTING"] = True
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+        app.config["JWT_SECRET_KEY"] = "test-secret"
+
+    # --------------------------
+    # Extensions
+    # --------------------------
     cors.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
@@ -44,11 +59,15 @@ def create_app():
     app.logger.setLevel(logging.INFO)
     app.logger.info("Auth service starting...")
 
-    # Register routes
+    # --------------------------
+    # Routes
+    # --------------------------
     from .api.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
+    # --------------------------
     # JWT blacklist
+    # --------------------------
     @jwt.token_in_blocklist_loader
     def token_revoked(jwt_header, jwt_payload):
         jti = jwt_payload.get("jti")
