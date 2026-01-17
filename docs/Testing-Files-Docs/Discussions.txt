@@ -1,0 +1,16 @@
+🧠 What this commit represents (for your future self / reviewers)
+•	✅ Fixed create_app() to support testing
+•	✅ Added unit tests
+•	✅ Added integration tests
+•	✅ Enabled pytest + coverage
+•	✅ Updated .gitignore for test artifacts
+•	✅ Auth service now test-ready & CI-ready
+This is exactly how production teams commit test work.
+________________________________________
+✅ After push, your repo state is
+•	Main branch stable
+•	Tests passing
+•	Coverage visible
+•	Safe to build CI/CD
+•	Safe to merge other services later
+
