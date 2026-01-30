@@ -1,18 +1,36 @@
 ====================================================================
-FULL E-COMMERCE BACKEND – LIVE PRODUCTION INTEGRATION TESTS
+FULL E-COMMERCE BACKEND – INTEGRATION TESTS
 SELLER + CUSTOMER FLOW
-(Auth Service + Product Service on Render)
+(Auth Service + Product Service)
+LOCAL + LIVE (RENDER)
 ====================================================================
 
 USAGE INSTRUCTIONS (IMPORTANT):
-1) Run commands in sequence (TOP → BOTTOM)
-2) After LOGIN, copy access_token
-3) Paste token once in variable section
-4) Do NOT modify payloads
-5) Services are LIVE on Render (HTTPS)
+1) Choose ENVIRONMENT (LOCAL or LIVE)
+2) Set BASE URLs (ONLY ONCE)
+3) Run commands TOP → BOTTOM
+4) After LOGIN, copy access_token
+5) Paste token into variables section
+6) Do NOT modify payloads
 
 ====================================================================
-COMMON VARIABLES (SET MANUALLY)
+🔁 ENVIRONMENT SWITCH (CHOOSE ONE)
+====================================================================
+
+REM ==================================================
+REM 👉 LOCAL ENVIRONMENT (WHEN RUNNING LOCALLY)
+REM ==================================================
+REM SET AUTH_BASE_URL=http://127.0.0.1:5001
+REM SET PRODUCT_BASE_URL=http://127.0.0.1:5002
+
+REM ==================================================
+REM 👉 LIVE ENVIRONMENT (RENDER) ✅ ACTIVE
+REM ==================================================
+SET AUTH_BASE_URL=https://backend-auth-service-dkn7.onrender.com
+SET PRODUCT_BASE_URL=https://backend-product-service.onrender.com
+
+====================================================================
+COMMON VARIABLES (SET MANUALLY AFTER LOGIN / CREATE)
 ====================================================================
 
 REM 🔑 Paste SELLER JWT token here after seller login
@@ -25,56 +43,50 @@ REM 🆔 Paste product ID here after product creation
 SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
 
 ====================================================================
-AUTH SERVICE – LIVE (RENDER)
-Base URL:
-https://backend-auth-service-6zwi.onrender.com
+AUTH SERVICE
 ====================================================================
 
 --------------------------------------------------
 1️⃣ AUTH SERVICE – HEALTH CHECK
 --------------------------------------------------
-curl https://backend-auth-service-6zwi.onrender.com/api/v1/auth/
+curl %AUTH_BASE_URL%/api/v1/auth/
 
 --------------------------------------------------
-2️⃣ SELLER REGISTRATION (LIVE)
+2️⃣ SELLER REGISTRATION
 --------------------------------------------------
-curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/angularUser/register ^
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"seller@test.com\",\"password\":\"seller123\",\"role\":\"seller\"}"
 
 --------------------------------------------------
 3️⃣ SELLER LOGIN (COPY access_token)
 --------------------------------------------------
-curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/angularUser/login ^
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"seller@test.com\",\"password\":\"seller123\"}"
 
-REM ⬆ COPY access_token FROM RESPONSE
+REM ⬆ COPY access_token
 REM ⬆ PASTE INTO SELLER_TOKEN ABOVE
 
-SET SELLER_TOKEN=PASTE_SELLER_ACCESS_TOKEN_HERE
-
 --------------------------------------------------
-4️⃣ SELLER PROFILE (JWT VERIFY – LIVE)
+4️⃣ SELLER PROFILE (JWT VERIFY)
 --------------------------------------------------
-curl -X GET https://backend-auth-service-dkn7.onrender.com/api/v1/auth/profile ^
+curl -X GET %AUTH_BASE_URL%/api/v1/auth/profile ^
 -H "Authorization: Bearer %SELLER_TOKEN%"
 
 ====================================================================
-PRODUCT SERVICE – LIVE (RENDER)
-Base URL:
-https://backend-product-service.onrender.com
+PRODUCT SERVICE
 ====================================================================
 
 --------------------------------------------------
 5️⃣ PRODUCT SERVICE – HEALTH CHECK
 --------------------------------------------------
-curl https://backend-product-service.onrender.com/api/angularProduct/health
+curl %PRODUCT_BASE_URL%/api/angularProduct/health
 
 --------------------------------------------------
 6️⃣ SELLER ADDS PRODUCT (JWT REQUIRED)
 --------------------------------------------------
-curl -X POST https://backend-product-service.onrender.com/api/angularProduct/add ^
+curl -X POST %PRODUCT_BASE_URL%/api/angularProduct/add ^
 -H "Authorization: Bearer %SELLER_TOKEN%" ^
 -H "Content-Type: application/json" ^
 -d "{\"name\":\"Laptop\",\"price\":55000,\"description\":\"Gaming laptop\"}"
@@ -82,64 +94,65 @@ curl -X POST https://backend-product-service.onrender.com/api/angularProduct/add
 REM ⬆ COPY product ID FROM RESPONSE
 REM ⬆ PASTE INTO PRODUCT_ID ABOVE
 
-SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
-
 --------------------------------------------------
 7️⃣ SELLER VIEWS ALL PRODUCTS
 --------------------------------------------------
-curl -X GET https://backend-product-service.onrender.com/api/angularProduct/get
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get
 
 --------------------------------------------------
-8️⃣ SELLER LOGOUT (AUTH SERVICE)
+8️⃣ SELLER VIEWS SINGLE PRODUCT
 --------------------------------------------------
-curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/logout ^
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+--------------------------------------------------
+9️⃣ SELLER LOGOUT
+--------------------------------------------------
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/logout ^
 -H "Authorization: Bearer %SELLER_TOKEN%"
 
 ====================================================================
-CUSTOMER / USER FLOW – LIVE
+CUSTOMER / USER FLOW
 ====================================================================
 
 --------------------------------------------------
-9️⃣ CUSTOMER REGISTRATION
+🔟 CUSTOMER REGISTRATION
 --------------------------------------------------
-curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/angularUser/register ^
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"user@test.com\",\"password\":\"user123\",\"role\":\"user\"}"
 
 --------------------------------------------------
-🔟 CUSTOMER LOGIN (COPY access_token)
+1️⃣1️⃣ CUSTOMER LOGIN (COPY access_token)
 --------------------------------------------------
-curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/angularUser/login ^
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"user@test.com\",\"password\":\"user123\"}"
 
 REM ⬆ COPY access_token
 REM ⬆ PASTE INTO CUSTOMER_TOKEN ABOVE
 
-SET CUSTOMER_TOKEN=PASTE_CUSTOMER_ACCESS_TOKEN_HERE
-
 --------------------------------------------------
-1️⃣1️⃣ CUSTOMER PROFILE (JWT VERIFY)
+1️⃣2️⃣ CUSTOMER PROFILE (JWT VERIFY)
 --------------------------------------------------
-curl -X GET https://backend-auth-service-dkn7.onrender.com/api/v1/auth/profile ^
+curl -X GET %AUTH_BASE_URL%/api/v1/auth/profile ^
 -H "Authorization: Bearer %CUSTOMER_TOKEN%"
 
 --------------------------------------------------
-1️⃣2️⃣ CUSTOMER VIEWS ALL PRODUCTS
+1️⃣3️⃣ CUSTOMER VIEWS ALL PRODUCTS
 --------------------------------------------------
-curl -X GET https://backend-product-service.onrender.com/api/angularProduct/get
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get
 
 --------------------------------------------------
-1️⃣3️⃣ CUSTOMER VIEWS SINGLE PRODUCT
+1️⃣4️⃣ CUSTOMER VIEWS SINGLE PRODUCT
 --------------------------------------------------
-curl -X GET https://backend-product-service.onrender.com/api/angularProduct/get/%PRODUCT_ID%
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
 
 --------------------------------------------------
-1️⃣4️⃣ CUSTOMER LOGOUT
+1️⃣5️⃣ CUSTOMER LOGOUT
 --------------------------------------------------
-curl -X POST https://backend-auth-service-dkn7.onrender.com/api/v1/auth/logout ^
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/logout ^
 -H "Authorization: Bearer %CUSTOMER_TOKEN%"
 
 ====================================================================
-END OF LIVE PRODUCTION BACKEND INTEGRATION TEST FILE
+END OF INTEGRATION TEST FILE
 ====================================================================
