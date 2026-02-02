@@ -1,0 +1,3 @@
+git checkout main && git pull origin main && git checkout -b feature/stock-cart-order-flow && git push -u origin feature/stock-cart-order-flow
+
+
