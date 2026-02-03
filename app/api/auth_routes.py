@@ -78,7 +78,7 @@ def angular_login():
         return jsonify({"message": "Invalid email or password"}), 401
 
     # ✅ user is guaranteed to be User model
-    token = create_access_token(identity=str(user.id))
+    token = create_access_token(identity=str(user.id))   
 
     return jsonify({
         "access_token": token,
