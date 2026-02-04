@@ -1,0 +1,40 @@
+PROJECT: Auth Service (Flask JWT)
+BRANCH: feature/auth-service
+
+====================================
+AUTH SERVICE GIT WORKFLOW
+====================================
+
+1. Checkout feature branch
+   git checkout feature/auth-service
+
+2. Verify status
+   git status
+
+3. Stage all changes
+   git add .
+
+4. Commit auth changes
+   git commit -m "feat: auth service jwt login signup roles finalized"
+
+5. Push branch
+   git push origin feature/auth-service
+
+====================================
+FEATURES COMPLETED
+====================================
+
+- JWT authentication
+- Login / Signup
+- Role-based access (seller/user)
+- Token validation
+- Logout handling
+
+====================================
+MERGE NOTE
+====================================
+
+Auth service is STABLE and READY.
+
+Merge command:
+git merge feature/auth-service
