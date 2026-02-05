@@ -65,6 +65,11 @@ def create_app(testing: bool = False):
     from .api.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
+    @app.get("/")
+    def health():
+        return jsonify({"status": "Auth service started successfully."}), 200
+
+
     # --------------------------
     # JWT blacklist
     # --------------------------
