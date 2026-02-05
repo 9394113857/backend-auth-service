@@ -2,7 +2,7 @@ import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-from flask import Flask
+from flask import Flask, jsonify
 from .config import Config
 from .extensions import db, migrate, jwt, cors
 
