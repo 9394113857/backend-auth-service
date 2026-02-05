@@ -96,7 +96,8 @@ flask db upgrade
 Remove-Item Env:DATABASE_URL
 
 ✅ Render Environment Variable
-DATABASE_URL = postgres:Raghunadh_1992@db.ugpfvnzponokkvigevlg.supabase.co:5432/postgres
+DATABASE_URL = postgresql://postgres.ugpfvnzponokkvigevlg:Raghunadh_1992@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+
 
 
 
