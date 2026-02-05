@@ -84,6 +84,10 @@ At runtime:
 •	App just works
 Click Deploy 🚀
 
+# Here you go 👍 — just the exact pip command, nothing extra.
+pip install psycopg2-binary
+That’s the only pip install you needed for Supabase PostgreSQL support. ✅
+
 7️⃣ Final example (ZERO-CONFUSION COPY FORMAT)
 ✅ PowerShell (local, one-time)
 # Set Supabase DB URL
