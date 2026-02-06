@@ -51,7 +51,7 @@ git log --oneline --decorate --graph -10
 git tag -a v1.0.0 -m "Stable release v1.0.0 - From Anguar Local Version to Local Auth Local Service base flow Fianlly Working now as expected"
 
 # Tag naming examples:
-# v1.0.0  -> First stable release
+# v1.0.0  -> First stable release 
 # v1.1.0  -> Feature additions
 # v1.1.1  -> Bug fixes
 # v2.0.0  -> Major refactor or architecture change
