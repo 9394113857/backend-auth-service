@@ -1,19 +1,15 @@
 # ==========================================================
 # WORKFLOW NAME
-# Shown in GitHub Actions UI
 # ==========================================================
 name: 🚀 CI/CD – Auth Backend (Docker → Railway)
 
 # ==========================================================
-# WHEN SHOULD THIS PIPELINE RUN?
+# TRIGGERS
 # ==========================================================
 on:
-  # Trigger when code is pushed to main branch
   push:
     branches:
       - main
-
-  # Allow manual trigger from GitHub UI
   workflow_dispatch:
 
 # ==========================================================
@@ -24,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # ------------------------------------------------------
-    # COMMON ENV VARIABLES (AVAILABLE TO ALL STEPS)
+    # GLOBAL ENV (USED EVERYWHERE)
     # ------------------------------------------------------
     env:
       IMAGE_NAME: pythoncodelife/auth-backend
@@ -33,13 +29,13 @@ jobs:
     steps:
 
       # =====================================================
-      # CI STAGE – SOURCE CODE
+      # CI STAGE – CHECKOUT
       # =====================================================
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
 
-      - name: 🖨️ Log checkout completed
-        run: echo "✅ Source code checked out successfully"
+      - name: 🖨️ Log checkout
+        run: echo "✅ Source code checked out"
 
       # =====================================================
       # CI STAGE – BUILD METADATA
@@ -47,7 +43,7 @@ jobs:
       - name: ⏱️ Generate build timestamp
         run: |
           echo "BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
-          echo "✅ Build time generated"
+          echo "✅ Build timestamp generated"
 
       # =====================================================
       # CI STAGE – DOCKER SETUP
@@ -56,7 +52,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: 🖨️ Log Docker setup
-        run: echo "✅ Docker Buildx is ready"
+        run: echo "✅ Docker Buildx ready"
 
       # =====================================================
       # CI STAGE – DOCKER LOGIN
@@ -114,18 +110,20 @@ jobs:
           from: GitHub Actions
 
       # =====================================================
-      # CD STAGE – DEPLOY TO RAILWAY
+      # CD STAGE – DEPLOY TO RAILWAY (OFFICIAL API)
       # =====================================================
       - name: 🚀 Deploy to Railway
-        uses: railwayapp/railway-deploy@v3
-        with:
-          railwayToken: ${{ secrets.RAILWAY_API_TOKEN }}
-          serviceId: ${{ secrets.RAILWAY_SERVICE_ID }}
-
-      - name: 🖨️ Log deployment step
         run: |
-          echo "🚀 Deployment triggered on Railway"
-          echo "Service ID: ${{ secrets.RAILWAY_SERVICE_ID }}"
+          echo "🚀 Triggering Railway deployment..."
+
+          curl -X POST "https://backboard.railway.app/graphql/v2" \
+            -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "query": "mutation { serviceInstanceDeploy(serviceId: \"'${{ secrets.RAILWAY_SERVICE_ID }}'\") }"
+            }'
+
+          echo "✅ Railway deployment triggered"
 
       # =====================================================
       # CD STAGE – EMAIL (DEPLOY SUCCESS)
@@ -173,4 +171,4 @@ jobs:
             </table>
             <p>Please check GitHub Actions logs.</p>
           to: ${{ secrets.MAIL_TO }}
-          from: GitHub Actions
+          from: GitHub Actions            
