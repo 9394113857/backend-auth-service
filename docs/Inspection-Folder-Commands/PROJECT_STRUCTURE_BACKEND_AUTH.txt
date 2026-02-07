@@ -1,0 +1,10 @@
+Get-ChildItem -Recurse `
+| Where-Object {
+    $_.FullName -notmatch '\\venv\\|\\__pycache__\\|\\logs\\|\\.git\\|\\.pytest_cache\\|\\.mypy_cache\\|\\.idea\\|\\.vscode\\'
+} `
+| Select-Object FullName `
+| ForEach-Object {
+    $_.FullName.Replace((Get-Location).Path + "\", "")
+} `
+| Sort-Object `
+| Out-File -Encoding utf8 PROJECT_STRUCTURE_BACKEND_AUTH.txt
