@@ -17,4 +17,5 @@ COPY . .
 EXPOSE 5001
 
 # 7. Run the Flask app
-CMD ["python", "run.py"]
+# Run app using Gunicorn (production-safe for Docker & Render)
+CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:${PORT}", "run:app"]
