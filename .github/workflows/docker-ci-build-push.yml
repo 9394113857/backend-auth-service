@@ -1,74 +1,49 @@
-# ==========================================================
-# WORKFLOW NAME
-# ==========================================================
 name: 🚀 CI/CD – Auth Backend (Docker → Railway)
 
-# ==========================================================
-# TRIGGERS
-# ==========================================================
 on:
   push:
     branches:
       - main
   workflow_dispatch:
 
-# ==========================================================
-# JOBS
-# ==========================================================
 jobs:
   ci-cd-auth-backend:
     runs-on: ubuntu-latest
 
-    # ------------------------------------------------------
-    # GLOBAL ENV (USED EVERYWHERE)
-    # ------------------------------------------------------
     env:
       IMAGE_NAME: pythoncodelife/auth-backend
       IMAGE_TAG: latest
       LIVE_URL: https://mellow-illumination-production.up.railway.app/
 
     steps:
-
       # =====================================================
-      # CI STAGE – CHECKOUT
+      # CHECKOUT
       # =====================================================
       - name: 🧾 Checkout source code
         uses: actions/checkout@v4
 
-      - name: 🖨️ Log checkout
-        run: echo "✅ Source code checked out"
-
       # =====================================================
-      # CI STAGE – BUILD METADATA
+      # BUILD TIMESTAMPS (UTC + IST)
       # =====================================================
-      - name: ⏱️ Generate build timestamp
+      - name: ⏱️ Generate build timestamps (UTC + IST)
         run: |
-          echo "BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
-          echo "✅ Build timestamp generated"
+          echo "BUILD_TIME_UTC=$(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
+          echo "BUILD_TIME_IST=$(TZ=Asia/Kolkata date '+%Y-%m-%d %I:%M:%S %p IST')" >> $GITHUB_ENV
 
       # =====================================================
-      # CI STAGE – DOCKER SETUP
+      # DOCKER SETUP
       # =====================================================
       - name: 🐳 Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🖨️ Log Docker setup
-        run: echo "✅ Docker Buildx ready"
-
-      # =====================================================
-      # CI STAGE – DOCKER LOGIN
-      # =====================================================
       - name: 🔐 Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 🖨️ Log Docker login
-        run: echo "✅ Logged in to Docker Hub"
-
       # =====================================================
-      # CI STAGE – BUILD & PUSH IMAGE
+      # BUILD & PUSH IMAGE
       # =====================================================
       - name: 🏗️ Build & Push Docker Image
         uses: docker/build-push-action@v5
@@ -76,19 +51,12 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-
-      - name: 🖨️ Log image push
-        run: |
-          echo "✅ Docker image pushed"
-          echo "Image: $IMAGE_NAME:$IMAGE_TAG"
-          echo "Time: $BUILD_TIME"
+          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
       # =====================================================
-      # CI STAGE – EMAIL (BUILD SUCCESS)
+      # EMAIL – DOCKER SUCCESS
       # =====================================================
-      - name: 📧 Email – Docker Build Success
+      - name: 📧 Docker Build Success Email
         if: success()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -96,27 +64,23 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "✅ Docker Build Success | Auth Backend | ${{ env.BUILD_TIME }}"
+          subject: "✅ Docker Build Success | Auth Backend"
           html_body: |
-            <h2>✅ Docker Image Built & Pushed</h2>
+            <h2>🐳 Docker Image Built Successfully</h2>
             <table border="1" cellpadding="8">
-              <tr><td><b>Repository</b></td><td>backend-auth-service</td></tr>
-              <tr><td><b>Image</b></td><td>${{ env.IMAGE_NAME }}</td></tr>
-              <tr><td><b>Tag</b></td><td>${{ env.IMAGE_TAG }}</td></tr>
-              <tr><td><b>Branch</b></td><td>main</td></tr>
-              <tr><td><b>Build Time</b></td><td>${{ env.BUILD_TIME }}</td></tr>
-              <tr><td><b>Status</b></td><td style="color:green;"><b>SUCCESS</b></td></tr>
+              <tr><td><b>Image</b></td><td>${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}</td></tr>
+              <tr><td><b>UTC Time</b></td><td>${{ env.BUILD_TIME_UTC }}</td></tr>
+              <tr><td><b>IST Time</b></td><td>${{ env.BUILD_TIME_IST }}</td></tr>
+              <tr><td><b>Status</b></td><td style="color:green;"><b>PUSHED</b></td></tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
           from: GitHub Actions
 
       # =====================================================
-      # CD STAGE – DEPLOY TO RAILWAY
+      # DEPLOY TO RAILWAY
       # =====================================================
       - name: 🚀 Deploy to Railway
         run: |
-          echo "🚀 Triggering Railway deployment..."
-
           curl -X POST "https://backboard.railway.app/graphql/v2" \
             -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}" \
             -H "Content-Type: application/json" \
@@ -124,12 +88,10 @@ jobs:
               "query": "mutation { serviceInstanceDeploy(serviceId: \"'${{ secrets.RAILWAY_SERVICE_ID }}'\") }"
             }'
 
-          echo "✅ Railway deployment triggered"
-
       # =====================================================
-      # CD STAGE – EMAIL (DEPLOY SUCCESS)
+      # EMAIL – DEPLOY SUCCESS
       # =====================================================
-      - name: 📧 Email – Deployment Success
+      - name: 📧 Deployment Success Email
         if: success()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -137,25 +99,25 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "🚀 Deployment Success | Railway | ${{ env.BUILD_TIME }}"
+          subject: "🚀 Deployment Success | Auth Backend"
           html_body: |
-            <h2>🚀 Auth Backend Deployed Successfully</h2>
+            <h2>🚀 Auth Backend is LIVE</h2>
             <table border="1" cellpadding="8">
               <tr><td><b>Platform</b></td><td>Railway</td></tr>
-              <tr><td><b>Service</b></td><td>auth-backend</td></tr>
-              <tr><td><b>Image</b></td><td>${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}</td></tr>
               <tr><td><b>Live URL</b></td>
                   <td><a href="${{ env.LIVE_URL }}">${{ env.LIVE_URL }}</a></td></tr>
-              <tr><td><b>Deploy Time</b></td><td>${{ env.BUILD_TIME }}</td></tr>
+              <tr><td><b>Image</b></td><td>${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}</td></tr>
+              <tr><td><b>UTC Deploy Time</b></td><td>${{ env.BUILD_TIME_UTC }}</td></tr>
+              <tr><td><b>IST Deploy Time</b></td><td>${{ env.BUILD_TIME_IST }}</td></tr>
               <tr><td><b>Status</b></td><td style="color:green;"><b>LIVE</b></td></tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
           from: GitHub Actions
 
       # =====================================================
-      # FAILURE HANDLER – ANY STAGE
+      # EMAIL – FAILURE
       # =====================================================
-      - name: ❌ Email – CI/CD Failure
+      - name: ❌ CI/CD Failure Email
         if: failure()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -163,17 +125,15 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "❌ CI/CD Failed | Auth Backend | ${{ env.BUILD_TIME }}"
+          subject: "❌ CI/CD Failed | Auth Backend"
           html_body: |
-            <h2 style="color:red;">❌ CI/CD Pipeline Failed</h2>
+            <h2 style="color:red;">❌ Pipeline Failed</h2>
             <table border="1" cellpadding="8">
-              <tr><td><b>Repository</b></td><td>backend-auth-service</td></tr>
-              <tr><td><b>Branch</b></td><td>main</td></tr>
+              <tr><td><b>UTC Time</b></td><td>${{ env.BUILD_TIME_UTC }}</td></tr>
+              <tr><td><b>IST Time</b></td><td>${{ env.BUILD_TIME_IST }}</td></tr>
               <tr><td><b>Live URL</b></td>
                   <td><a href="${{ env.LIVE_URL }}">${{ env.LIVE_URL }}</a></td></tr>
-              <tr><td><b>Time</b></td><td>${{ env.BUILD_TIME }}</td></tr>
               <tr><td><b>Status</b></td><td style="color:red;"><b>FAILED</b></td></tr>
             </table>
-            <p>Please check GitHub Actions logs.</p>
           to: ${{ secrets.MAIL_TO }}
           from: GitHub Actions
