@@ -13,12 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5. Copy project files
 COPY . .
 
-# 6. Expose Flask port (informational for Docker only)
+# 6. Expose Flask port (informational only)
 EXPOSE 5001
 
-# 7. Run app using Gunicorn (Render + Docker safe)
-# NOTE:
-# - Render injects PORT at runtime
-# - Exec-form CMD does NOT expand env vars
-# - So we use 'sh -c' to expand $PORT correctly
-CMD ["sh", "-c", "gunicorn -w 1 -b 0.0.0.0:$PORT run:app"]
+# 7. Run app using Gunicorn
+# - sh -c is required to expand $PORT
+# - access/error logs are sent to stdout for Render visibility
+CMD ["sh", "-c", "gunicorn run:app -w 1 -b 0.0.0.0:$PORT --log-level debug --access-logfile - --error-logfile -"]
