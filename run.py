@@ -1,9 +1,12 @@
+import os
 from app import create_app
 
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(port=5001)
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host="0.0.0.0", port=port) # ✅ 0.0.0.0 = listen on all network interfaces, including Docker’s bridge.
+
 
 # To run the application using Flask's built-in server, use the command:
 

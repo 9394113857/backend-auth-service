@@ -31,8 +31,11 @@ def create_app(testing: bool = False):
     # Extensions
     # --------------------------
     cors.init_app(app)
-    db.init_app(app)
-    migrate.init_app(app, db)
+    
+    # This is ONLY to confirm startup. The actual DB connection will be tested in the test suite.
+    # db.init_app(app)
+    # migrate.init_app(app, db)
+
     jwt.init_app(app)
 
     # --------------------------

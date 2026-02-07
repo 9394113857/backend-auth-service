@@ -1,0 +1,290 @@
+Filename: DOCKER_BUILD_TEST_TAG_PUSH_GUIDE_ALL_SERVICES.txt
+
+===============================================================================
+DOCKER BUILD → TEST → TAG → PUSH GUIDE
+(AUTH, PRODUCT, CART MICROSERVICES)
+===============================================================================
+
+COMMON DETAILS (APPLIES TO ALL SERVICES)
+-------------------------------------------------------------------------------
+Framework        : Flask (Application Factory Pattern)
+Entry File       : run.py
+Docker Base      : python:3.11-slim
+Docker Hub User  : pythoncodelife
+Flow             : Build → Test → Tag → Push
+Purpose          : Same image reused for Render / CI/CD
+
+===============================================================================
+============================= AUTH SERVICE =====================================
+===============================================================================
+
+SERVICE DETAILS
+-------------------------------------------------------------------------------
+Service Name : Auth Backend
+Port         : 5001
+Image        : pythoncodelife/auth-backend
+Tag          : v1.0.0 (example)
+
+-------------------------------------------------------------------------------
+Dockerfile
+-------------------------------------------------------------------------------
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 5001
+CMD ["python", "run.py"]
+
+-------------------------------------------------------------------------------
+run.py
+-------------------------------------------------------------------------------
+from app import create_app
+app = create_app()
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host="0.0.0.0", port=port) # ✅ 0.0.0.0 = listen on all network interfaces, including Docker’s bridge.
+
+-------------------------------------------------------------------------------
+COMMANDS
+-------------------------------------------------------------------------------
+# Build image same coomand always:-
+docker build -t pythoncodelife/auth-backend:latest .
+
+# Test locally
+docker run -d -p 5001:5001 --name auth-test pythoncodelife/auth-backend:latest
+docker logs auth-test
+# Test URL: http://localhost:5001/
+
+# Cleanup
+docker stop auth-test # So it stops from this command okay
+docker rm auth-test # 
+
+# Tag image
+# docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.0
+
+# Retag version:-
+# docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.1
+
+# Latest and Current One Using:-
+docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.2
+
+👉 We use v1.0.1 because behavior changed.
+
+# Push
+#docker push pythoncodelife/auth-backend:latest
+#docker push pythoncodelife/auth-backend:v1.0.0
+
+
+# Push new tags:-
+docker push pythoncodelife/auth-backend:latest
+docker push pythoncodelife/auth-backend:v1.0.1
+
+
+--------------------------------------------------
+
+🔄 Update Render to new image:
+
+In Render → auth-backend service:
+
+Image URL:-
+docker.io/pythoncodelife/auth-backend:v1.0.2
+
+
+Click:
+👉 Manual Deploy → Deploy latest image
+
+🧠 Interview-grade explanation
+
+“Render dynamically assigns a port via the PORT environment variable.
+We updated the Flask entrypoint to read from os.environ['PORT'] to ensure compatibility with cloud runtimes.”
+
+That’s a strong professional answer.
+
+===========================================================
+
+🧠 So how do we KNOW this value is correct?
+✅ Method 1: Docker Hub UI (what you already saw)
+
+On Docker Hub → auth-backend → Tags tab
+
+You saw:
+
+v1.0.0
+latest
+
+
+When you click v1.0.0, Docker Hub literally shows:
+
+docker pull pythoncodelife/auth-backend:v1.0.0
+
+
+👉 That is the exact value Render needs.
+
+✅ Method 2: Local Docker CLI
+
+Run:
+
+docker images
+
+
+You’ll see:
+
+REPOSITORY                      TAG
+pythoncodelife/auth-backend     latest
+pythoncodelife/auth-backend     v1.0.0
+
+
+Combine them:
+
+pythoncodelife/auth-backend:v1.0.0
+
+
+Render just prepends:
+
+docker.io/
+
+🎯 Why Render wants this exact format
+
+Render needs:
+
+Registry (docker.io)
+
+Owner (pythoncodelife)
+
+Repo (auth-backend)
+
+Tag (v1.0.0)
+
+So it can run internally:
+
+docker pull docker.io/pythoncodelife/auth-backend:v1.0.0
+
+✅ Final rule (MEMORIZE THIS)
+
+Whatever you can docker pull, Render can deploy.
+
+Since this works:
+
+docker pull pythoncodelife/auth-backend:v1.0.0
+
+
+Render will work too ✅
+
+🧠 Interview-ready one-liner
+
+“The image URL comes directly from Docker Hub. It’s composed of the registry, username, repository name, and tag created during docker build and docker push.”
+
+
+===============================================================================
+=========================== PRODUCT SERVICE ====================================
+===============================================================================
+
+SERVICE DETAILS
+-------------------------------------------------------------------------------
+Service Name : Product Backend
+Port         : 5002
+Image        : pythoncodelife/product-backend
+Tag          : v1.0.0
+
+-------------------------------------------------------------------------------
+Dockerfile
+-------------------------------------------------------------------------------
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 5002
+CMD ["python", "run.py"]
+
+-------------------------------------------------------------------------------
+run.py
+-------------------------------------------------------------------------------
+from app import create_app
+app = create_app()
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5002)
+
+-------------------------------------------------------------------------------
+COMMANDS
+-------------------------------------------------------------------------------
+docker build -t pythoncodelife/product-backend:latest .
+
+docker run -d -p 5002:5002 --name product-test pythoncodelife/product-backend:latest
+docker logs product-test
+# Test URL: http://localhost:5002/
+
+docker stop product-test
+docker rm product-test
+
+docker tag pythoncodelife/product-backend:latest pythoncodelife/product-backend:v1.0.0
+
+docker push pythoncodelife/product-backend:latest
+docker push pythoncodelife/product-backend:v1.0.0
+
+
+===============================================================================
+============================= CART SERVICE =====================================
+===============================================================================
+
+SERVICE DETAILS
+-------------------------------------------------------------------------------
+Service Name : Cart / Order Backend
+Port         : 5003
+Image        : pythoncodelife/cart-backend
+Tag          : v1.0.0
+
+-------------------------------------------------------------------------------
+Dockerfile
+-------------------------------------------------------------------------------
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 5003
+CMD ["python", "run.py"]
+
+-------------------------------------------------------------------------------
+run.py
+-------------------------------------------------------------------------------
+from app import create_app
+app = create_app()
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5003)
+
+-------------------------------------------------------------------------------
+COMMANDS
+-------------------------------------------------------------------------------
+docker build -t pythoncodelife/cart-backend:latest .
+
+docker run -d -p 5003:5003 --name cart-test pythoncodelife/cart-backend:latest
+docker logs cart-test
+# Test URL: http://localhost:5003/
+
+docker stop cart-test
+docker rm cart-test
+
+docker tag pythoncodelife/cart-backend:latest pythoncodelife/cart-backend:v1.0.0
+
+docker push pythoncodelife/cart-backend:latest
+docker push pythoncodelife/cart-backend:v1.0.0
+
+
+===============================================================================
+FINAL CONFIRMATION (VERY IMPORTANT)
+===============================================================================
+
+✔ Local Docker build tested
+✔ Health endpoints verified
+✔ Images tagged with versions
+✔ Images pushed to Docker Hub
+✔ Ready for Render deployment
+✔ Ready for CI/CD (GitHub Actions)
+
+This file is SUFFICIENT to PAUSE now and RESUME later safely.
+
+===============================================================================
+END OF FILE
+===============================================================================
