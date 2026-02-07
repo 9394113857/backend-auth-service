@@ -2,17 +2,17 @@
 # TEMPORARY ISOLATION DOCKERFILE (RENDER DEBUG)
 # =========================================================
 # Purpose:
-# - Verify that Render can start ANY container
+# - Verify Render can start a container
 # - Verify Docker CMD is executed
-# - Verify logs appear in Render
+# - Verify logs appear
 #
-# This is NOT the final production Dockerfile.
-# We will revert after confirmation.
+# NOTE:
+# - This is NOT the final production Dockerfile
+# - We will revert after confirmation
 # =========================================================
 
 FROM python:3.11-slim
 
 # Diagnostic command:
-# - Print a message to confirm container execution
-# - Sleep for 5 minutes so the container stays alive
+# Print a message and keep container alive for 5 minutes
 CMD ["sh", "-c", "echo 'HELLO FROM RENDER CONTAINER' && sleep 300"]
