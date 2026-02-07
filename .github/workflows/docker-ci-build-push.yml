@@ -10,6 +10,11 @@ on:
   push:
     branches:
       - main
+
+  # Daily scheduled run at 2:00 AM IST (20:30 UTC)
+  schedule:
+    - cron: "30 20 * * *"
+
   workflow_dispatch:
 
 # ==========================================================
@@ -20,11 +25,12 @@ jobs:
     runs-on: ubuntu-latest
 
     # ------------------------------------------------------
-    # GLOBAL ENV (USED EVERYWHERE)
+    # GLOBAL ENV (AVAILABLE TO ALL STEPS)
     # ------------------------------------------------------
     env:
       IMAGE_NAME: pythoncodelife/auth-backend
       IMAGE_TAG: latest
+      LIVE_URL: https://mellow-illumination-production.up.railway.app/
 
     steps:
 
@@ -82,10 +88,11 @@ jobs:
         run: |
           echo "✅ Docker image pushed"
           echo "Image: $IMAGE_NAME:$IMAGE_TAG"
+          echo "Live URL: $LIVE_URL"
           echo "Time: $BUILD_TIME"
 
       # =====================================================
-      # CI STAGE – EMAIL (BUILD SUCCESS)
+      # CI STAGE – EMAIL (DOCKER SUCCESS)
       # =====================================================
       - name: 📧 Email – Docker Build Success
         if: success()
@@ -102,7 +109,7 @@ jobs:
               <tr><td><b>Repository</b></td><td>backend-auth-service</td></tr>
               <tr><td><b>Image</b></td><td>${{ env.IMAGE_NAME }}</td></tr>
               <tr><td><b>Tag</b></td><td>${{ env.IMAGE_TAG }}</td></tr>
-              <tr><td><b>Branch</b></td><td>main</td></tr>
+              <tr><td><b>Live URL</b></td><td><a href="${{ env.LIVE_URL }}">${{ env.LIVE_URL }}</a></td></tr>
               <tr><td><b>Build Time</b></td><td>${{ env.BUILD_TIME }}</td></tr>
               <tr><td><b>Status</b></td><td style="color:green;"><b>SUCCESS</b></td></tr>
             </table>
@@ -110,23 +117,31 @@ jobs:
           from: GitHub Actions
 
       # =====================================================
-      # CD STAGE – DEPLOY TO RAILWAY (OFFICIAL API)
+      # CD STAGE – DEPLOY TO RAILWAY (FIXED)
       # =====================================================
       - name: 🚀 Deploy to Railway
+        id: railway_deploy
         run: |
           echo "🚀 Triggering Railway deployment..."
 
-          curl -X POST "https://backboard.railway.app/graphql/v2" \
+          RESPONSE=$(curl -s -X POST "https://backboard.railway.app/graphql/v2" \
             -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             --data '{
-              "query": "mutation { serviceInstanceDeploy(serviceId: \"'${{ secrets.RAILWAY_SERVICE_ID }}'\") }"
-            }'
+              "query": "mutation { serviceInstanceDeploy(serviceId: \"'${{ secrets.RAILWAY_SERVICE_ID }}'\", environmentId: \"'${{ secrets.RAILWAY_ENVIRONMENT_ID }}'\") }"
+            }')
 
-          echo "✅ Railway deployment triggered"
+          echo "$RESPONSE"
+
+          if echo "$RESPONSE" | grep -q "errors"; then
+            echo "❌ Railway deployment failed"
+            exit 1
+          fi
+
+          echo "✅ Railway deployment successful"
 
       # =====================================================
-      # CD STAGE – EMAIL (DEPLOY SUCCESS)
+      # CD STAGE – EMAIL (DEPLOY SUCCESS ONLY)
       # =====================================================
       - name: 📧 Email – Deployment Success
         if: success()
@@ -142,9 +157,9 @@ jobs:
             <table border="1" cellpadding="8">
               <tr><td><b>Platform</b></td><td>Railway</td></tr>
               <tr><td><b>Service</b></td><td>auth-backend</td></tr>
-              <tr><td><b>Image</b></td><td>${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}</td></tr>
+              <tr><td><b>Live URL</b></td><td><a href="${{ env.LIVE_URL }}">${{ env.LIVE_URL }}</a></td></tr>
               <tr><td><b>Deploy Time</b></td><td>${{ env.BUILD_TIME }}</td></tr>
-              <tr><td><b>Status</b></td><td style="color:green;"><b>LIVE</b></td></tr>
+              <tr><td><b>Status</b></td><td style="color:green;"><b>DEPLOYED</b></td></tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
           from: GitHub Actions
@@ -171,4 +186,4 @@ jobs:
             </table>
             <p>Please check GitHub Actions logs.</p>
           to: ${{ secrets.MAIL_TO }}
-          from: GitHub Actions            
+          from: GitHub Actions
