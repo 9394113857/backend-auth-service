@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - main
+
   workflow_dispatch:
+
+  # Daily at 2:00 AM IST (20:30 UTC)
+  schedule:
+    - cron: "30 20 * * *"
 
 jobs:
   ci-cd-auth-backend:
