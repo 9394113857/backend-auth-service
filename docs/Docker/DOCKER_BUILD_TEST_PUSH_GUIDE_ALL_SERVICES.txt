@@ -46,7 +46,7 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=port) # ✅ 0.0.0.0 = listen on all network interfaces, including Docker’s bridge.
 
 -------------------------------------------------------------------------------
-COMMANDS
+DOCKER COMMANDS BUILD FIRST AND PUSH AND THEN IN RAILWAY PULL and DEPLOY and crete domain and check finally:- 
 -------------------------------------------------------------------------------
 # Build image same coomand always:-
 docker build -t pythoncodelife/auth-backend:latest .
@@ -63,22 +63,22 @@ docker rm auth-test #
 # Tag image
 # docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.0
 
+docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.0
+
+pythoncodelife/product-backend:latest
+
 # Retag version:-
 # docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.1
 
-# Latest and Current One Using:-
+# LAst Executed and Latest and Current One Using use this always from now okay:-
 docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.2
 
 👉 We use v1.0.1 because behavior changed.
 
-# Push
-#docker push pythoncodelife/auth-backend:latest
-#docker push pythoncodelife/auth-backend:v1.0.0
-
-
-# Push new tags:-
+# Final Push new tags:-
 docker push pythoncodelife/auth-backend:latest
-docker push pythoncodelife/auth-backend:v1.0.1
+
+#docker push pythoncodelife/auth-backend:v1.0.1
 
 
 --------------------------------------------------
@@ -89,6 +89,9 @@ In Render → auth-backend service:
 
 Image URL:-
 docker.io/pythoncodelife/auth-backend:v1.0.2
+
+
+# pythoncodelife/auth-backend
 
 
 Click:
