@@ -37,8 +37,8 @@ docker build -t <dockerhub-username>/<service-name>:latest .
 # EXAMPLE (Auth Service):
 # docker build -t pythoncodelife/auth-backend:latest .
 
-# EXAMPLE (Product Service):
-# docker build -t pythoncodelife/product-backend:latest .
+# EXAMPLE (Product Service): 
+docker build -t pythoncodelife/product-backend:latest .
 
 --------------------------------------------------------------------------------
 STEP 2️⃣ : TEST IMAGE LOCALLY (MANDATORY)
@@ -51,6 +51,22 @@ docker run -d -p <local-port>:<container-port> --name <test-container-name> \
 # docker run -d -p 5001:5001 --name auth-test pythoncodelife/auth-backend:latest
 # docker logs auth-test
 # http://localhost:5001/
+
+# (Adjust port if your (Product Service) uses a different one):
+docker run -d -p 5002:5002 --name product-test pythoncodelife/product-backend:latest
+
+Assumption:
+•	Product service listens on 5002
+•	Image already pushed to Docker Hub as pythoncodelife/product-backend:latest
+
+#Check logs (very important):
+docker logs product-test
+
+CLEANUP (after testing):
+docker stop product-test
+docker rm product-test
+
+
 
 # Cleanup
 # docker stop auth-test
@@ -103,7 +119,7 @@ docker push <dockerhub-username>/<service-name>:latest
 docker push <dockerhub-username>/<service-name>:vX.Y.Z
 
 # EXAMPLE:
-docker push pythoncodelife/auth-backend:latest # Final USe this okay
+docker push pythoncodelife/product-backend:latest # Final USe this okay
 
 # docker push pythoncodelife/auth-backend:v1.0.2
 
@@ -157,7 +173,7 @@ Railway internally runs:
 docker pull docker.io/<dockerhub-username>/<service-name>:vX.Y.Z
 
 Example:- ✅ Final pull command first time in Railway sue this:-
-docker.io/pythoncodelife/auth-backend:latest # ✅ Use this final command to pull first time in Railway follow this format always okay
+docker.io/pythoncodelife/product-backend:latest # ✅ Use this final command to pull first time in Railway follow this format always okay
 
 🔍 What happens behind the scenes
 
