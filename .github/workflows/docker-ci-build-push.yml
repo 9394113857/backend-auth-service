@@ -1,4 +1,4 @@
-name: 🚀 CI/CD – Auth Backend (Docker → Railway)
+name: 🚀 CI/CD – Backend Auth Service (Docker → Railway)
 
 on:
   push:
@@ -12,11 +12,11 @@ on:
     - cron: "30 20 * * *"
 
 jobs:
-  ci-cd-auth-backend:
+  ci-cd-backend-auth:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_NAME: pythoncodelife/auth-backend
+      IMAGE_NAME: pythoncodelife/backend-auth-service
       IMAGE_TAG: latest
       LIVE_URL: https://mellow-illumination-production.up.railway.app/
 
@@ -69,10 +69,11 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "✅ Docker Build Success | Auth Backend"
+          subject: "✅ Docker Build Success | Backend Auth Service"
           html_body: |
             <h2>🐳 Docker Image Built Successfully</h2>
             <table border="1" cellpadding="8">
+              <tr><td><b>Service</b></td><td>Backend Auth Service</td></tr>
               <tr><td><b>Image</b></td><td>${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}</td></tr>
               <tr><td><b>UTC Time</b></td><td>${{ env.BUILD_TIME_UTC }}</td></tr>
               <tr><td><b>IST Time</b></td><td>${{ env.BUILD_TIME_IST }}</td></tr>
@@ -104,10 +105,11 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "🚀 Deployment Success | Auth Backend"
+          subject: "🚀 Deployment Success | Backend Auth Service"
           html_body: |
-            <h2>🚀 Auth Backend is LIVE</h2>
+            <h2>🚀 Backend Auth Service is LIVE</h2>
             <table border="1" cellpadding="8">
+              <tr><td><b>Service</b></td><td>Backend Auth Service</td></tr>
               <tr><td><b>Platform</b></td><td>Railway</td></tr>
               <tr><td><b>Live URL</b></td>
                   <td><a href="${{ env.LIVE_URL }}">${{ env.LIVE_URL }}</a></td></tr>
@@ -130,10 +132,11 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "❌ CI/CD Failed | Auth Backend"
+          subject: "❌ CI/CD Failed | Backend Auth Service"
           html_body: |
             <h2 style="color:red;">❌ Pipeline Failed</h2>
             <table border="1" cellpadding="8">
+              <tr><td><b>Service</b></td><td>Backend Auth Service</td></tr>
               <tr><td><b>UTC Time</b></td><td>${{ env.BUILD_TIME_UTC }}</td></tr>
               <tr><td><b>IST Time</b></td><td>${{ env.BUILD_TIME_IST }}</td></tr>
               <tr><td><b>Live URL</b></td>
