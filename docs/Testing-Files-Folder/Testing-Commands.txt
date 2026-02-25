@@ -1,0 +1,18 @@
+# 👉 “Run all the tests in this project and show detailed results.”
+python -m pytest -v
+
+What each part means:
+
+python → Run Python
+
+-m pytest → Run the pytest testing tool
+
+-v → Show detailed (verbose) output
+
+So basically:
+
+✅ It runs your test files
+✅ It tells you which tests passed or failed
+✅ It shows their names clearly
+
+That’s it 🙂
