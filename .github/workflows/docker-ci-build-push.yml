@@ -1,4 +1,8 @@
-name: 🚀 CI/CD – Backend Auth Service (Docker → Railway) 
+# ============================================================
+# 🚀 CI/CD – Backend Auth Service (Docker → Railway)
+# ============================================================
+
+name: 🚀 CI/CD – Backend Auth Service (Docker → Railway)
 
 on:
   push:
@@ -21,6 +25,7 @@ jobs:
       LIVE_URL: https://mellow-illumination-production.up.railway.app/
 
     steps:
+
       # =====================================================
       # CHECKOUT
       # =====================================================
@@ -80,7 +85,8 @@ jobs:
               <tr><td><b>Status</b></td><td style="color:green;"><b>PUSHED</b></td></tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
-          from: GitHub Actions
+          cc: practicesession3@gmail.com
+          from: ${{ secrets.MAIL_USERNAME }}
 
       # =====================================================
       # DEPLOY TO RAILWAY
@@ -119,7 +125,8 @@ jobs:
               <tr><td><b>Status</b></td><td style="color:green;"><b>LIVE</b></td></tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
-          from: GitHub Actions
+          cc: practicesession3@gmail.com
+          from: ${{ secrets.MAIL_USERNAME }}
 
       # =====================================================
       # EMAIL – FAILURE
@@ -144,4 +151,5 @@ jobs:
               <tr><td><b>Status</b></td><td style="color:red;"><b>FAILED</b></td></tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
-          from: GitHub Actions
+          cc: practicesession3@gmail.com
+          from: ${{ secrets.MAIL_USERNAME }}
