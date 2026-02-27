@@ -85,7 +85,7 @@ jobs:
               <tr><td><b>Status</b></td><td style="color:green;"><b>PUSHED</b></td></tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
-          cc: practicesession3@gmail.com
+          cc: ${{ secrets.MAIL_CC }}
           from: ${{ secrets.MAIL_USERNAME }}
 
       # =====================================================
@@ -125,7 +125,7 @@ jobs:
               <tr><td><b>Status</b></td><td style="color:green;"><b>LIVE</b></td></tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
-          cc: practicesession3@gmail.com
+          cc: ${{ secrets.MAIL_CC }}
           from: ${{ secrets.MAIL_USERNAME }}
 
       # =====================================================
@@ -151,5 +151,5 @@ jobs:
               <tr><td><b>Status</b></td><td style="color:red;"><b>FAILED</b></td></tr>
             </table>
           to: ${{ secrets.MAIL_TO }}
-          cc: practicesession3@gmail.com
+          cc: ${{ secrets.MAIL_CC }}
           from: ${{ secrets.MAIL_USERNAME }}
