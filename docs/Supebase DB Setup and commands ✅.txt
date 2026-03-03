@@ -48,7 +48,7 @@ $env:DATABASE_URL="postgresql://postgres.ugpfvnzponokkvigevlg:Raghunadh_1992@aws
 
 ✅ This sets DB URL only for this terminal session.
 
-🔹 Command 2: Run Alembic migration (tables creation):
+# 🔹 Command 2: Run Alembic migration (tables creation):
 flask db upgrade
 
 What happens:
@@ -108,9 +108,14 @@ flask db upgrade
 # Remove DB URL
 Remove-Item Env:DATABASE_URL
 
-✅ Render Environment Variable
-DATABASE_URL = postgresql://postgres.ugpfvnzponokkvigevlg:Raghunadh_1992@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
 
+
+
+✅ Railway Environment variables:-
+# Method: Session pooler uri link we added like atb the end like :- "?sslmode=require"  so chec final coomand okay:-
+DATABASE_URL = postgresql://postgres.ugpfvnzponokkvigevlg:Raghunadh_1992@aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
+FLASK_ENV = production
+JWT_SECRET_KEY = 9fA3xP@7Rk!2DqM8#ZbLw4^sC0N%YVJH
 
 
 

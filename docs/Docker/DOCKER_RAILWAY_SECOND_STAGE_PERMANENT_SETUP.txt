@@ -1,0 +1,340 @@
+Filename: DOCKER_RAILWAY_SECOND_STAGE_PERMANENT_SETUP.txt
+
+================================================================================
+DOCKER → DOCKER HUB → RAILWAY (SECOND STAGE ONLY)
+Reusable for ALL Future Backend Microservices 🚀
+================================================================================
+
+This file documents the MIDDLE STAGE of deployment:
+👉 Docker Image → Docker Hub → Railway Hosting
+
+Stage-1 (Local Dev + DB Migration) and Stage-3 (Frontend / Angular)
+are intentionally NOT implemented here.
+They are mentioned ONLY as commented references.
+
+================================================================================
+STAGE OVERVIEW
+================================================================================
+
+[ COMMENTED ] 🧱 Stage-1 : Local Development + DB Migration
+[ ACTIVE   ] 🐳 Stage-2 : Docker Build → Push → Railway Deploy   ✅
+[ COMMENTED ] 🌐 Stage-3 : Frontend (Angular) Base URL Wiring
+
+This file = STAGE-2 ONLY (Permanent Setup)
+
+================================================================================
+STAGE-2 : DOCKER → RAILWAY (CORE FLOW) 🐳🚄
+================================================================================
+
+--------------------------------------------------------------------------------
+STEP 1️⃣ : BUILD DOCKER IMAGE LOCALLY
+--------------------------------------------------------------------------------
+
+# Run from project root (Dockerfile must exist)
+
+docker build -t <dockerhub-username>/<service-name>:latest .
+
+# EXAMPLE (Auth Service):
+# docker build -t pythoncodelife/auth-backend:latest .
+
+# EXAMPLE (Product Service): 
+docker build -t pythoncodelife/product-backend:latest .
+
+--------------------------------------------------------------------------------
+STEP 2️⃣ : TEST IMAGE LOCALLY (MANDATORY)
+--------------------------------------------------------------------------------
+
+docker run -d -p <local-port>:<container-port> --name <test-container-name> \
+<dockerhub-username>/<service-name>:latest
+
+# EXAMPLE (Auth Service):
+# docker run -d -p 5001:5001 --name auth-test pythoncodelife/auth-backend:latest
+# docker logs auth-test
+# http://localhost:5001/
+
+# (Adjust port if your (Product Service) uses a different one):
+docker run -d -p 5002:5002 --name product-test pythoncodelife/product-backend:latest
+
+Assumption:
+•	Product service listens on 5002
+•	Image already pushed to Docker Hub as pythoncodelife/product-backend:latest
+
+#Check logs (very important):
+docker logs product-test
+
+CLEANUP (after testing):
+docker stop product-test
+docker rm product-test
+
+
+
+# Cleanup
+# docker stop auth-test
+# docker rm auth-test
+
+--------------------------------------------------------------------------------
+STEP 3️⃣ : TAG IMAGE WITH VERSION
+--------------------------------------------------------------------------------
+
+✅ FINAL TAG CREATION COMMAND (USE THIS):
+docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.0
+
+That’s it. ✅
+
+🧠 What this means (quick clarity)
+•	latest → always created automatically by Docker build / CI
+•	v1.0.0 → manual, stable version tag
+•	Both point to the same image hash
+
+After this, you usually run:
+docker push pythoncodelife/auth-backend:v1.0.0
+
+And your pipeline continues pushing:
+docker push pythoncodelife/auth-backend:latest
+
+This is the correct and professional flow you’re following 👌
+
+
+
+docker tag <dockerhub-username>/<service-name>:latest \
+<dockerhub-username>/<service-name>:vX.Y.Z
+
+# EXAMPLE:
+docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.0 # Final use this
+
+
+# docker tag pythoncodelife/auth-backend:latest pythoncodelife/auth-backend:v1.0.2
+
+--------------------------------------------------------------------------------
+STEP 4️⃣ : PUSH IMAGE TO DOCKER HUB
+--------------------------------------------------------------------------------
+
+# Login once
+docker login
+
+# Push latest
+docker push <dockerhub-username>/<service-name>:latest
+
+# Push version tag
+docker push <dockerhub-username>/<service-name>:vX.Y.Z
+
+# EXAMPLE:
+docker push pythoncodelife/product-backend:latest # Final USe this okay
+
+# docker push pythoncodelife/auth-backend:v1.0.2
+
+✔ At this point image is LIVE on Docker Hub
+
+================================================================================
+RAILWAY SETUP (FIRST-TIME ONLY PER SERVICE) 🚄
+================================================================================
+
+--------------------------------------------------------------------------------
+STEP 5️⃣ : CREATE EMPTY RAILWAY PROJECT
+--------------------------------------------------------------------------------
+
+Railway Dashboard →
+➕ New Project →
+➕ Empty Project
+
+# EXAMPLE PROJECT NAMES:
+# auth-backend-prod
+# product-backend-prod
+# cart-backend-prod
+
+--------------------------------------------------------------------------------
+STEP 6️⃣ : CREATE EMPTY SERVICE
+--------------------------------------------------------------------------------
+
+Inside Project →
+➕ New →
+➕ Empty Service
+
+✔ No GitHub
+✔ No Template
+✔ Docker Image based
+
+--------------------------------------------------------------------------------
+STEP 7️⃣ : CONNECT DOCKER IMAGE (FIRST PULL)
+--------------------------------------------------------------------------------
+
+Service →
+Settings →
+Deploy →
+Image
+
+Paste EXACT image URL:
+docker.io/<dockerhub-username>/<service-name>:vX.Y.Z
+
+# EXAMPLE:
+docker.io/pythoncodelife/auth-backend:v1.0.0 # Final sue thsi like
+
+Railway internally runs:
+docker pull docker.io/<dockerhub-username>/<service-name>:vX.Y.Z
+
+Example:- ✅ Final pull command first time in Railway sue this:-
+docker.io/pythoncodelife/product-backend:latest # ✅ Use this final command to pull first time in Railway follow this format always okay
+
+🔍 What happens behind the scenes
+
+Railway runs internally explanation flow only:
+docker pull docker.io/pythoncodelife/auth-backend:latest
+
+🧠 Important rule to remember (interview-safe)
+•	✅ First time: you manually set the image URL
+•	🔁 After that: CI/CD keeps pushing latest
+•	🚀 Railway pulls latest on every deploy / cron / manual trigger
+•	🌐 Domain stays the same, service keeps updating
+So yes — first-time pull only, then fully automated ✅
+
+
+
+--------------------------------------------------------------------------------
+STEP 8️⃣ : SET REQUIRED ENV VARIABLES
+--------------------------------------------------------------------------------
+
+Add environment variables required by backend:
+
+PORT=5001
+JWT_SECRET_KEY=<your-secret>
+DATABASE_URL=<your-db-url>
+
+# EXAMPLE:
+# PORT=5001
+# JWT_SECRET_KEY=9fA3xP@7Rk!2DqM8#ZbLw4^sC0N%YVJH
+# DATABASE_URL=postgresql://postgres.xxxx:password@aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require
+
+⚠️ App MUST read port dynamically:
+# port = int(os.environ.get("PORT", 5001))
+
+--------------------------------------------------------------------------------
+STEP 9️⃣ : DEPLOY SERVICE
+--------------------------------------------------------------------------------
+
+Click:
+👉 Deploy
+(or)
+👉 Manual Deploy → Deploy Latest Image
+
+Wait for:
+✔ Image pulled
+✔ Container started
+✔ No crash loop
+
+--------------------------------------------------------------------------------
+STEP 🔟 : CREATE PUBLIC DOMAIN 🌐
+--------------------------------------------------------------------------------
+
+Service →
+Settings →
+Networking →
+Generate Domain
+
+Railway gives:
+https://<random-name>.up.railway.app
+
+# EXAMPLE:
+# https://mellow-illumination-production.up.railway.app
+
+✔ Public
+✔ Internet-accessible
+✔ Used by frontend / API clients
+
+================================================================================
+GITHUB SECRETS (FOR CI/CD PIPELINE) 🔐
+================================================================================
+
+GitHub Repo →
+Settings →
+Secrets and variables →
+Actions →
+New repository secret
+
+--------------------------------------------------------------------------------
+SECRET 1️⃣ : DOCKERHUB_USERNAME
+--------------------------------------------------------------------------------
+Value:
+pythoncodelife
+
+--------------------------------------------------------------------------------
+SECRET 2️⃣ : DOCKERHUB_TOKEN
+--------------------------------------------------------------------------------
+Value:
+Docker Hub Access Token
+
+Generated from:
+Docker Hub → Account Settings → Security → Access Tokens
+
+--------------------------------------------------------------------------------
+SECRET 3️⃣ : RAILWAY_API_TOKEN
+--------------------------------------------------------------------------------
+Value:
+Railway Personal Token
+
+Generated from:
+Railway → Account Settings → Tokens
+
+--------------------------------------------------------------------------------
+SECRET 4️⃣ : RAILWAY_SERVICE_ID
+--------------------------------------------------------------------------------
+Value:
+Service ID (UUID)
+
+From:
+Railway → Service → Settings → Copy Service ID
+
+--------------------------------------------------------------------------------
+SECRET 5️⃣ : RAILWAY_ENVIRONMENT_ID
+--------------------------------------------------------------------------------
+Value:
+Environment ID (production)
+
+From:
+Railway → Project → Environments
+
+--------------------------------------------------------------------------------
+SECRET 6️⃣ : MAIL_USERNAME
+--------------------------------------------------------------------------------
+Value:
+your-email@gmail.com
+
+--------------------------------------------------------------------------------
+SECRET 7️⃣ : MAIL_PASSWORD
+--------------------------------------------------------------------------------
+Value:
+Gmail App Password (16 chars)
+
+--------------------------------------------------------------------------------
+SECRET 8️⃣ : MAIL_TO
+--------------------------------------------------------------------------------
+Value:
+alerts-email@gmail.com
+
+================================================================================
+COMMENTED REFERENCE (DO NOT EXECUTE HERE)
+================================================================================
+
+# [ STAGE-1 ] Local DB Migration
+# flask db upgrade
+# Supabase / PostgreSQL
+# Done BEFORE Docker build
+
+# [ STAGE-3 ] Frontend (Angular)
+# environment.prod.ts
+# apiBaseUrl = Railway public domain
+
+================================================================================
+FINAL NOTES 🧠
+================================================================================
+
+✔ One-time manual Docker push
+✔ CI/CD keeps pushing :latest automatically
+✔ Railway always pulls latest image
+✔ Domains remain stable
+✔ This setup is PERMANENT
+
+"If Docker can pull the image, Railway can deploy it."
+
+================================================================================
+END OF FILE
+================================================================================

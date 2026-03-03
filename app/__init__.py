@@ -32,7 +32,7 @@ def create_app(testing: bool = False):
     # --------------------------
     cors.init_app(app)
 
-    # ✅ DB should be initialized in real runtime (Render / Docker)
+    # ✅ DB should be initialized in real runtime (Railway / Docker)
     db.init_app(app)
     migrate.init_app(app, db)
 
