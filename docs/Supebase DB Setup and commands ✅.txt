@@ -43,7 +43,7 @@ This is the ONLY URL you need everywhere.
 3️⃣ PowerShell: TEMPORARY DB URL (for flask db upgrade):
 You are inside VS Code → PowerShell.
 
-🔹 Command 1: Set DB URL (TEMP):-
+# 🔹 Command 1: Set DB URL (TEMP):-
 $env:DATABASE_URL="postgresql://postgres.ugpfvnzponokkvigevlg:Raghunadh_1992@aws-1-ap-south-1.pooler.supabase.com:5432/postgres"
 
 ✅ This sets DB URL only for this terminal session.
