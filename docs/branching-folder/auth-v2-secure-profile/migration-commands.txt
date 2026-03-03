@@ -1,0 +1,16 @@
+# If migrations folder was deleted before, first run:
+flask db init
+
+# 🚀 NOW RUN MIGRATION:
+#flask db migrate -m "auth v2 secure models"
+#flask db upgrade
+
+# 🚀 NOW RUN THIS:
+flask --app app:create_app db migrate -m "auth v2 secure models"
+flask --app app:create_app db upgrade # Here migration issues arisng now when applying finally
+
+Confirm:
+•	users table updated
+•	password_history table created
+•	password_reset_tokens table created
+

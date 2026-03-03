@@ -3,25 +3,21 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 from flask import Flask, jsonify
-from .config import Config
-from .extensions import db, migrate, jwt, cors
+from app.config import Config
+from app.extensions import db, migrate, jwt, cors
 
-# Import models for Alembic
-from .models.user import User
-from .models.token_blacklist import TokenBlocklist
+# ✅ Import models so Alembic detects them
+import app.models  # IMPORTANT
 
 
 def create_app(testing: bool = False):
     app = Flask(__name__)
 
     # --------------------------
-    # Base config
+    # Config
     # --------------------------
     app.config.from_object(Config)
 
-    # --------------------------
-    # Testing override
-    # --------------------------
     if testing:
         app.config["TESTING"] = True
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
@@ -31,11 +27,8 @@ def create_app(testing: bool = False):
     # Extensions
     # --------------------------
     cors.init_app(app)
-
-    # ✅ DB should be initialized in real runtime (Railway / Docker)
     db.init_app(app)
     migrate.init_app(app, db)
-
     jwt.init_app(app)
 
     # --------------------------
@@ -63,19 +56,23 @@ def create_app(testing: bool = False):
     app.logger.info("Auth service starting...")
 
     # --------------------------
-    # Routes
+    # Blueprints
     # --------------------------
-    from .api.auth_routes import auth_bp
+    from app.api.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
-    # ✅ HEALTH CHECK (Render)
+    # --------------------------
+    # Health Check
+    # --------------------------
     @app.get("/")
     def health():
         return jsonify({"status": "Auth service started successfully."}), 200
 
     # --------------------------
-    # JWT blacklist
+    # JWT Blocklist
     # --------------------------
+    from app.models import TokenBlocklist
+
     @jwt.token_in_blocklist_loader
     def token_revoked(jwt_header, jwt_payload):
         jti = jwt_payload.get("jti")

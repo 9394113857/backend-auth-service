@@ -1,4 +1,5 @@
-from ..extensions import db
+from app.extensions import db
+
 
 class TokenBlocklist(db.Model):
     __tablename__ = "token_blocklist"

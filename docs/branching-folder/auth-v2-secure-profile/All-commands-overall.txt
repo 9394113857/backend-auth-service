@@ -1,0 +1,73 @@
+🔥 STEP 1 — DELETE LOCAL DATABASE (PowerShell)
+If using SQLite (default), it’s usually inside instance/.
+Run this:
+
+# Delete instance folder (SQLite DB usually here)
+Remove-Item -Recurse -Force .\instance -ErrorAction SilentlyContinue
+
+# Delete old migrations
+Remove-Item -Recurse -Force .\migrations -ErrorAction SilentlyContinue
+
+# 🔎 OPTIONAL: Verify deletion:
+Test-Path .\instance
+Test-Path .\migrations
+
+Both should return:
+False
+
+🔥 STEP 2 — Recreate Migrations Clean
+Now run:
+
+flask --app app:create_app db init
+flask --app app:create_app db migrate -m "auth v2 fresh secure schema"
+flask --app app:create_app db upgrade
+
+1️⃣ You deleted old DB + migrations → clean start.
+2️⃣ db migrate generated schema from your new models.
+3️⃣ db upgrade created fresh tables successfully and synced DB to head.
+
+✅ 🔥 OPTION 1 (RECOMMENDED) — Drop Entire Public Schema
+This deletes ALL tables, indexes, constraints, everything safely.
+👉 Run this in Supabase SQL Editor:
+
+-- ⚠️ DANGER: This deletes ALL tables in public schema
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+
+-- Restore default permissions
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
+
+✅ What This Does
+
+1️⃣ Drops every table
+2️⃣ Drops foreign keys
+3️⃣ Drops indexes
+4️⃣ Drops constraints
+5️⃣ Clean database
+6️⃣ Fresh empty schema
+
+🚀 Then Apply Fresh Migrations From Backend
+Run locally:
+
+flask db upgrade
+
+It will recreate everything from migrations cleanly.
+
+-----------------
+
+# Check current branch (make sure you're on feature/auth-v2-secure-profile)
+git branch
+
+# Add all changes to staging
+git add .
+
+# Commit changes with message
+git commit -m "Auth v2: secure profile updates, password history, reset token, fresh migration schema"
+
+# Push the current branch to origin (first time push with upstream tracking)
+git push -u origin feature/auth-v2-secure-profile
+
+# After first push, next time you can just use:
+# git push
+
