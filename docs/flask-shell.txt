@@ -7,7 +7,7 @@
 .\venv\Scripts\activate
 
 # Step 2: Set DATABASE_URL (modify if needed)
-$env:DATABASE_URL="postgresql+psycopg://neondb_owner:npg_Z2AynLcN0eVH@ep-bitter-lab-a1o801hx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+$env:DATABASE_URL="postgresql://postgres.ugpfvnzponokkvigevlg:Raghunadh_1992@aws-1-ap-south-1.pooler.supabase.com:5432/postgres"
 
 
 flask db current

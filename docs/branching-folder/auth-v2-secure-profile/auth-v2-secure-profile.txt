@@ -1,2 +1,9 @@
 3-3-26 | 4:22 PM from office ssytem:-
 Just Started implementig auth-v2-secure-profile branch changes now.
+
+
+SO from main to feature did becase i got conflcitins:-
+git add docs/Supebase\ DB\ Setup\ and\ commands\ ✅.txt
+git commit -m "📝 Update Supabase DB setup documentation"
+git checkout feature/auth-v2-secure-profile
+
