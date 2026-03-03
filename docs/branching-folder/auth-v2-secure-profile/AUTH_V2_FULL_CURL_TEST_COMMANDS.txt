@@ -1,0 +1,46 @@
+============================================================
+AUTH V2 – FULL TOKEN FLOW (WINDOWS CMD WITH VARIABLE)
+Base URL: http://127.0.0.1:5001
+============================================================
+
+REM ========================
+REM 1️⃣ LOGIN USER
+REM ========================
+curl -X POST http://127.0.0.1:5001/api/v1/auth/angularUser/login -H "Content-Type: application/json" -d "{\"email\":\"raghu@test.com\",\"password\":\"Test@123\"}"
+
+REM --------------------------------------------------------
+REM 👉 COPY the access_token from above response
+REM --------------------------------------------------------
+
+REM ========================
+REM 2️⃣ SET TOKEN VARIABLE
+REM ========================
+set TOKEN=PASTE_YOUR_ACCESS_TOKEN_HERE
+
+
+REM ========================
+REM 3️⃣ PROFILE (Protected)
+REM ========================
+curl -X GET http://127.0.0.1:5001/api/v1/auth/profile -H "Authorization: Bearer %TOKEN%"
+
+
+REM ========================
+REM 4️⃣ LOGOUT
+REM ========================
+curl -X POST http://127.0.0.1:5001/api/v1/auth/logout -H "Authorization: Bearer %TOKEN%"
+
+
+REM ========================
+REM 5️⃣ TOKEN REVOKE TEST
+REM ========================
+curl -X GET http://127.0.0.1:5001/api/v1/auth/profile -H "Authorization: Bearer %TOKEN%"
+
+
+============================================================
+EXPECTED RESULTS
+============================================================
+✔ Login → 200 + access_token
+✔ Profile → 200
+✔ Logout → 200
+✔ Profile after logout → 401 (Token revoked)
+============================================================

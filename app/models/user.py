@@ -10,14 +10,16 @@ class User(db.Model):
     # -----------------------------
     # Profile Fields
     # -----------------------------
-    first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
+    first_name = db.Column(db.String(100), nullable=True)
+    last_name = db.Column(db.String(100), nullable=True)
+
     email = db.Column(
         db.String(150),
         unique=True,
         nullable=False,
         index=True
     )
+
     phone_number = db.Column(db.String(20), nullable=True)
 
     # -----------------------------
@@ -28,7 +30,7 @@ class User(db.Model):
     auth_provider = db.Column(
         db.String(50),
         default="local"
-    )  # local | google
+    )
 
     google_id = db.Column(
         db.String(200),

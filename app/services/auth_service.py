@@ -1,33 +1,32 @@
 from flask import current_app
-from werkzeug.security import check_password_hash
-from app.models.user import User
-from app.extensions import db
 from flask_jwt_extended import create_access_token
+from app.models import User
+from app.extensions import db
 
 
 # =========================================================
-# REGISTER USER / SELLER  ✅ FIXED
+# REGISTER USER (REQUIRED first_name & last_name)
 # =========================================================
-def register_user(email: str, password: str, role: str = "user"):
-    # Check existing user
+def register_user(email: str, password: str, first_name: str, last_name: str):
+
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
         return {"error": "Email already exists"}, 409
 
-    # ✅ CREATE USER PROPERLY
     user = User(
         email=email,
-        role=role
+        role="user",
+        first_name=first_name,
+        last_name=last_name
     )
 
-    # ✅ THIS WAS MISSING / WRONG EARLIER
     user.set_password(password)
 
     db.session.add(user)
     db.session.commit()
 
     current_app.logger.info(
-        f"Service: user created id={user.id} email={user.email}"
+        f"User created id={user.id} email={user.email}"
     )
 
     return {
@@ -37,22 +36,16 @@ def register_user(email: str, password: str, role: str = "user"):
 
 
 # =========================================================
-# LOGIN USER / SELLER  ✅ CORRECT
+# LOGIN USER
 # =========================================================
 def authenticate_user(email: str, password: str):
+
     user = User.query.filter_by(email=email).first()
 
-    if not user:
-        current_app.logger.warning(
-            f"Service: authenticate_user - user not found email={email}"
-        )
+    if not user or not user.is_active:
         return {"error": "Invalid credentials"}, 401
 
-    # ✅ PASSWORD CHECK (USES MODEL METHOD)
     if not user.check_password(password):
-        current_app.logger.warning(
-            f"Service: authenticate_user - invalid password for email={email}"
-        )
         return {"error": "Invalid credentials"}, 401
 
     access_token = create_access_token(identity=str(user.id))
