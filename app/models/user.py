@@ -12,23 +12,43 @@ class User(db.Model):
     # -----------------------------
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(150), unique=True, nullable=False)
+    email = db.Column(
+        db.String(150),
+        unique=True,
+        nullable=False,
+        index=True
+    )
     phone_number = db.Column(db.String(20), nullable=True)
 
     # -----------------------------
     # Authentication Fields
     # -----------------------------
     password_hash = db.Column(db.String(255), nullable=True)
-    auth_provider = db.Column(db.String(50), default="local")  # local | google
-    google_id = db.Column(db.String(200), nullable=True)
+
+    auth_provider = db.Column(
+        db.String(50),
+        default="local"
+    )  # local | google
+
+    google_id = db.Column(
+        db.String(200),
+        nullable=True,
+        index=True
+    )
 
     role = db.Column(db.String(20), default="user")
+
     is_verified = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
 
     # -----------------------------
     # Timestamps
     # -----------------------------
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now()
+    )
+
     updated_at = db.Column(
         db.DateTime,
         server_default=db.func.now(),

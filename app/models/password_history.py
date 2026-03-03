@@ -1,4 +1,4 @@
-from ..extensions import db
+from app.extensions import db
 
 
 class PasswordHistory(db.Model):
@@ -9,7 +9,8 @@ class PasswordHistory(db.Model):
     user_id = db.Column(
         db.Integer,
         db.ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     password_hash = db.Column(

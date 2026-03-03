@@ -1,8 +1,8 @@
 """auth v2 fresh secure schema
 
-Revision ID: 9f57a1691704
+Revision ID: 01f0e236670b
 Revises: 
-Create Date: 2026-03-03 17:53:10.593219
+Create Date: 2026-03-03 20:26:52.139185
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9f57a1691704'
+revision = '01f0e236670b'
 down_revision = None
 branch_labels = None
 depends_on = None

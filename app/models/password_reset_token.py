@@ -9,7 +9,8 @@ class PasswordResetToken(db.Model):
     user_id = db.Column(
         db.Integer,
         db.ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     token = db.Column(
@@ -19,7 +20,11 @@ class PasswordResetToken(db.Model):
         index=True
     )
 
-    expires_at = db.Column(db.DateTime, nullable=False)
+    expires_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        index=True
+    )
 
     is_used = db.Column(db.Boolean, default=False)
 
