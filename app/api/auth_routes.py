@@ -5,9 +5,20 @@ from flask_jwt_extended import (
     get_jwt
 )
 
+from datetime import datetime, timedelta
+import secrets
+from werkzeug.security import check_password_hash
+
 from ..services.auth_service import register_user, authenticate_user
+from ..services.email_service import send_reset_email
 from ..extensions import db
-from ..models import User, TokenBlocklist
+from ..models import (
+    User,
+    TokenBlocklist,
+    PasswordHistory,
+    PasswordResetToken,
+    EmailVerificationToken
+)
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -21,10 +32,11 @@ def health():
 
 
 # ------------------------------------------------
-# REGISTER (first_name & last_name REQUIRED)
+# REGISTER
 # ------------------------------------------------
 @auth_bp.post("/angularUser/register")
 def angular_register():
+
     data = request.get_json() or {}
 
     email = data.get("email")
@@ -38,7 +50,37 @@ def angular_register():
         }), 400
 
     resp, status = register_user(email, password, first_name, last_name)
+
     return jsonify(resp), status
+
+
+# ------------------------------------------------
+# VERIFY EMAIL
+# ------------------------------------------------
+@auth_bp.get("/verify-email/<token>")
+def verify_email(token):
+
+    record = EmailVerificationToken.query.filter_by(
+        token=token,
+        is_used=False
+    ).first()
+
+    if not record:
+        return jsonify({"error": "Invalid token"}), 400
+
+    if record.expires_at < datetime.utcnow():
+        return jsonify({"error": "Token expired"}), 400
+
+    user = User.query.get(record.user_id)
+
+    user.is_verified = True
+    record.is_used = True
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Email verified successfully"
+    }), 200
 
 
 # ------------------------------------------------
@@ -46,6 +88,7 @@ def angular_register():
 # ------------------------------------------------
 @auth_bp.post("/angularUser/login")
 def angular_login():
+
     data = request.get_json() or {}
 
     email = data.get("email")
@@ -55,6 +98,7 @@ def angular_login():
         return jsonify({"message": "email and password required"}), 400
 
     resp, status = authenticate_user(email, password)
+
     return jsonify(resp), status
 
 
@@ -64,6 +108,7 @@ def angular_login():
 @auth_bp.get("/profile")
 @jwt_required()
 def profile():
+
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
 
@@ -75,9 +120,161 @@ def profile():
         "first_name": user.first_name,
         "last_name": user.last_name,
         "email": user.email,
+        "phone_number": user.phone_number,
         "role": user.role,
         "is_verified": user.is_verified,
         "created_at": user.created_at
+    }), 200
+
+
+# ------------------------------------------------
+# UPDATE PROFILE
+# ------------------------------------------------
+@auth_bp.put("/profile")
+@jwt_required()
+def update_profile():
+
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    data = request.get_json() or {}
+
+    user.first_name = data.get("first_name", user.first_name)
+    user.last_name = data.get("last_name", user.last_name)
+    user.phone_number = data.get("phone_number", user.phone_number)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Profile updated successfully"
+    }), 200
+
+
+# ------------------------------------------------
+# CHANGE PASSWORD
+# ------------------------------------------------
+@auth_bp.post("/change-password")
+@jwt_required()
+def change_password():
+
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    data = request.get_json() or {}
+
+    old_password = data.get("old_password")
+    new_password = data.get("new_password")
+
+    if not old_password or not new_password:
+        return jsonify({"error": "old_password and new_password required"}), 400
+
+    if not user.check_password(old_password):
+        return jsonify({"error": "Old password incorrect"}), 400
+
+    recent = PasswordHistory.query.filter_by(user_id=user.id)\
+        .order_by(PasswordHistory.created_at.desc())\
+        .limit(5).all()
+
+    for entry in recent:
+        if check_password_hash(entry.password_hash, new_password):
+            return jsonify({
+                "error": "Cannot reuse a recent password"
+            }), 400
+
+    user.set_password(new_password)
+
+    history = PasswordHistory(
+        user_id=user.id,
+        password_hash=user.password_hash
+    )
+
+    db.session.add(history)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Password changed successfully. Please login again."
+    }), 200
+
+
+# ------------------------------------------------
+# FORGOT PASSWORD
+# ------------------------------------------------
+@auth_bp.post("/forgot-password")
+def forgot_password():
+
+    data = request.get_json() or {}
+    email = data.get("email")
+
+    if not email:
+        return jsonify({"error": "Email required"}), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return jsonify({
+            "message": "If email exists reset link sent"
+        }), 200
+
+    token = secrets.token_urlsafe(48)
+
+    reset = PasswordResetToken(
+        user_id=user.id,
+        token=token,
+        expires_at=datetime.utcnow() + timedelta(minutes=30)
+    )
+
+    db.session.add(reset)
+    db.session.commit()
+
+    send_reset_email(user.email, token)
+
+    return jsonify({
+        "message": "Password reset email sent"
+    }), 200
+
+
+# ------------------------------------------------
+# RESET PASSWORD
+# ------------------------------------------------
+@auth_bp.post("/reset-password/<token>")
+def reset_password(token):
+
+    data = request.get_json() or {}
+    new_password = data.get("password")
+
+    if not new_password:
+        return jsonify({"error": "password required"}), 400
+
+    reset = PasswordResetToken.query.filter_by(
+        token=token,
+        is_used=False
+    ).first()
+
+    if not reset:
+        return jsonify({"error": "Invalid token"}), 400
+
+    if reset.expires_at < datetime.utcnow():
+        return jsonify({"error": "Token expired"}), 400
+
+    user = User.query.get(reset.user_id)
+
+    user.set_password(new_password)
+
+    history = PasswordHistory(
+        user_id=user.id,
+        password_hash=user.password_hash
+    )
+
+    reset.is_used = True
+
+    db.session.add(history)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Password reset successful"
     }), 200
 
 
@@ -87,7 +284,12 @@ def profile():
 @auth_bp.post("/logout")
 @jwt_required()
 def logout():
+
     jti = get_jwt()["jti"]
+
     db.session.add(TokenBlocklist(jti=jti))
     db.session.commit()
-    return jsonify({"message": "Logged out successfully"}), 200
+
+    return jsonify({
+        "message": "Logged out successfully"
+    }), 200

@@ -136,6 +136,17 @@ git commit -m "🔐 Auth V2: Security and indexing improvements
 # 6️⃣ Push to remote feature branch
 git push origin feature/auth-v2-secure-profile
 
+-------------------------
+4-3-26:- # New Migrations
+New Migration commands:-
+
+flask db migrate -m "add email verification tokens table"
+flask db upgrade
+
+# Current DB status:-
+👉 Alembic created the migration file
+👉 Alembic added the new table to SQLite database
+
 
 
 
