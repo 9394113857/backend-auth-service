@@ -23,17 +23,17 @@ from ..models import (
 auth_bp = Blueprint("auth", __name__)
 
 
-# ------------------------------------------------
+# =================================================
 # HEALTH CHECK
-# ------------------------------------------------
+# =================================================
 @auth_bp.get("/")
 def health():
     return jsonify({"status": "auth-service UP"}), 200
 
 
-# ------------------------------------------------
+# =================================================
 # REGISTER
-# ------------------------------------------------
+# =================================================
 @auth_bp.post("/angularUser/register")
 def angular_register():
 
@@ -54,10 +54,10 @@ def angular_register():
     return jsonify(resp), status
 
 
-# ------------------------------------------------
+# =================================================
 # VERIFY EMAIL
-# ------------------------------------------------
-@auth_bp.get("/verify-email/<token>")
+# =================================================
+@auth_bp.get("/angularUser/verify-email/<token>")
 def verify_email(token):
 
     record = EmailVerificationToken.query.filter_by(
@@ -66,12 +66,19 @@ def verify_email(token):
     ).first()
 
     if not record:
-        return jsonify({"error": "Invalid token"}), 400
+        return jsonify({
+            "error": "Verification failed or link expired"
+        }), 400
 
     if record.expires_at < datetime.utcnow():
-        return jsonify({"error": "Token expired"}), 400
+        return jsonify({
+            "error": "Verification link expired"
+        }), 400
 
     user = User.query.get(record.user_id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
 
     user.is_verified = True
     record.is_used = True
@@ -83,9 +90,9 @@ def verify_email(token):
     }), 200
 
 
-# ------------------------------------------------
+# =================================================
 # LOGIN
-# ------------------------------------------------
+# =================================================
 @auth_bp.post("/angularUser/login")
 def angular_login():
 
@@ -102,9 +109,9 @@ def angular_login():
     return jsonify(resp), status
 
 
-# ------------------------------------------------
+# =================================================
 # PROFILE
-# ------------------------------------------------
+# =================================================
 @auth_bp.get("/profile")
 @jwt_required()
 def profile():
@@ -127,9 +134,9 @@ def profile():
     }), 200
 
 
-# ------------------------------------------------
+# =================================================
 # UPDATE PROFILE
-# ------------------------------------------------
+# =================================================
 @auth_bp.put("/profile")
 @jwt_required()
 def update_profile():
@@ -153,9 +160,9 @@ def update_profile():
     }), 200
 
 
-# ------------------------------------------------
+# =================================================
 # CHANGE PASSWORD
-# ------------------------------------------------
+# =================================================
 @auth_bp.post("/change-password")
 @jwt_required()
 def change_password():
@@ -169,14 +176,20 @@ def change_password():
     new_password = data.get("new_password")
 
     if not old_password or not new_password:
-        return jsonify({"error": "old_password and new_password required"}), 400
+        return jsonify({
+            "error": "old_password and new_password required"
+        }), 400
 
     if not user.check_password(old_password):
         return jsonify({"error": "Old password incorrect"}), 400
 
-    recent = PasswordHistory.query.filter_by(user_id=user.id)\
-        .order_by(PasswordHistory.created_at.desc())\
-        .limit(5).all()
+    recent = (
+        PasswordHistory.query
+        .filter_by(user_id=user.id)
+        .order_by(PasswordHistory.created_at.desc())
+        .limit(5)
+        .all()
+    )
 
     for entry in recent:
         if check_password_hash(entry.password_hash, new_password):
@@ -199,9 +212,9 @@ def change_password():
     }), 200
 
 
-# ------------------------------------------------
+# =================================================
 # FORGOT PASSWORD
-# ------------------------------------------------
+# =================================================
 @auth_bp.post("/forgot-password")
 def forgot_password():
 
@@ -236,9 +249,9 @@ def forgot_password():
     }), 200
 
 
-# ------------------------------------------------
+# =================================================
 # RESET PASSWORD
-# ------------------------------------------------
+# =================================================
 @auth_bp.post("/reset-password/<token>")
 def reset_password(token):
 
@@ -261,6 +274,9 @@ def reset_password(token):
 
     user = User.query.get(reset.user_id)
 
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     user.set_password(new_password)
 
     history = PasswordHistory(
@@ -278,9 +294,9 @@ def reset_password(token):
     }), 200
 
 
-# ------------------------------------------------
+# =================================================
 # LOGOUT
-# ------------------------------------------------
+# =================================================
 @auth_bp.post("/logout")
 @jwt_required()
 def logout():
