@@ -1,9 +1,10 @@
 # ===============================================================
 # AUTH ROUTES
 # Handles authentication, profile management and password flows
+# Includes production-grade logging
 # ===============================================================
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity,
@@ -33,6 +34,7 @@ auth_bp = Blueprint("auth", __name__)
 # =================================================
 @auth_bp.get("/")
 def health():
+    current_app.logger.info("Auth health check requested")
     return jsonify({"status": "auth-service UP"}), 200
 
 
@@ -49,12 +51,24 @@ def angular_register():
     first_name = data.get("first_name")
     last_name = data.get("last_name")
 
+    current_app.logger.info(f"Registration attempt email={email}")
+
     if not email or not password or not first_name or not last_name:
+
+        current_app.logger.warning(
+            f"Registration failed - missing fields email={email}"
+        )
+
         return jsonify({
             "message": "email, password, first_name and last_name required"
         }), 400
 
     resp, status = register_user(email, password, first_name, last_name)
+
+    if status != 201:
+        current_app.logger.warning(f"Registration failed email={email}")
+    else:
+        current_app.logger.info(f"Registration successful email={email}")
 
     return jsonify(resp), status
 
@@ -65,18 +79,25 @@ def angular_register():
 @auth_bp.get("/angularUser/verify-email/<token>")
 def verify_email(token):
 
-    # Find verification token
+    current_app.logger.info("Email verification attempt")
+
     record = EmailVerificationToken.query.filter_by(
         token=token,
         is_used=False
     ).first()
 
     if not record:
+
+        current_app.logger.warning("Email verification failed - invalid token")
+
         return jsonify({
             "error": "Verification failed or link expired"
         }), 400
 
     if record.expires_at < datetime.utcnow():
+
+        current_app.logger.warning("Email verification failed - token expired")
+
         return jsonify({
             "error": "Verification link expired"
         }), 400
@@ -84,13 +105,17 @@ def verify_email(token):
     user = User.query.get(record.user_id)
 
     if not user:
+
+        current_app.logger.error("Email verification failed - user not found")
+
         return jsonify({"error": "User not found"}), 404
 
-    # Mark email verified
     user.is_verified = True
     record.is_used = True
 
     db.session.commit()
+
+    current_app.logger.info(f"Email verified user_id={user.id}")
 
     return jsonify({
         "message": "Email verified successfully"
@@ -108,10 +133,20 @@ def angular_login():
     email = data.get("email")
     password = data.get("password")
 
+    current_app.logger.info(f"Login attempt email={email}")
+
     if not email or not password:
+
+        current_app.logger.warning("Login failed - missing credentials")
+
         return jsonify({"message": "email and password required"}), 400
 
     resp, status = authenticate_user(email, password)
+
+    if status != 200:
+        current_app.logger.warning(f"Login failed email={email}")
+    else:
+        current_app.logger.info(f"Login successful email={email}")
 
     return jsonify(resp), status
 
@@ -124,9 +159,15 @@ def angular_login():
 def profile():
 
     user_id = get_jwt_identity()
+
+    current_app.logger.info(f"Profile requested user_id={user_id}")
+
     user = User.query.get(user_id)
 
     if not user or not user.is_active:
+
+        current_app.logger.warning(f"Profile access denied user_id={user_id}")
+
         return jsonify({"message": "User not active"}), 403
 
     return jsonify({
@@ -149,9 +190,15 @@ def profile():
 def update_profile():
 
     user_id = get_jwt_identity()
+
+    current_app.logger.info(f"Profile update attempt user_id={user_id}")
+
     user = User.query.get(user_id)
 
     if not user:
+
+        current_app.logger.error(f"Profile update failed user_id={user_id}")
+
         return jsonify({"message": "User not found"}), 404
 
     data = request.get_json() or {}
@@ -161,6 +208,8 @@ def update_profile():
     user.phone_number = data.get("phone_number", user.phone_number)
 
     db.session.commit()
+
+    current_app.logger.info(f"Profile updated user_id={user_id}")
 
     return jsonify({
         "message": "Profile updated successfully"
@@ -175,6 +224,9 @@ def update_profile():
 def change_password():
 
     user_id = get_jwt_identity()
+
+    current_app.logger.info(f"Password change attempt user_id={user_id}")
+
     user = User.query.get(user_id)
 
     data = request.get_json() or {}
@@ -183,32 +235,40 @@ def change_password():
     new_password = data.get("new_password")
 
     if not old_password or not new_password:
+
+        current_app.logger.warning("Password change failed - missing fields")
+
         return jsonify({
             "error": "old_password and new_password required"
         }), 400
 
-    # Verify current password
     if not user.check_password(old_password):
+
+        current_app.logger.warning(
+            f"Password change failed - wrong old password user_id={user_id}"
+        )
+
         return jsonify({"error": "Old password incorrect"}), 400
 
-    # ------------------------------------------------
-    # PASSWORD HISTORY CHECK (prevent reuse)
-    # ------------------------------------------------
     recent = (
         PasswordHistory.query
         .filter_by(user_id=user.id)
         .order_by(PasswordHistory.created_at.desc())
-        .limit(10) 
+        .limit(10)
         .all()
     )
 
     for entry in recent:
         if check_password_hash(entry.password_hash, new_password):
+
+            current_app.logger.warning(
+                f"Password reuse blocked user_id={user_id}"
+            )
+
             return jsonify({
                 "error": "Cannot reuse a recent password"
             }), 400
 
-    # Update password
     user.set_password(new_password)
 
     history = PasswordHistory(
@@ -218,6 +278,8 @@ def change_password():
 
     db.session.add(history)
     db.session.commit()
+
+    current_app.logger.info(f"Password changed user_id={user_id}")
 
     return jsonify({
         "message": "Password changed successfully. Please login again."
@@ -233,28 +295,31 @@ def forgot_password():
     data = request.get_json() or {}
     email = data.get("email")
 
+    current_app.logger.info(f"Forgot password request email={email}")
+
     if not email:
+
+        current_app.logger.warning("Forgot password failed - email missing")
+
         return jsonify({"error": "Email required"}), 400
 
     user = User.query.filter_by(email=email).first()
 
-    # Security practice (avoid user enumeration)
     if not user:
+
+        current_app.logger.info(
+            f"Password reset requested for non-existing email={email}"
+        )
+
         return jsonify({
             "message": "If email exists reset link sent"
         }), 200
 
-    # ------------------------------------------------
-    # IMPORTANT SECURITY:
-    # Only ONE reset token per user
-    # Delete previous unused tokens
-    # ------------------------------------------------
     PasswordResetToken.query.filter_by(
         user_id=user.id,
         is_used=False
     ).delete()
 
-    # Generate new reset token
     token = secrets.token_urlsafe(48)
 
     reset = PasswordResetToken(
@@ -266,8 +331,11 @@ def forgot_password():
     db.session.add(reset)
     db.session.commit()
 
-    # Send email
     send_reset_email(user.email, token)
+
+    current_app.logger.info(
+        f"Password reset email sent user_id={user.id}"
+    )
 
     return jsonify({
         "message": "Password reset email sent"
@@ -280,10 +348,15 @@ def forgot_password():
 @auth_bp.post("/reset-password/<token>")
 def reset_password(token):
 
+    current_app.logger.info("Password reset attempt")
+
     data = request.get_json() or {}
     new_password = data.get("password")
 
     if not new_password:
+
+        current_app.logger.warning("Reset password failed - missing password")
+
         return jsonify({"error": "password required"}), 400
 
     reset = PasswordResetToken.query.filter_by(
@@ -292,19 +365,25 @@ def reset_password(token):
     ).first()
 
     if not reset:
+
+        current_app.logger.warning("Reset password failed - invalid token")
+
         return jsonify({"error": "Invalid token"}), 400
 
     if reset.expires_at < datetime.utcnow():
+
+        current_app.logger.warning("Reset password failed - token expired")
+
         return jsonify({"error": "Token expired"}), 400
 
     user = User.query.get(reset.user_id)
 
     if not user:
+
+        current_app.logger.error("Reset password failed - user not found")
+
         return jsonify({"error": "User not found"}), 404
 
-    # ------------------------------------------------
-    # PASSWORD HISTORY CHECK (prevent reuse)
-    # ------------------------------------------------
     recent = (
         PasswordHistory.query
         .filter_by(user_id=user.id)
@@ -315,11 +394,15 @@ def reset_password(token):
 
     for entry in recent:
         if check_password_hash(entry.password_hash, new_password):
+
+            current_app.logger.warning(
+                f"Password reuse blocked during reset user_id={user.id}"
+            )
+
             return jsonify({
                 "error": "Cannot reuse a recent password"
             }), 400
 
-    # Update password
     user.set_password(new_password)
 
     history = PasswordHistory(
@@ -331,6 +414,8 @@ def reset_password(token):
 
     db.session.add(history)
     db.session.commit()
+
+    current_app.logger.info(f"Password reset successful user_id={user.id}")
 
     return jsonify({
         "message": "Password reset successful"
@@ -344,10 +429,14 @@ def reset_password(token):
 @jwt_required()
 def logout():
 
+    user_id = get_jwt_identity()
+
     jti = get_jwt()["jti"]
 
     db.session.add(TokenBlocklist(jti=jti))
     db.session.commit()
+
+    current_app.logger.info(f"User logout user_id={user_id}")
 
     return jsonify({
         "message": "Logged out successfully"

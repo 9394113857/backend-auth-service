@@ -2,16 +2,16 @@ import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from app.config import Config
 from app.extensions import db, migrate, jwt, cors, mail
 
-
-# ✅ Import models so Alembic detects them
-import app.models  # IMPORTANT
+# Import models so Alembic detects them
+import app.models
 
 
 def create_app(testing: bool = False):
+
     app = Flask(__name__)
 
     # --------------------------
@@ -34,7 +34,7 @@ def create_app(testing: bool = False):
     mail.init_app(app)
 
     # --------------------------
-    # Logging
+    # Logging Setup
     # --------------------------
     logs_path = os.path.join(os.getcwd(), "logs")
     os.makedirs(logs_path, exist_ok=True)
@@ -47,15 +47,27 @@ def create_app(testing: bool = False):
         encoding="utf-8"
     )
 
-    handler.setFormatter(logging.Formatter(
+    formatter = logging.Formatter(
         "%(asctime)s [%(levelname)s] %(message)s"
-    ))
+    )
+
+    handler.setFormatter(formatter)
 
     if not app.logger.handlers:
         app.logger.addHandler(handler)
 
     app.logger.setLevel(logging.INFO)
+
     app.logger.info("Auth service starting...")
+
+    # --------------------------
+    # Log Every Request
+    # --------------------------
+    @app.before_request
+    def log_request():
+        app.logger.info(
+            f"Request: {request.method} {request.path}"
+        )
 
     # --------------------------
     # Blueprints
@@ -81,4 +93,5 @@ def create_app(testing: bool = False):
         return TokenBlocklist.query.filter_by(jti=jti).first() is not None
 
     app.logger.info("Auth service started successfully.")
+
     return app

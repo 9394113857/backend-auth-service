@@ -213,6 +213,24 @@ git push origin main
 # feature/auth-v2-secure-profile → merged into main
 # CI/CD pipelines will deploy automatically
 # ============================================================
+# =====================================================
+# AUTH SERVICE LOGGING IMPLEMENTATION
+# =====================================================
+
+git checkout main
+
+git add .
+
+git commit -m "feat(auth): add structured logging across authentication routes
+
+- add logging for register, login, verify email
+- add logging for profile access and updates
+- add logging for password change and reset flows
+- add logging for logout events
+- improve observability for production debugging
+"
+
+git push origin main
 
 
 
