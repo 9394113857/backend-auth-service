@@ -11,19 +11,17 @@ from datetime import datetime, timedelta
 # =========================================================
 # REGISTER USER
 # =========================================================
-def register_user(email: str, password: str, first_name: str, last_name: str):
+def register_user(email, password, first_name, last_name, role):
 
     existing_user = User.query.filter_by(email=email).first()
 
     if existing_user:
-        current_app.logger.warning(
-            f"Registration failed - email already exists: {email}"
-        )
         return {"error": "Email already exists"}, 409
 
+    # 🔥 ROLE COMES FROM FRONTEND
     user = User(
         email=email,
-        role="user",
+        role=role,
         first_name=first_name,
         last_name=last_name,
         is_verified=False
@@ -55,10 +53,6 @@ def register_user(email: str, password: str, first_name: str, last_name: str):
 
     send_verification_email(user.email, token)
 
-    current_app.logger.info(
-        f"User registered id={user.id} email={user.email}"
-    )
-
     return {
         "message": "Registration successful. Please verify your email."
     }, 201
@@ -67,36 +61,23 @@ def register_user(email: str, password: str, first_name: str, last_name: str):
 # =========================================================
 # LOGIN USER
 # =========================================================
-def authenticate_user(email: str, password: str):
+def authenticate_user(email, password):
 
     user = User.query.filter_by(email=email).first()
 
     if not user or not user.is_active:
-        current_app.logger.warning(
-            f"Login failed - invalid credentials email={email}"
-        )
         return {"error": "Invalid credentials"}, 401
 
     if not user.is_verified:
-        current_app.logger.warning(
-            f"Login blocked - email not verified email={email}"
-        )
         return {"error": "Please verify your email before login"}, 403
 
     if not user.check_password(password):
-        current_app.logger.warning(
-            f"Login failed - wrong password email={email}"
-        )
         return {"error": "Invalid credentials"}, 401
 
     access_token = create_access_token(identity=str(user.id))
 
-    current_app.logger.info(
-        f"Login success user_id={user.id} email={email}"
-    )
-
     return {
         "access_token": access_token,
-        "role": user.role,
+        "role": user.role,   # 🔥 IMPORTANT
         "userId": user.id
     }, 200

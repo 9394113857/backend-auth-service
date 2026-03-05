@@ -1,33 +1,62 @@
 # =========================================================
-# STEP 1 — Open Flask shell (inside backend-auth-service)
+# AUTH SERVICE DATABASE RESET FOR TESTING
+# Clears all authentication related tables
+# =========================================================
+
+
+# =========================================================
+# STEP 1 — Open Flask shell
 # =========================================================
 flask shell
 
+
 # =========================================================
-# STEP 2 — Run these Python commands to clear auth tables
-# (Users + Password history + Reset tokens + Verify tokens)
+# STEP 2 — Import database and models
 # =========================================================
 
 from app.extensions import db
-from app.models import User, PasswordHistory, PasswordResetToken, EmailVerificationToken
+from app.models import (
+    User,
+    PasswordHistory,
+    PasswordResetToken,
+    EmailVerificationToken,
+    TokenBlocklist
+)
 
-# Delete all records from tables
+
+# =========================================================
+# STEP 3 — Delete all records from tables
+# =========================================================
+
 User.query.delete()
+
 PasswordHistory.query.delete()
+
 PasswordResetToken.query.delete()
+
 EmailVerificationToken.query.delete()
 
-# Commit changes
+TokenBlocklist.query.delete()
+
+
+# =========================================================
+# STEP 4 — Commit changes
+# =========================================================
+
 db.session.commit()
 
-print("Auth tables cleared successfully for fresh testing")
+print("All auth tables cleared successfully")
+
 
 # =========================================================
-# STEP 3 — Exit Flask shell
+# STEP 5 — Exit Flask shell
 # =========================================================
+
 exit()
 
+
 # =========================================================
-# STEP 4 — Restart backend server
+# STEP 6 — Restart backend server
 # =========================================================
+
 python run.py
