@@ -232,5 +232,26 @@ git commit -m "feat(auth): add structured logging across authentication routes
 
 git push origin main
 
+----------------------------
+
+# =====================================================
+# ADD REQUEST ID TRACING + IMPROVED LOGGING
+# =====================================================
+
+git checkout main
+
+git add .
+
+git commit -m "feat(auth): add request ID tracing and structured logging
+
+- add request ID tracing for debugging
+- log every request start and finish
+- include request ID in logs
+- add response header X-Request-ID
+- improve production observability
+"
+
+git push origin main
+
 
 

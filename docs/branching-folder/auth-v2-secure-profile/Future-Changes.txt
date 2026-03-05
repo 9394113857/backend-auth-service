@@ -1,0 +1,9 @@
+5-3-26:-
+If you want, I can also show you one very powerful improvement next that big companies use:
+
+⚡ Add Request ID tracing (every API request gets unique ID for debugging across microservices).
+
+This is called distributed tracing. already now itad impelemndted  in thsi ssystem now
+
+
+
