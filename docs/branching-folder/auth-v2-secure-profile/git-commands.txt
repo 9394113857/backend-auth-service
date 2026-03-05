@@ -183,6 +183,36 @@ Date: $(date)
 # Push feature branch
 # -------------------------------
 git push origin feature/auth-v2-secure-profile
+--------
+# ============================================================
+# AUTH V2 FEATURE → MAIN MERGE
+# Safe merge workflow (clean + reversible)
+# ============================================================
+
+# 1️⃣ Ensure everything in feature branch is committed
+git add .
+git commit -m "chore(auth-v2): finalize authentication module and reset password UX stabilization" || true
+
+# 2️⃣ Push feature branch to remote
+git push origin feature/auth-v2-secure-profile
+
+# 3️⃣ Switch to main branch
+git checkout main
+
+# 4️⃣ Pull latest main to avoid conflicts
+git pull origin main
+
+# 5️⃣ Merge feature branch into main
+git merge feature/auth-v2-secure-profile
+
+# 6️⃣ Push updated main branch
+git push origin main
+
+# ============================================================
+# RESULT
+# feature/auth-v2-secure-profile → merged into main
+# CI/CD pipelines will deploy automatically
+# ============================================================
 
 
 
