@@ -1,0 +1,205 @@
+AUTHENTICATION SYSTEM – FUTURE IMPROVEMENTS (REFERENCE NOTES)
+
+1. SERVICE LAYER ARCHITECTURE
+
+---
+
+Current structure already partially follows good design:
+
+routes → services → models
+
+Example:
+auth_routes.py → auth_service.py → database models
+
+But some business logic still exists inside routes, such as:
+• password history checking
+• password reset token creation
+• reset password logic
+
+Routes should only handle HTTP requests and responses.
+
+Better design:
+
+auth_routes.py
+↓
+auth_service.py
+↓
+models
+
+Routes call services like:
+
+resp, status = change_password_service(user_id, old_password, new_password)
+
+Benefits:
+• cleaner code
+• easier testing
+• easier scaling
+• easier debugging
+• industry standard backend architecture
+
+2. TOKEN SECURITY IMPROVEMENT
+
+---
+
+Currently password reset tokens are stored directly in the database.
+
+Example:
+PasswordResetToken.token = "abc123"
+
+If database access is compromised, attackers could use the token.
+
+Better approach:
+Store HASHED tokens instead.
+
+Example:
+hash(token) stored in database
+
+Then compare hashes during verification.
+
+Benefits:
+• protects tokens if database leaks
+• same security approach used for passwords
+
+3. FORGOT PASSWORD RATE LIMITING
+
+---
+
+Currently anyone can call:
+
+POST /forgot-password
+
+Unlimited times.
+
+Possible attack:
+Spam password reset emails repeatedly.
+
+Example attack:
+POST /forgot-password
+POST /forgot-password
+POST /forgot-password
+POST /forgot-password
+
+This could cause:
+• Gmail SMTP limits exceeded
+• email spam issues
+• service abuse
+
+Better approach:
+Limit requests.
+
+Example rules:
+• max 5 reset requests per hour per email
+• max 10 requests per IP address
+
+This is called Rate Limiting.
+
+Used by:
+• Google
+• GitHub
+• Stripe
+• Amazon
+
+4. TOKEN CLEANUP (DATABASE HYGIENE)
+
+---
+
+Tables will grow over time:
+
+password_reset_tokens
+email_verification_tokens
+
+Expired tokens accumulate.
+
+Better practice:
+Automatically delete expired tokens.
+
+Example:
+
+DELETE FROM password_reset_tokens
+WHERE expires_at < now()
+
+Can be scheduled with:
+• cron job
+• background worker
+• scheduled task
+
+5. EMAIL QUEUE (FOR LARGE SYSTEMS)
+
+---
+
+Currently email sending happens during API request.
+
+Flow now:
+user registers → send email → response returned
+
+If SMTP is slow, request becomes slow.
+
+Better architecture for large systems:
+
+API → Queue → Email Worker
+
+Tools commonly used:
+• Redis Queue
+• Celery
+• RabbitMQ
+
+Not required for small systems.
+
+6. BETTER ERROR RESPONSE FORMAT
+
+---
+
+Current responses:
+
+{"error": "Invalid credentials"}
+
+Better format for frontend:
+
+{
+"success": false,
+"message": "Invalid credentials"
+}
+
+Angular can easily show toast notifications using this format.
+
+7. FINAL AUTH SERVICE STRUCTURE
+
+---
+
+auth-service
+
+api/
+auth_routes.py
+
+services/
+auth_service.py
+password_service.py
+email_service.py
+
+models/
+user.py
+password_history.py
+password_reset_token.py
+email_verification_token.py
+
+utils/
+token_utils.py
+
+8. CURRENT SYSTEM STATUS
+
+---
+
+Current implementation already supports:
+
+✔ email verification
+✔ JWT authentication
+✔ password history protection
+✔ forgot password flow
+✔ password reset tokens
+✔ profile update
+✔ forced logout after password change
+✔ JWT token blacklist logout
+
+This is already production capable.
+
+Future improvements can be implemented when the system grows.

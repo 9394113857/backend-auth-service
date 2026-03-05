@@ -1,0 +1,33 @@
+# =========================================================
+# STEP 1 — Open Flask shell (inside backend-auth-service)
+# =========================================================
+flask shell
+
+# =========================================================
+# STEP 2 — Run these Python commands to clear auth tables
+# (Users + Password history + Reset tokens + Verify tokens)
+# =========================================================
+
+from app.extensions import db
+from app.models import User, PasswordHistory, PasswordResetToken, EmailVerificationToken
+
+# Delete all records from tables
+User.query.delete()
+PasswordHistory.query.delete()
+PasswordResetToken.query.delete()
+EmailVerificationToken.query.delete()
+
+# Commit changes
+db.session.commit()
+
+print("Auth tables cleared successfully for fresh testing")
+
+# =========================================================
+# STEP 3 — Exit Flask shell
+# =========================================================
+exit()
+
+# =========================================================
+# STEP 4 — Restart backend server
+# =========================================================
+python run.py

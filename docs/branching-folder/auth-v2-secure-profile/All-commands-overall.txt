@@ -1,0 +1,157 @@
+🔥 STEP 1 — DELETE LOCAL DATABASE (PowerShell)
+If using SQLite (default), it’s usually inside instance/.
+Run this:
+
+# Delete instance folder (SQLite DB usually here)
+Remove-Item -Recurse -Force .\instance -ErrorAction SilentlyContinue
+
+# Delete old migrations
+Remove-Item -Recurse -Force .\migrations -ErrorAction SilentlyContinue
+
+# 🔎 OPTIONAL: Verify deletion:
+Test-Path .\instance
+Test-Path .\migrations
+
+Both should return:
+False
+
+🔥 STEP 2 — Recreate Migrations Clean
+Now run:
+
+flask --app app:create_app db init
+flask --app app:create_app db migrate -m "auth v2 fresh secure schema"
+flask --app app:create_app db upgrade
+
+1️⃣ You deleted old DB + migrations → clean start.
+2️⃣ db migrate generated schema from your new models.
+3️⃣ db upgrade created fresh tables successfully and synced DB to head.
+
+✅ 🔥 OPTION 1 (RECOMMENDED) — Drop Entire Public Schema
+This deletes ALL tables, indexes, constraints, everything safely.
+👉 Run this in Supabase SQL Editor:
+
+-- ⚠️ DANGER: This deletes ALL tables in public schema
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+
+-- Restore default permissions
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
+
+✅ What This Does
+
+1️⃣ Drops every table
+2️⃣ Drops foreign keys
+3️⃣ Drops indexes
+4️⃣ Drops constraints
+5️⃣ Clean database
+6️⃣ Fresh empty schema
+
+🚀 Then Apply Fresh Migrations From Backend
+Run locally:
+
+flask db upgrade
+
+It will recreate everything from migrations cleanly.
+
+-----------------
+
+# Check current branch (make sure you're on feature/auth-v2-secure-profile)
+git branch
+
+# Add all changes to staging
+git add .
+
+# Commit changes with message
+git commit -m "Auth v2: secure profile updates, password history, reset token, fresh migration schema"
+
+# Push the current branch to origin (first time push with upstream tracking)
+git push -u origin feature/auth-v2-secure-profile
+
+# After first push, next time you can just use:
+# git push
+
+--------------------------------------------------------
+
+git checkout feature/auth-v2-secure-profile
+ls migrations/versions
+flask db current
+--------------------------------------------------------
+# Run:
+flask db migrate -m "Auth V2 security and indexing improvements"
+
+# Then:
+flask db upgrade
+
+# Confirm::
+flask db current
+
+1️⃣ Migration file was successfully generated and applied to your local SQLite database.
+2️⃣ Database is now fully aligned with latest schema revision a89f18559769 (head).
+3️⃣ Your Auth V2 schema is clean, secure, indexed, and production-ready.
+
+👤 User Model
+➡ Added is_active field + added indexes on email and google_id for performance and security.
+________________________________________
+🚫 TokenBlocklist Model
+➡ Made jti unique + indexed and added created_at timestamp for better token tracking.
+________________________________________
+🔐 PasswordResetToken Model
+➡ Added indexes on user_id and expires_at for faster validation and cleanup queries.
+________________________________________
+🔁 PasswordHistory Model
+➡ Added index on user_id to optimize password reuse checks.
+________________________________________
+📦 Overall Schema Result
+➡ Improved security, added performance indexing, ensured uniqueness constraints, and aligned DB to new head revision.
+________________________________________
+That’s the exact unique impact per model. 💯
+
+# ============================================
+# ✅ AUTH V2 – Security & Indexing Update
+# ============================================
+
+# 1️⃣ Check current branch (make sure you're on feature branch)
+git branch
+
+# 2️⃣ Check modified / new files
+git status
+
+# 3️⃣ Stage updated models
+git add app/models
+
+# 4️⃣ Stage new migration file
+git add migrations
+
+# 5️⃣ Commit with professional message
+git commit -m "🔐 Auth V2: Security and indexing improvements
+
+• Added is_active field to User model
+• Added indexes to email and google_id
+• Enforced unique JTI in token blocklist
+• Added created_at to token_blocklist
+• Indexed foreign keys for reset tokens and password history
+• Improved DB query performance and security"
+
+# 6️⃣ Push to remote feature branch
+git push origin feature/auth-v2-secure-profile
+
+-------------------------
+4-3-26:- # New Migrations
+New Migration commands:-
+
+flask db migrate -m "add email verification tokens table"
+flask db upgrade
+
+# Current DB status:-
+👉 Alembic created the migration file
+👉 Alembic added the new table to SQLite database
+--------------------------------------------------
+
+
+
+
+
+
+
+

@@ -1,7 +1,6 @@
 import os
 from app import create_app
 
-# Create Flask app at import time (required for Gunicorn later)
 app = create_app()
 
 if __name__ == "__main__":
