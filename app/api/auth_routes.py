@@ -1,3 +1,8 @@
+# ===============================================================
+# AUTH ROUTES
+# Handles authentication, profile management and password flows
+# ===============================================================
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
     jwt_required,
@@ -32,7 +37,7 @@ def health():
 
 
 # =================================================
-# REGISTER
+# REGISTER USER
 # =================================================
 @auth_bp.post("/angularUser/register")
 def angular_register():
@@ -60,6 +65,7 @@ def angular_register():
 @auth_bp.get("/angularUser/verify-email/<token>")
 def verify_email(token):
 
+    # Find verification token
     record = EmailVerificationToken.query.filter_by(
         token=token,
         is_used=False
@@ -80,6 +86,7 @@ def verify_email(token):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
+    # Mark email verified
     user.is_verified = True
     record.is_used = True
 
@@ -161,7 +168,7 @@ def update_profile():
 
 
 # =================================================
-# CHANGE PASSWORD
+# CHANGE PASSWORD (LOGGED-IN USER)
 # =================================================
 @auth_bp.post("/change-password")
 @jwt_required()
@@ -180,14 +187,18 @@ def change_password():
             "error": "old_password and new_password required"
         }), 400
 
+    # Verify current password
     if not user.check_password(old_password):
         return jsonify({"error": "Old password incorrect"}), 400
 
+    # ------------------------------------------------
+    # PASSWORD HISTORY CHECK (prevent reuse)
+    # ------------------------------------------------
     recent = (
         PasswordHistory.query
         .filter_by(user_id=user.id)
         .order_by(PasswordHistory.created_at.desc())
-        .limit(5)
+        .limit(10) 
         .all()
     )
 
@@ -197,6 +208,7 @@ def change_password():
                 "error": "Cannot reuse a recent password"
             }), 400
 
+    # Update password
     user.set_password(new_password)
 
     history = PasswordHistory(
@@ -226,11 +238,23 @@ def forgot_password():
 
     user = User.query.filter_by(email=email).first()
 
+    # Security practice (avoid user enumeration)
     if not user:
         return jsonify({
             "message": "If email exists reset link sent"
         }), 200
 
+    # ------------------------------------------------
+    # IMPORTANT SECURITY:
+    # Only ONE reset token per user
+    # Delete previous unused tokens
+    # ------------------------------------------------
+    PasswordResetToken.query.filter_by(
+        user_id=user.id,
+        is_used=False
+    ).delete()
+
+    # Generate new reset token
     token = secrets.token_urlsafe(48)
 
     reset = PasswordResetToken(
@@ -242,6 +266,7 @@ def forgot_password():
     db.session.add(reset)
     db.session.commit()
 
+    # Send email
     send_reset_email(user.email, token)
 
     return jsonify({
@@ -277,6 +302,24 @@ def reset_password(token):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
+    # ------------------------------------------------
+    # PASSWORD HISTORY CHECK (prevent reuse)
+    # ------------------------------------------------
+    recent = (
+        PasswordHistory.query
+        .filter_by(user_id=user.id)
+        .order_by(PasswordHistory.created_at.desc())
+        .limit(5)
+        .all()
+    )
+
+    for entry in recent:
+        if check_password_hash(entry.password_hash, new_password):
+            return jsonify({
+                "error": "Cannot reuse a recent password"
+            }), 400
+
+    # Update password
     user.set_password(new_password)
 
     history = PasswordHistory(
