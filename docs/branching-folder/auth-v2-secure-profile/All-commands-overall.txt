@@ -146,6 +146,10 @@ flask db upgrade
 # Current DB status:-
 👉 Alembic created the migration file
 👉 Alembic added the new table to SQLite database
+--------------------------------------------------
+
+
+
 
 
 
