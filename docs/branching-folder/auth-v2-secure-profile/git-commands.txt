@@ -227,7 +227,7 @@ git commit -m "feat(auth): add structured logging across authentication routes
 - add logging for profile access and updates
 - add logging for password change and reset flows
 - add logging for logout events
-- improve observability for production debugging
+- improve observability for production debugging 
 "
 
 git push origin main
