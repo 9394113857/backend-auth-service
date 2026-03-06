@@ -1,8 +1,19 @@
+# ===============================================================
+# EMAIL SERVICE
+# Handles:
+# - Email verification
+# - Password reset
+# Includes logging for Railway debugging
+# ===============================================================
+
 from flask_mail import Message
 from flask import current_app
 from app.extensions import mail
 
 
+# ===============================================================
+# SEND VERIFICATION EMAIL
+# ===============================================================
 def send_verification_email(email, token):
 
     verify_link = f"{current_app.config['FRONTEND_URL']}/verify-email?token={token}"
@@ -32,9 +43,17 @@ def send_verification_email(email, token):
     <p>If you did not create this account, please ignore this email.</p>
     """
 
-    mail.send(msg)
+    try:
+        mail.send(msg)
+        current_app.logger.info(f"Verification email sent to {email}")
+
+    except Exception as e:
+        current_app.logger.error(f"Verification email FAILED for {email}: {str(e)}")
 
 
+# ===============================================================
+# SEND PASSWORD RESET EMAIL
+# ===============================================================
 def send_reset_email(email, token):
 
     reset_link = f"{current_app.config['FRONTEND_URL']}/reset-password?token={token}"
@@ -62,4 +81,9 @@ def send_reset_email(email, token):
     <p>If you did not request this, please ignore this email.</p>
     """
 
-    mail.send(msg)
+    try:
+        mail.send(msg)
+        current_app.logger.info(f"Password reset email sent to {email}")
+
+    except Exception as e:
+        current_app.logger.error(f"Password reset email FAILED for {email}: {str(e)}")
