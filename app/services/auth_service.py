@@ -7,7 +7,9 @@
 #   - Password history tracking
 #   - Login Authentication
 #
-# This service layer is used by auth_routes.py
+# Important Production Fix:
+# Email sending runs in a BACKGROUND THREAD so the API
+# request does not block and cause Gunicorn worker timeout.
 # =========================================================
 
 from flask import current_app
@@ -23,20 +25,12 @@ from app.extensions import db
 from app.services.email_service import send_verification_email
 
 import secrets
+import threading
 from datetime import datetime, timedelta
 
 
 # =========================================================
 # REGISTER USER
-# =========================================================
-# Flow:
-#   1. Check if email already exists
-#   2. Create new user
-#   3. Save password history
-#   4. Generate verification token
-#   5. Save verification token
-#   6. Commit transaction
-#   7. Send verification email
 # =========================================================
 def register_user(email, password, first_name, last_name, role):
 
@@ -47,6 +41,7 @@ def register_user(email, password, first_name, last_name, role):
 
     if existing_user:
         return {"error": "Email already exists"}, 409
+
 
     # -----------------------------------------------------
     # Create new user
@@ -71,6 +66,7 @@ def register_user(email, password, first_name, last_name, role):
         f"Service: user created id={user.id} email={email}"
     )
 
+
     # -----------------------------------------------------
     # Store password history
     # -----------------------------------------------------
@@ -80,6 +76,7 @@ def register_user(email, password, first_name, last_name, role):
     )
 
     db.session.add(history)
+
 
     # -----------------------------------------------------
     # Generate verification token
@@ -94,6 +91,7 @@ def register_user(email, password, first_name, last_name, role):
 
     db.session.add(verification)
 
+
     # -----------------------------------------------------
     # Commit DB transaction
     # -----------------------------------------------------
@@ -103,40 +101,42 @@ def register_user(email, password, first_name, last_name, role):
         f"Verification token created for user={email}"
     )
 
+
     # -----------------------------------------------------
-    # Send verification email
+    # SEND EMAIL ASYNC (IMPORTANT FIX)
     # -----------------------------------------------------
     try:
 
-        send_verification_email(user.email, token)
+        # Run email sending in background thread
+        email_thread = threading.Thread(
+            target=send_verification_email,
+            args=(user.email, token),
+            daemon=True
+        )
+
+        email_thread.start()
 
         current_app.logger.info(
-            f"Verification email triggered for {email}"
+            f"Verification email triggered asynchronously for {email}"
         )
 
     except Exception as e:
 
-        # Important for Railway debugging
         print("EMAIL ERROR:", str(e))
 
         current_app.logger.error(
             f"Email sending failed for {email}: {str(e)}"
         )
 
+
     return {
         "message": "Registration successful. Please verify your email."
     }, 201
 
 
+
 # =========================================================
 # LOGIN USER
-# =========================================================
-# Flow:
-#   1. Find user
-#   2. Check active status
-#   3. Check email verified
-#   4. Verify password
-#   5. Issue JWT token
 # =========================================================
 def authenticate_user(email, password):
 
@@ -153,11 +153,13 @@ def authenticate_user(email, password):
 
         return {"error": "Invalid credentials"}, 401
 
+
     # -----------------------------------------------------
     # Email not verified
     # -----------------------------------------------------
     if not user.is_verified:
         return {"error": "Please verify your email before login"}, 403
+
 
     # -----------------------------------------------------
     # Password mismatch
@@ -170,8 +172,9 @@ def authenticate_user(email, password):
 
         return {"error": "Invalid credentials"}, 401
 
+
     # -----------------------------------------------------
-    # Generate JWT
+    # Generate JWT token
     # -----------------------------------------------------
     access_token = create_access_token(identity=str(user.id))
 
