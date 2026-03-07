@@ -7,8 +7,8 @@
 #   - Password history tracking
 #   - Login Authentication
 #
-# Important Production Fix:
-# Email sending runs in a BACKGROUND THREAD so the API
+# IMPORTANT FIX
+# Email sending is executed in a background thread so the
 # request does not block and cause Gunicorn worker timeout.
 # =========================================================
 
@@ -35,7 +35,7 @@ from datetime import datetime, timedelta
 def register_user(email, password, first_name, last_name, role):
 
     # -----------------------------------------------------
-    # Check existing user
+    # Check if email already exists
     # -----------------------------------------------------
     existing_user = User.query.filter_by(email=email).first()
 
@@ -59,7 +59,7 @@ def register_user(email, password, first_name, last_name, role):
 
     db.session.add(user)
 
-    # Flush to generate user.id before commit
+    # Generate user.id before commit
     db.session.flush()
 
     current_app.logger.info(
@@ -68,7 +68,7 @@ def register_user(email, password, first_name, last_name, role):
 
 
     # -----------------------------------------------------
-    # Store password history
+    # Save password history
     # -----------------------------------------------------
     history = PasswordHistory(
         user_id=user.id,
@@ -93,7 +93,7 @@ def register_user(email, password, first_name, last_name, role):
 
 
     # -----------------------------------------------------
-    # Commit DB transaction
+    # Commit database transaction
     # -----------------------------------------------------
     db.session.commit()
 
@@ -102,19 +102,26 @@ def register_user(email, password, first_name, last_name, role):
     )
 
 
-    # -----------------------------------------------------
-    # SEND EMAIL ASYNC (IMPORTANT FIX)
-    # -----------------------------------------------------
+    # =====================================================
+    # SEND EMAIL IN BACKGROUND THREAD
+    # =====================================================
     try:
 
-        # Run email sending in background thread
-        email_thread = threading.Thread(
-            target=send_verification_email,
-            args=(user.email, token),
+        def send_email_background(app, email, token):
+            """
+            Run email sending in a background thread with
+            Flask application context.
+            """
+            with app.app_context():
+                send_verification_email(email, token)
+
+        thread = threading.Thread(
+            target=send_email_background,
+            args=(current_app._get_current_object(), user.email, token),
             daemon=True
         )
 
-        email_thread.start()
+        thread.start()
 
         current_app.logger.info(
             f"Verification email triggered asynchronously for {email}"
@@ -141,6 +148,7 @@ def register_user(email, password, first_name, last_name, role):
 def authenticate_user(email, password):
 
     user = User.query.filter_by(email=email).first()
+
 
     # -----------------------------------------------------
     # User not found or inactive
