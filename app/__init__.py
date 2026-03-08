@@ -20,7 +20,7 @@ def create_app(testing: bool = False):
     app.config.from_object(Config)
 
     # --------------------------
-    # Testing override (CRITICAL FIX)
+    # Testing override
     # --------------------------
     if testing:
         app.config["TESTING"] = True
@@ -31,8 +31,11 @@ def create_app(testing: bool = False):
     # Extensions
     # --------------------------
     cors.init_app(app)
+
+    # ✅ DB should be initialized in real runtime (Railway / Docker)
     db.init_app(app)
     migrate.init_app(app, db)
+
     jwt.init_app(app)
 
     # --------------------------
@@ -65,10 +68,10 @@ def create_app(testing: bool = False):
     from .api.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
+    # ✅ HEALTH CHECK (Render)
     @app.get("/")
     def health():
         return jsonify({"status": "Auth service started successfully."}), 200
-
 
     # --------------------------
     # JWT blacklist
