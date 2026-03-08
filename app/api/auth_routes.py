@@ -1,115 +1,65 @@
-# ===============================================================
-# AUTH ROUTES
-# Handles authentication, profile management and password flows
-# ===============================================================
-
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
+    create_access_token,
     jwt_required,
     get_jwt_identity,
     get_jwt
 )
 
-from datetime import datetime, timedelta
-import secrets
-from werkzeug.security import check_password_hash
-
-from ..services.auth_service import register_user, authenticate_user
-from ..services.email_service import send_reset_email
+from ..services.auth_service import register_user
 from ..extensions import db
-from ..models import (
-    User,
-    TokenBlocklist,
-    PasswordHistory,
-    PasswordResetToken,
-    EmailVerificationToken
-)
+from ..models.user import User
+from ..models.token_blacklist import TokenBlocklist
 
 auth_bp = Blueprint("auth", __name__)
 
-
-# =================================================
+# ------------------------------------------------
 # HEALTH CHECK
-# =================================================
+# ------------------------------------------------
 @auth_bp.get("/")
 def health():
     return jsonify({"status": "auth-service UP"}), 200
 
 
-# =================================================
-# REGISTER USER
-# =================================================
+# ------------------------------------------------
+# ANGULAR REGISTER
+# ------------------------------------------------
 @auth_bp.post("/angularUser/register")
 def angular_register():
-
     data = request.get_json() or {}
 
     email = data.get("email")
     password = data.get("password")
-    first_name = data.get("first_name")
-    last_name = data.get("last_name")
+    role = data.get("role", "user")  # user | seller
 
-    # 🔥 NEW
-    role_type = data.get("role_type", "user")
+    if not email or not password:
+        return jsonify({"message": "email and password required"}), 400
 
-    if not email or not password or not first_name or not last_name:
-        return jsonify({
-            "message": "email, password, first_name and last_name required"
-        }), 400
+    resp, status = register_user(email, password)
 
-    resp, status = register_user(
-        email,
-        password,
-        first_name,
-        last_name,
-        role_type   # 🔥 PASS ROLE
-    )
+    if status != 201:
+        return jsonify(resp), status
 
-    return jsonify(resp), status
-
-
-# =================================================
-# VERIFY EMAIL
-# =================================================
-@auth_bp.get("/angularUser/verify-email/<token>")
-def verify_email(token):
-
-    record = EmailVerificationToken.query.filter_by(
-        token=token,
-        is_used=False
-    ).first()
-
-    if not record:
-        return jsonify({
-            "error": "Verification failed or link expired"
-        }), 400
-
-    if record.expires_at < datetime.utcnow():
-        return jsonify({
-            "error": "Verification link expired"
-        }), 400
-
-    user = User.query.get(record.user_id)
-
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    user.is_verified = True
-    record.is_used = True
-
+    # ✅ role assignment AFTER user creation
+    user = User.query.filter_by(email=email).first()
+    user.role = role
     db.session.commit()
 
+    current_app.logger.info(
+        f"Service: user created id={user.id} email={user.email} role={user.role}"
+    )
+
     return jsonify({
-        "message": "Email verified successfully"
-    }), 200
+        "message": "User registered successfully",
+        "role": user.role
+    }), 201
 
 
-# =================================================
-# LOGIN
-# =================================================
+# ------------------------------------------------
+# ANGULAR LOGIN  ✅ FIXED
+# ------------------------------------------------
 @auth_bp.post("/angularUser/login")
 def angular_login():
-
     data = request.get_json() or {}
 
     email = data.get("email")
@@ -118,48 +68,42 @@ def angular_login():
     if not email or not password:
         return jsonify({"message": "email and password required"}), 400
 
-    resp, status = authenticate_user(email, password)
+    # ✅ ALWAYS fetch User model directly
+    user = User.query.filter_by(email=email).first()
 
-    return jsonify(resp), status
+    if not user or not user.check_password(password):
+        current_app.logger.warning(
+            f"Service: authenticate_user - invalid credentials email={email}"
+        )
+        return jsonify({"message": "Invalid email or password"}), 401
+
+    # ✅ user is guaranteed to be User model
+    token = create_access_token(identity=str(user.id))   
+
+    return jsonify({
+        "access_token": token,
+        "userId": user.id,
+        "role": user.role
+    }), 200
 
 
-# =================================================
+# ------------------------------------------------
 # PROFILE
-# =================================================
+# ------------------------------------------------
 @auth_bp.get("/profile")
 @jwt_required()
 def profile():
-
     user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-
-    if not user or not user.is_active:
-        return jsonify({"message": "User not active"}), 403
-
-    return jsonify({
-        "id": user.id,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "email": user.email,
-        "phone_number": user.phone_number,
-        "role": user.role,
-        "is_verified": user.is_verified,
-        "created_at": user.created_at
-    }), 200
+    return jsonify({"user_id": user_id}), 200
 
 
-# =================================================
+# ------------------------------------------------
 # LOGOUT
-# =================================================
+# ------------------------------------------------
 @auth_bp.post("/logout")
 @jwt_required()
 def logout():
-
     jti = get_jwt()["jti"]
-
     db.session.add(TokenBlocklist(jti=jti))
     db.session.commit()
-
-    return jsonify({
-        "message": "Logged out successfully"
-    }), 200
+    return jsonify({"message": "Logged out successfully"}), 200
