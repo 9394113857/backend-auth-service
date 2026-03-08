@@ -1,8 +1,8 @@
-"""auth v2 fresh secure schema
+"""Old Migration and reset and checking again now
 
-Revision ID: 1ecbcddde908
+Revision ID: 84d17ff35139
 Revises: 
-Create Date: 2026-03-08 16:53:30.445048
+Create Date: 2026-03-08 20:07:07.314065
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1ecbcddde908'
+revision = '84d17ff35139'
 down_revision = None
 branch_labels = None
 depends_on = None
