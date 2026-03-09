@@ -22,7 +22,7 @@ jobs:
     env:
       IMAGE_NAME: pythoncodelife/backend-auth-service
       IMAGE_TAG: latest
-      LIVE_URL: https://mellow-illumination-production.up.railway.app/
+      LIVE_URL: https://backend-auth-service-production-9024.up.railway.app/
 
     steps:
 
