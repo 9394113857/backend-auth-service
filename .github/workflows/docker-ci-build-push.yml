@@ -2,7 +2,7 @@
 # 🚀 CI/CD – Backend Auth Service (Docker → Railway)
 # ============================================================
 
-name: 🚀 CI/CD – Backend Auth Service (Docker → Railway)
+name: 🚀 CI/CD – Backend Auth Service (Docker → Railway)   
 
 on:
   push:
