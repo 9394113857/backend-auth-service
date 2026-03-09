@@ -52,7 +52,7 @@ $env:DATABASE_URL="postgresql://postgres.ugpfvnzponokkvigevlg:Raghunadh_1992@aws
 flask db upgrade
 
 What happens:
-•	Flask connects to Supabase
+•	Flask connects to Supabase  
 •	Alembic runs migrations
 •	Tables get created in Supabase 🎉
 
