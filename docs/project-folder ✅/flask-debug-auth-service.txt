@@ -1,0 +1,274 @@
+# =====================================================
+# 🔍 DEBUGGING AUTH SERVICE (FLASK) IN VS CODE
+# =====================================================
+
+# =====================================================
+# 🔹 INTRODUCTION
+# =====================================================
+
+# This guide explains how to debug the Auth Backend
+# using VS Code.
+
+# We debug real APIs:
+# - /register
+# - /login
+# - /profile
+# - /logout
+
+# Goal:
+# - Inspect request payload from Angular
+# - Verify backend logic
+# - Debug DB operations
+
+
+# =====================================================
+# 🔹 SETUP (VERY IMPORTANT)
+# =====================================================
+
+# Step 1: Open backend-auth-service in VS Code
+
+# Step 2: Select Python Interpreter
+# (Ctrl + Shift + P → Python: Select Interpreter → choose venv)
+
+# Step 3: Create launch.json
+
+# Go to:
+# Run → Add Configuration → Python → Flask
+
+# Example config:
+
+{
+  "name": "Flask Debug",
+  "type": "python",
+  "request": "launch",
+  "module": "flask",
+  "env": {
+    "FLASK_APP": "run.py",
+    "FLASK_ENV": "development"
+  },
+  "args": ["run", "--no-debugger", "--no-reload"],
+  "jinja": true
+}
+
+
+# =====================================================
+# 🔹 SET BREAKPOINTS
+# =====================================================
+
+# Open file:
+app/api/auth_routes.py
+
+# Add breakpoints (click left side or press F9)
+
+# Example:
+
+@auth_bp.post("/angularUser/register")
+def angular_register():
+    data = request.get_json()   <-- 🔴 BREAKPOINT HERE
+
+
+# =====================================================
+# 🔹 START DEBUGGING
+# =====================================================
+
+# Press:
+F5
+
+# Flask server starts in debug mode
+
+
+# =====================================================
+# 🔹 TEST FROM ANGULAR / POSTMAN
+# =====================================================
+
+# Example request:
+
+POST /angularUser/register
+
+Payload:
+{
+  "email": "debug@test.com",
+  "password": "12345",
+  "role": "user"
+}
+
+# When request hits:
+# VS Code pauses at breakpoint
+
+
+# =====================================================
+# 🔹 INSPECT VARIABLES
+# =====================================================
+
+# Hover on:
+data
+
+# You will see:
+{
+  "email": "debug@test.com",
+  "password": "12345",
+  "role": "user"
+}
+
+# Check:
+email = data.get("email")
+password = data.get("password")
+
+# VARIABLES panel shows:
+# - data
+# - email
+# - password
+
+
+# =====================================================
+# 🔹 STEP THROUGH EXECUTION
+# =====================================================
+
+# F10 → Step Over
+# Executes line-by-line
+
+# F11 → Step Into
+# Goes inside function:
+
+resp, status = register_user(email, password, role)
+
+# Now debugger enters:
+app/services/auth_service.py
+
+
+# =====================================================
+# 🔹 DEBUG SERVICE LAYER
+# =====================================================
+
+# Inside register_user()
+
+# Add breakpoint:
+user = User(email=email)
+
+# Step through:
+
+user.set_password(password)   <-- inspect hashed password
+
+db.session.add(user)
+db.session.commit()
+
+
+# =====================================================
+# 🔹 CHECK DB FLOW
+# =====================================================
+
+# After commit:
+# Verify:
+user.id
+user.email
+user.role
+
+# Confirms DB insert success
+
+
+# =====================================================
+# 🔹 DEBUG DUPLICATE CASE
+# =====================================================
+
+# Send same request again
+
+# Flow:
+try:
+    db.session.commit()
+except IntegrityError:
+
+# Breakpoint here:
+except IntegrityError:   <-- 🔴 BREAKPOINT
+
+# Check:
+# - Why duplicate triggered
+# - DB constraint working
+
+
+# =====================================================
+# 🔹 DEBUG LOGIN FLOW
+# =====================================================
+
+# File:
+app/api/auth_routes.py
+
+# Breakpoint:
+user = User.query.filter_by(email=email).first()
+
+# Test:
+POST /angularUser/login
+
+Payload:
+{
+  "email": "debug@test.com",
+  "password": "12345"
+}
+
+# Inspect:
+user
+user.check_password(password)
+
+# Step:
+token = create_access_token(identity=str(user.id))
+
+# Check:
+token value generated
+
+
+# =====================================================
+# 🔹 DEBUG PROFILE (JWT)
+# =====================================================
+
+# Breakpoint:
+user_id = get_jwt_identity()
+
+# Send request with token
+
+# Inspect:
+user_id
+
+
+# =====================================================
+# 🔹 DEBUG LOGOUT
+# =====================================================
+
+# Breakpoint:
+jti = get_jwt()["jti"]
+
+# Inspect:
+jti value
+
+# Check:
+TokenBlocklist(jti=jti)
+
+
+# =====================================================
+# 🔹 DEBUG CONTROLS
+# =====================================================
+
+# F5 → Start / Continue
+# F10 → Step Over
+# F11 → Step Into
+# Shift + F5 → Stop Debugging
+
+
+# =====================================================
+# 🔹 IMPORTANT NOTES
+# =====================================================
+
+# - Debug works with Angular / Postman requests
+# - Breakpoints trigger automatically
+# - You must manually stop debugging (Shift + F5)
+
+
+# =====================================================
+# 🔹 CONCLUSION
+# =====================================================
+
+# Debugging helps:
+# - Validate API payloads
+# - Trace backend execution
+# - Verify DB operations
+# - Catch bugs early
+
+# This is production-level debugging practice.
