@@ -1,0 +1,268 @@
+# =====================================================
+# 🟦 AUTH SERVICE – FULL FLOW (ANGULAR ↔ API ↔ DB)
+# =====================================================
+
+# =====================================================
+# 🔹 1. OVERVIEW
+# =====================================================
+
+# This document defines:
+# - Angular → Backend API flow
+# - Backend → DB interaction
+# - Request/Response contracts
+# - HTTP methods, payloads, status codes
+# - Error handling expectations
+
+# Architecture:
+# Angular (UI) → Flask API → Service Layer → Database
+
+
+# =====================================================
+# 🔹 2. BASE URL
+# =====================================================
+
+# Backend Base URL:
+https://backend-auth-service-production-9024.up.railway.app/api/v1/auth/angularUser
+
+
+# =====================================================
+# 🔹 3. REGISTER API
+# =====================================================
+
+# -----------------------------
+# ENDPOINT
+# -----------------------------
+POST /register
+
+# -----------------------------
+# REQUEST PAYLOAD (Angular → API)
+# -----------------------------
+{
+  "email": "user@test.com",
+  "password": "12345",
+  "role": "user"   # or "seller"
+}
+
+# -----------------------------
+# BACKEND EXPECTATION
+# -----------------------------
+# - email: required, unique
+# - password: required
+# - role: optional (default = "user")
+
+# -----------------------------
+# DB OPERATION
+# -----------------------------
+# - Insert new user
+# - Hash password
+# - Save role
+
+# -----------------------------
+# SUCCESS RESPONSE
+# -----------------------------
+Status: 201 Created
+
+{
+  "message": "User registered successfully",
+  "role": "user"
+}
+
+# -----------------------------
+# ERROR RESPONSE
+# -----------------------------
+# Duplicate email
+Status: 400 Bad Request
+
+{
+  "message": "User already exists"
+}
+
+# Missing fields
+Status: 400
+
+{
+  "message": "email and password required"
+}
+
+
+# =====================================================
+# 🔹 4. LOGIN API
+# =====================================================
+
+# -----------------------------
+# ENDPOINT
+# -----------------------------
+POST /login
+
+# -----------------------------
+# REQUEST PAYLOAD
+# -----------------------------
+{
+  "email": "user@test.com",
+  "password": "12345"
+}
+
+# -----------------------------
+# BACKEND EXPECTATION
+# -----------------------------
+# - Validate email exists
+# - Verify password hash
+
+# -----------------------------
+# SUCCESS RESPONSE
+# -----------------------------
+Status: 200 OK
+
+{
+  "access_token": "JWT_TOKEN",
+  "userId": 1,
+  "role": "user"
+}
+
+# -----------------------------
+# ERROR RESPONSE
+# -----------------------------
+Status: 401 Unauthorized
+
+{
+  "message": "Invalid email or password"
+}
+
+
+# =====================================================
+# 🔹 5. PROFILE API (PROTECTED)
+# =====================================================
+
+# -----------------------------
+# ENDPOINT
+# -----------------------------
+GET /profile
+
+# -----------------------------
+# HEADERS
+# -----------------------------
+Authorization: Bearer <JWT_TOKEN>
+
+# -----------------------------
+# BACKEND EXPECTATION
+# -----------------------------
+# - Validate JWT
+# - Extract user identity
+
+# -----------------------------
+# SUCCESS RESPONSE
+# -----------------------------
+Status: 200 OK
+
+{
+  "user_id": 1
+}
+
+# -----------------------------
+# ERROR RESPONSE
+# -----------------------------
+Status: 401 Unauthorized
+
+{
+  "msg": "Missing Authorization Header"
+}
+
+
+# =====================================================
+# 🔹 6. LOGOUT API
+# =====================================================
+
+# -----------------------------
+# ENDPOINT
+# -----------------------------
+POST /logout
+
+# -----------------------------
+# HEADERS
+# -----------------------------
+Authorization: Bearer <JWT_TOKEN>
+
+# -----------------------------
+# BACKEND OPERATION
+# -----------------------------
+# - Extract token jti
+# - Store in token_blocklist table
+
+# -----------------------------
+# SUCCESS RESPONSE
+# -----------------------------
+Status: 200 OK
+
+{
+  "message": "Logged out successfully"
+}
+
+
+# =====================================================
+# 🔹 7. ANGULAR FLOW
+# =====================================================
+
+# REGISTER FLOW:
+# Form → auth.service.ts → POST /register → Response → UI alert
+
+# LOGIN FLOW:
+# Form → POST /login → Save token in localStorage → Redirect based on role
+
+# LOGOUT FLOW:
+# Clear localStorage → Redirect to login
+
+
+# =====================================================
+# 🔹 8. DATABASE STRUCTURE
+# =====================================================
+
+# USERS TABLE
+# - id (PK)
+# - email (unique)
+# - password_hash
+# - role (user/seller)
+
+# TOKEN_BLOCKLIST TABLE
+# - id
+# - jti (JWT identifier)
+
+
+# =====================================================
+# 🔹 9. HTTP METHODS SUMMARY
+# =====================================================
+
+# POST → Create (register, login, logout)
+# GET  → Read (profile)
+
+
+# =====================================================
+# 🔹 10. STATUS CODES SUMMARY
+# =====================================================
+
+# 200 → Success
+# 201 → Created
+# 400 → Bad Request (validation / duplicate)
+# 401 → Unauthorized (invalid login / token)
+
+
+# =====================================================
+# 🔹 11. EDGE CASES HANDLED
+# =====================================================
+
+# ✔ Duplicate registration
+# ✔ Invalid login
+# ✔ Missing fields
+# ✔ Unauthorized access
+# ✔ Token invalidation (logout)
+
+
+# =====================================================
+# 🔹 12. FINAL FLOW (END-TO-END)
+# =====================================================
+
+# Angular → API → Service → DB → Response → Angular UI
+
+# This contract ensures:
+# - Consistent communication
+# - Predictable API behavior
+# - Production-level reliability
