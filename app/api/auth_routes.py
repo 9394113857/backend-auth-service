@@ -32,24 +32,29 @@ def health():
 @auth_bp.post("/angularUser/register")
 def angular_register():
     """
-    Handles registration request from Angular frontend.
-    Delegates DB logic to service layer.
+    Expected Payload:
+    {
+      "email": "user@test.com",
+      "password": "12345",
+      "role": "user"
+    }
     """
 
-    data = request.get_json() or {}
+    data = request.get_json() or {}   # 🔴 DEBUG: check incoming payload from Angular/Postman
 
-    email = data.get("email")
-    password = data.get("password")
-    role = data.get("role", "user")
+    email = data.get("email")         # 🔴 DEBUG: should not be None
+    password = data.get("password")   # 🔴 DEBUG: should not be None
+    role = data.get("role", "user")   # 🔴 DEBUG: default = "user"
 
-    # Basic validation 
+    # Basic validation
     if not email or not password:
         return jsonify({"message": "email and password required"}), 400
 
-    # Call service (handles duplicate + DB logic)
-    resp, status = register_user(email, password, role)
+    # Call service (DB insert + duplicate handling)
+    resp, status = register_user(email, password, role)   # 🔴 DEBUG: F11 to step into service
 
     if status != 201:
+        # 🔴 DEBUG: duplicate user case → expect 400 + "User already exists"
         return jsonify(resp), status
 
     current_app.logger.info(
@@ -65,10 +70,14 @@ def angular_register():
 @auth_bp.post("/angularUser/login")
 def angular_login():
     """
-    Authenticates user and returns JWT token.
+    Expected Payload:
+    {
+      "email": "user@test.com",
+      "password": "12345"
+    }
     """
 
-    data = request.get_json() or {}
+    data = request.get_json() or {}   # 🔴 DEBUG: check login payload
 
     email = data.get("email")
     password = data.get("password")
@@ -76,18 +85,18 @@ def angular_login():
     if not email or not password:
         return jsonify({"message": "email and password required"}), 400
 
-    # Fetch user
-    user = User.query.filter_by(email=email).first()
+    # Fetch user from DB
+    user = User.query.filter_by(email=email).first()   # 🔴 DEBUG: check if user exists
 
     # Validate credentials
-    if not user or not user.check_password(password):
+    if not user or not user.check_password(password):   # 🔴 DEBUG: wrong password / user not found
         current_app.logger.warning(
             f"Invalid login attempt email={email}"
         )
         return jsonify({"message": "Invalid email or password"}), 401
 
-    # Generate JWT
-    token = create_access_token(identity=str(user.id))
+    # Generate JWT token
+    token = create_access_token(identity=str(user.id))   # 🔴 DEBUG: check token value
 
     return jsonify({
         "access_token": token,
@@ -103,9 +112,12 @@ def angular_login():
 @jwt_required()
 def profile():
     """
-    Returns user identity from JWT.
+    Header Required:
+    Authorization: Bearer <JWT_TOKEN>
     """
-    user_id = get_jwt_identity()
+
+    user_id = get_jwt_identity()   # 🔴 DEBUG: should return logged-in user id
+
     return jsonify({"user_id": user_id}), 200
 
 
@@ -116,11 +128,32 @@ def profile():
 @jwt_required()
 def logout():
     """
-    Invalidates JWT by storing jti in blocklist.
+    Header Required:
+    Authorization: Bearer <JWT_TOKEN>
     """
-    jti = get_jwt()["jti"]
 
-    db.session.add(TokenBlocklist(jti=jti))
+    jti = get_jwt()["jti"]   # 🔴 DEBUG: unique token id
+
+    db.session.add(TokenBlocklist(jti=jti))   # 🔴 DEBUG: ensure DB insert
     db.session.commit()
 
     return jsonify({"message": "Logged out successfully"}), 200
+
+
+# =====================================================
+# 🔧 DEBUG STEPS (QUICK REFERENCE)
+# =====================================================
+
+# 1. Press F5 → Start Debugging
+# 2. Trigger API from Angular / Postman
+# 3. Execution pauses at 🔴 lines
+# 4. Use:
+#    - F10 → Step Over (line by line)
+#    - F11 → Step Into (go inside service)
+#    - Shift + F5 → Stop Debugging
+
+# Focus while debugging:
+# ✔ Request payload (data)
+# ✔ DB queries (user fetch / insert)
+# ✔ Conditions (if checks)
+# ✔ Token generation
