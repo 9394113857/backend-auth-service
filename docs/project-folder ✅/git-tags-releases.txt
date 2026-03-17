@@ -1,0 +1,124 @@
+# =====================================================
+# 🟦 GIT TAGS & RELEASES – AUTH SERVICE DOCUMENTATION
+# =====================================================
+
+# =====================================================
+# 🔹 1. INITIAL STATE (WHAT WE ALREADY DID)
+# =====================================================
+
+# First stable version was created earlier:
+
+# Create tag
+git tag v1.0.0
+
+# Push tag to GitHub
+git push origin v1.0.0
+
+# Then manually created release in GitHub UI:
+# Title: Auth Backend – Stable v1.0.0
+# Notes: Initial stable version
+
+
+# =====================================================
+# 🔹 2. WHY WE CREATE TAGS
+# =====================================================
+
+# Tags are used to:
+# - Mark stable versions
+# - Enable rollback
+# - Track releases
+# - Support CI/CD deployments
+
+
+# =====================================================
+# 🔹 3. CURRENT WORKFLOW (BEFORE NEW CHANGES)
+# =====================================================
+
+# Step 1: Ensure code is clean
+git status
+
+# Step 2: Create new tag (before making changes)
+git tag v1.1.0
+
+# Step 3: Push tag
+git push origin v1.1.0
+
+
+# =====================================================
+# 🔹 4. CREATE RELEASE (GITHUB UI)
+# =====================================================
+
+# Go to:
+# GitHub → Releases → Draft new release
+
+# Fill details:
+
+# Tag:
+v1.1.0
+
+# Title:
+Auth Backend – Stable v1.1.0
+
+# Description:
+Second stable release before enhancements.
+
+✔ API stable
+✔ Code verified
+✔ Ready for new changes
+✔ Tagged from main branch
+
+# Click: Publish Release
+
+
+# =====================================================
+# 🔹 5. AFTER THIS (SAFE DEVELOPMENT)
+# =====================================================
+
+# Now you can safely:
+# - Modify code
+# - Add features
+# - Fix bugs
+
+# If anything breaks → rollback using tag
+
+
+# =====================================================
+# 🔹 6. ROLLBACK (IF REQUIRED)
+# =====================================================
+
+# Checkout old version
+git checkout v1.1.0
+
+# OR reset main branch
+git checkout main
+git reset --hard v1.1.0
+git push origin main --force
+
+
+# =====================================================
+# 🔹 7. NEXT VERSION FLOW (FUTURE)
+# =====================================================
+
+# After new changes:
+
+git add .
+git commit -m "new features added"
+
+# Create next tag
+git tag v1.2.0
+
+# Push tag
+git push origin v1.2.0
+
+# Then create release in GitHub UI (same steps)
+
+
+# =====================================================
+# 🧠 SUMMARY
+# =====================================================
+
+# v1.0.0 → initial release
+# v1.1.0 → backup before changes
+# v1.2.0 → after new features
+
+# This is standard industry versioning flow
