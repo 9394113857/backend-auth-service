@@ -42,7 +42,7 @@ def angular_register():
     password = data.get("password")
     role = data.get("role", "user")
 
-    # Basic validation
+    # Basic validation 
     if not email or not password:
         return jsonify({"message": "email and password required"}), 400
 
