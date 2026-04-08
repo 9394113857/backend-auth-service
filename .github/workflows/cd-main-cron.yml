@@ -1,10 +1,12 @@
-name: 🚀 CD - Railway Deploy
+name: 🚀 CD - Railway Deploy (Final)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:        # ✅ Manual trigger
+  schedule:
+    - cron: "30 20 * * *"   # ✅ Daily (2:00 AM IST)
   push:
     tags:
-      - "v*"
+      - "v*"                # ✅ Release-based deploy
 
 jobs:
   deploy:
@@ -19,21 +21,29 @@ jobs:
         uses: actions/checkout@v3
 
       # =========================
-      # 🟢 Get Latest Tag
+      # 🟢 Detect Tag / Version
       # =========================
-      - name: Detect Tag
+      - name: Set Version
         run: |
-          TAG=${GITHUB_REF#refs/tags/}
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          else
+            TAG="latest"
+          fi
+
           echo "TAG=$TAG" >> $GITHUB_ENV
 
+          echo "URL=https://backend-auth-service-production.up.railway.app" >> $GITHUB_ENV
           echo "REPO=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
-          echo "DOCKER=https://hub.docker.com/r/pythoncodelife/backend-auth-service" >> $GITHUB_ENV
+          echo "DOCKER=pythoncodelife/backend-auth-service:$TAG" >> $GITHUB_ENV
 
       # =========================
       # 🚀 Trigger Railway Deploy
       # =========================
       - name: Deploy to Railway
         run: |
+          echo "🚀 Deploying: $TAG"
+
           curl -X POST https://backboard.railway.app/graphql/v2 \
           -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}" \
           -H "Content-Type: application/json" \
@@ -56,9 +66,7 @@ jobs:
       # =========================
       - name: Health Check
         run: |
-          URL="https://backend-auth-service-production.up.railway.app"
           RESPONSE=$(curl -s $URL)
-
           echo "Response: $RESPONSE"
 
           if [[ "$RESPONSE" == *"Auth service running"* ]]; then
@@ -84,18 +92,15 @@ jobs:
           cc: ${{ secrets.MAIL_TO_CC_MAIN }}
           from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
-            🚀 Railway Deployment Successful
+            🚀 DEPLOYMENT SUCCESS
 
             🏷️ Tag: ${{ env.TAG }}
 
-            🔗 Repo:
-            ${{ env.REPO }}
-
-            🐳 Docker:
+            🐳 Docker Image:
             ${{ env.DOCKER }}
 
-            🌐 Service URL:
-            https://backend-auth-service-production.up.railway.app
+            🌐 URL:
+            ${{ env.URL }}
 
       # =========================
       # ❌ Email Failure
@@ -113,8 +118,8 @@ jobs:
           cc: ${{ secrets.MAIL_TO_CC_MAIN }}
           from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
-            🚨 Railway Deployment Failed
+            🚨 DEPLOYMENT FAILED
 
             🏷️ Tag: ${{ env.TAG }}
 
-            🔧 Check GitHub Actions logs immediately
+            🔧 Check logs immediately
