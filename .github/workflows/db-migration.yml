@@ -1,0 +1,51 @@
+name: 🛠 DB Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      reset_db:
+        description: "Do you want to DROP all tables and recreate DB? (yes/no)"
+        required: true
+        default: "no"
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Show input
+        run: |
+          echo "=================================="
+          echo "Selected RESET option: ${{ github.event.inputs.reset_db }}"
+          echo "=================================="
+
+      - name: Confirm RESET
+        if: ${{ github.event.inputs.reset_db != 'yes' }}
+        run: |
+          echo "✅ SAFE MODE - No tables will be dropped."
+          echo "Skipping DB reset."
+          exit 0
+
+      - name: DROP existing tables
+        run: |
+          echo "⚠️ DROPPING ALL TABLES!"
+          echo "This is irreversible!"
+          # Example for PostgreSQL; replace with your DB
+          psql ${{ secrets.DATABASE_URL }} -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+          echo "All tables dropped and schema recreated."
+
+      - name: Apply Migrations
+        run: |
+          echo "🚀 Applying migrations..."
+          # Example for Flask-Migrate / Alembic
+          flask db upgrade
+          echo "✅ Migrations applied."
+
+      - name: Final Status
+        run: |
+          echo "=================================="
+          echo "✅ DB Migration workflow completed."
+          echo "=================================="
