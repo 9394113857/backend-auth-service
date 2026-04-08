@@ -1,3 +1,7 @@
+# =====================================================
+# 🚀 CI - Backend Auth Service (FINAL PRODUCTION)
+# =====================================================
+
 name: 🚀 CI - Backend Auth Service
 
 on:
@@ -12,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       # ===============================
       # 🟢 Checkout
       # ===============================
@@ -27,16 +32,20 @@ jobs:
             VERSION=${GITHUB_REF#refs/tags/}
             TYPE="TAG"
             NAME=$VERSION
+            BRANCH="release"
           else
             VERSION=dev-${GITHUB_SHA}
             TYPE="BRANCH"
             NAME=${GITHUB_REF#refs/heads/}
+            BRANCH=$NAME
           fi
 
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
           echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "APP_BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "TYPE=$TYPE" >> $GITHUB_ENV
           echo "NAME=$NAME" >> $GITHUB_ENV
+
           echo "REPO=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
 
       # ===============================
@@ -54,6 +63,7 @@ jobs:
           docker build \
             --build-arg APP_VERSION=${APP_VERSION} \
             --build-arg APP_COMMIT=${APP_COMMIT} \
+            --build-arg APP_BRANCH=${APP_BRANCH} \
             -t pythoncodelife/backend-auth-service:${APP_VERSION} .
 
       # ===============================
@@ -103,6 +113,9 @@ jobs:
             🔑 Commit:
             ${{ env.APP_COMMIT }}
 
+            🌿 Branch:
+            ${{ env.APP_BRANCH }}
+
             🐳 Docker Image:
             pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
 
@@ -135,7 +148,10 @@ jobs:
             🔑 Commit:
             ${{ env.APP_COMMIT }}
 
+            🌿 Branch:
+            ${{ env.APP_BRANCH }}
+
             🔗 Repo:
             ${{ env.REPO }}
 
-            🔧 Check GitHub Actions logs
+            🔧 Check GitHub Actions logs immediately
