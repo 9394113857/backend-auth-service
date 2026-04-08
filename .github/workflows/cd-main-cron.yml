@@ -19,7 +19,7 @@ jobs:
           TAG="latest"
           echo "TAG=$TAG" >> $GITHUB_ENV
 
-          echo "URL=https://backend-auth-service-production.up.railway.app" >> $GITHUB_ENV
+          echo "URL=https://backend-auth-service-production-7671.up.railway.app" >> $GITHUB_ENV
 
       - name: Deploy to Railway
         run: |
