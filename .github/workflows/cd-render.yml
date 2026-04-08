@@ -41,7 +41,7 @@ jobs:
       # =========================
       - name: Health Check
         run: |
-          URL="https://backend-auth-service.onrender.com"
+          URL="https://backend-auth-service-ks6f.onrender.com"
 
           RESPONSE=$(curl -s $URL)
 
