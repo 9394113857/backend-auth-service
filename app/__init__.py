@@ -1,26 +1,43 @@
+# =====================================================
+# 🟦 APP FACTORY – FINAL VERSION (CI/CD + REQUEST ID)
+# =====================================================
+
 import os
 import logging
+import uuid
 from logging.handlers import TimedRotatingFileHandler
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, g, request
 from .config import Config
 from .extensions import db, migrate, jwt, cors
 
-# Import models for Alembic
+# Import models (Alembic)
 from .models.user import User
 from .models.token_blacklist import TokenBlocklist
+
+
+# =====================================================
+# 🔹 REQUEST ID LOG FORMATTER
+# =====================================================
+class RequestFormatter(logging.Formatter):
+    def format(self, record):
+        try:
+            record.request_id = getattr(g, "request_id", "N/A")
+        except RuntimeError:
+            record.request_id = "N/A"
+        return super().format(record)
 
 
 def create_app(testing: bool = False):
     app = Flask(__name__)
 
     # --------------------------
-    # Base config
+    # 🔹 Load config
     # --------------------------
     app.config.from_object(Config)
 
     # --------------------------
-    # Testing override
+    # 🔹 Testing override
     # --------------------------
     if testing:
         app.config["TESTING"] = True
@@ -28,18 +45,33 @@ def create_app(testing: bool = False):
         app.config["JWT_SECRET_KEY"] = "test-secret"
 
     # --------------------------
-    # Extensions
+    # 🔹 Init extensions
     # --------------------------
     cors.init_app(app)
-
-    # ✅ DB should be initialized in real runtime (Railway / Docker)
     db.init_app(app)
     migrate.init_app(app, db)
-
     jwt.init_app(app)
 
+    # =====================================================
+    # 🔥 REQUEST ID MIDDLEWARE
+    # =====================================================
+
+    @app.before_request
+    def assign_request_id():
+        incoming_id = request.headers.get("X-Request-ID")
+
+        if incoming_id:
+            g.request_id = incoming_id
+        else:
+            g.request_id = str(uuid.uuid4())
+
+    @app.after_request
+    def attach_request_id(response):
+        response.headers["X-Request-ID"] = g.request_id
+        return response
+
     # --------------------------
-    # Logging
+    # 🔹 Logging setup
     # --------------------------
     logs_path = os.path.join(os.getcwd(), "logs")
     os.makedirs(logs_path, exist_ok=True)
@@ -52,34 +84,42 @@ def create_app(testing: bool = False):
         encoding="utf-8"
     )
 
-    handler.setFormatter(logging.Formatter(
-        "%(asctime)s [%(levelname)s] %(message)s"
+    handler.setFormatter(RequestFormatter(
+        "%(asctime)s [%(levelname)s] [REQ:%(request_id)s] %(message)s"
     ))
 
     if not app.logger.handlers:
         app.logger.addHandler(handler)
 
     app.logger.setLevel(logging.INFO)
-    app.logger.info("Auth service starting...")
+    app.logger.info("🚀 Auth service starting...")
 
     # --------------------------
-    # Routes
+    # 🔹 Register routes
     # --------------------------
     from .api.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
-    # ✅ HEALTH CHECK (Render)
+    # --------------------------
+    # 🔥 ROOT HEALTH CHECK (UPDATED WITH LOG)
+    # --------------------------
     @app.get("/")
     def health():
-        return jsonify({"status": "Auth service started successfully."}), 200
+        app.logger.info(f"[REQ:{g.request_id}] Root health endpoint called")
+
+        return jsonify({
+            "status": "Auth service running",
+            "version": os.getenv("APP_VERSION", "unknown"),
+            "commit": os.getenv("APP_COMMIT", "unknown")
+        }), 200
 
     # --------------------------
-    # JWT blacklist
+    # 🔹 JWT Blacklist
     # --------------------------
     @jwt.token_in_blocklist_loader
     def token_revoked(jwt_header, jwt_payload):
         jti = jwt_payload.get("jti")
         return TokenBlocklist.query.filter_by(jti=jti).first() is not None
 
-    app.logger.info("Auth service started successfully.")
+    app.logger.info("✅ Auth service started successfully.")
     return app
