@@ -1,22 +1,23 @@
-name: 🚀 Auth DB Migration (FULL RESET - SAFE CONFIRM)
+name: 🚀 Auth DB Manager
 
 on:
   workflow_dispatch:
     inputs:
-      confirm_reset:
-        description: "⚠️ Type YES to DROP ALL TABLES and recreate DB (default: NO)"
-        required: false
-        default: "NO"
+      action:
+        description: "Choose action: SAFE (no changes) or RESET (drop & recreate DB)"
+        required: true
+        default: "SAFE"
 
 jobs:
   migrate:
+    name: 🔧 Run DB Operation
     runs-on: ubuntu-latest
 
     steps:
       # ==========================================
       # 📥 CHECKOUT
       # ==========================================
-      - name: 📥 Checkout code
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
       # ==========================================
@@ -30,53 +31,53 @@ jobs:
       # ==========================================
       # 📦 INSTALL
       # ==========================================
-      - name: 📦 Install dependencies
+      - name: 📦 Install Dependencies
         run: |
           echo "======================================="
           echo "📦 INSTALLING DEPENDENCIES..."
           echo "======================================="
-
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          echo "✅ DONE"
+          echo "======================================="
 
       # ==========================================
       # ⚙️ FLASK CONFIG
       # ==========================================
-      - name: ⚙️ Set Flask App
+      - name: ⚙️ Configure Flask
         run: |
           echo "FLASK_APP=app.py" >> $GITHUB_ENV
+          echo "✅ FLASK APP SET"
 
       # ==========================================
-      # 🛑 SAFETY CHECK
+      # 🛑 SAFETY GATE
       # ==========================================
-      - name: 🛑 Confirm before destructive action
+      - name: 🛑 Safety Check
         run: |
           echo "======================================="
-          echo "⚠️ SAFETY CHECK"
-          echo "You selected: ${{ github.event.inputs.confirm_reset }}"
+          echo "⚠️ SELECTED ACTION: ${{ github.event.inputs.action }}"
           echo "======================================="
 
-          if [ "${{ github.event.inputs.confirm_reset }}" != "YES" ]; then
-            echo "❌ RESET NOT CONFIRMED"
-            echo "🛑 Skipping destructive operations..."
-            echo "======================================="
+          if [ "${{ github.event.inputs.action }}" != "RESET" ]; then
+            echo "✅ SAFE MODE: No destructive changes will be made."
+            echo "🚫 Skipping DB reset."
             exit 0
           fi
 
-          echo "✅ CONFIRMED: Proceeding with FULL RESET"
+          echo "🔥 RESET MODE CONFIRMED"
           echo "======================================="
 
       # ==========================================
       # 💣 DROP ALL TABLES
       # ==========================================
-      - name: 💣 Drop ALL tables
-        if: ${{ github.event.inputs.confirm_reset == 'YES' }}
+      - name: 💣 Drop All Tables
+        if: ${{ github.event.inputs.action == 'RESET' }}
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           echo "======================================="
           echo "💣 DROPPING ALL TABLES..."
-          echo "⚠️ DATA WILL BE LOST"
+          echo "⚠️ THIS WILL DELETE ALL DATA"
           echo "======================================="
 
           python - <<EOF
@@ -97,37 +98,36 @@ with engine.connect() as conn:
     """))
     conn.commit()
 
-print("✅ ALL TABLES DROPPED")
+print("✅ ALL TABLES DROPPED SUCCESSFULLY")
 EOF
 
       # ==========================================
       # 🧹 CLEAN MIGRATIONS
       # ==========================================
-      - name: 🧹 Clean migrations
-        if: ${{ github.event.inputs.confirm_reset == 'YES' }}
+      - name: 🧹 Remove Old Migrations
+        if: ${{ github.event.inputs.action == 'RESET' }}
         run: |
           rm -rf migrations
-          echo "✅ OLD MIGRATIONS REMOVED"
+          echo "✅ Old migrations removed"
 
       # ==========================================
       # 🆕 INIT MIGRATIONS
       # ==========================================
-      - name: 🆕 Initialize migrations
-        if: ${{ github.event.inputs.confirm_reset == 'YES' }}
+      - name: 🆕 Create Fresh Migration
+        if: ${{ github.event.inputs.action == 'RESET' }}
         run: |
           flask db init
-          flask db migrate -m "🔥 fresh start"
+          flask db migrate -m "fresh start"
 
       # ==========================================
       # ⬆️ APPLY MIGRATIONS
       # ==========================================
-      - name: ⬆️ Apply migrations
-        if: ${{ github.event.inputs.confirm_reset == 'YES' }}
+      - name: ⬆️ Apply Migration
+        if: ${{ github.event.inputs.action == 'RESET' }}
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           flask db upgrade
-
           echo "======================================="
           echo "🎉 DATABASE RECREATED SUCCESSFULLY"
           echo "======================================="
@@ -135,7 +135,7 @@ EOF
       # ==========================================
       # ✅ DONE
       # ==========================================
-      - name: ✅ Done
+      - name: ✅ Completed
         run: |
           echo "======================================="
           echo "🏁 WORKFLOW FINISHED"
