@@ -1,114 +1,141 @@
-name: Build, Push & Notify
+name: 🚀 CI - Backend Auth Service
 
 on:
   push:
     branches:
-      - main
+      - "**"
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # ===============================
+      # 🟢 Checkout
+      # ===============================
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    # =========================
-    # 1️⃣ Checkout Code
-    # =========================
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # ===============================
+      # 🟢 Set Version Info
+      # ===============================
+      - name: Set Version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            TYPE="TAG"
+            NAME=$VERSION
+          else
+            VERSION=dev-${GITHUB_SHA}
+            TYPE="BRANCH"
+            NAME=${GITHUB_REF#refs/heads/}
+          fi
 
-    # =========================
-    # 2️⃣ Set Version
-    # =========================
-    - name: Set version
-      run: |
-        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-          VERSION=${GITHUB_REF#refs/tags/}
-        else
-          VERSION=dev-${GITHUB_SHA}
-        fi
-        echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "TYPE=$TYPE" >> $GITHUB_ENV
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "REPO=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
 
-    # =========================
-    # 3️⃣ Docker Login
-    # =========================
-    - name: Login to DockerHub
-      run: |
-        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      # ===============================
+      # 🔐 Docker Login
+      # ===============================
+      - name: Docker Login
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-    # =========================
-    # 4️⃣ Build Image
-    # =========================
-    - name: Build Docker image
-      run: |
-        docker build -t pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} .
+      # ===============================
+      # 🐳 Build Docker Image
+      # ===============================
+      - name: Build Docker Image
+        run: |
+          docker build \
+            --build-arg APP_VERSION=${APP_VERSION} \
+            --build-arg APP_COMMIT=${APP_COMMIT} \
+            -t pythoncodelife/backend-auth-service:${APP_VERSION} .
 
-    # =========================
-    # 5️⃣ Tag latest (main only)
-    # =========================
-    - name: Tag latest
-      if: startsWith(github.ref, 'refs/heads/main')
-      run: |
-        docker tag pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} pythoncodelife/backend-auth-service:latest
+      # ===============================
+      # 🏷️ Tag latest (only main)
+      # ===============================
+      - name: Tag latest
+        if: startsWith(github.ref, 'refs/heads/main')
+        run: |
+          docker tag pythoncodelife/backend-auth-service:${APP_VERSION} pythoncodelife/backend-auth-service:latest
 
-    # =========================
-    # 6️⃣ Push Image
-    # =========================
-    - name: Push Docker image
-      run: |
-        docker push pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
+      # ===============================
+      # 🚀 Push Docker Image
+      # ===============================
+      - name: Push Docker Image
+        run: |
+          docker push pythoncodelife/backend-auth-service:${APP_VERSION}
 
-    # =========================
-    # 7️⃣ Push latest
-    # =========================
-    - name: Push latest
-      if: startsWith(github.ref, 'refs/heads/main')
-      run: |
-        docker push pythoncodelife/backend-auth-service:latest
+      # ===============================
+      # 🚀 Push latest
+      # ===============================
+      - name: Push latest
+        if: startsWith(github.ref, 'refs/heads/main')
+        run: |
+          docker push pythoncodelife/backend-auth-service:latest
 
-    # =========================
-    # 8️⃣ EMAIL ON SUCCESS ✅
-    # =========================
-    - name: Send Email Success
-      if: success()
-      uses: dawidd6/action-send-mail@v3
-      with:
-        server_address: smtp.gmail.com
-        server_port: 587
-        username: ${{ secrets.MAIL_USERNAME_MAIN }}
-        password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-        subject: "✅ CI SUCCESS - Auth Service"
-        body: |
-          Build & Push Successful 🚀
+      # ===============================
+      # 📧 Email Success
+      # ===============================
+      - name: 📧 Email Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚀 CI SUCCESS - ${{ env.NAME }}"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚀 CI BUILD SUCCESS
 
-          Repo: backend-auth-service
-          Version: ${{ env.APP_VERSION }}
+            📌 Type: ${{ env.TYPE }}
+            🏷️ Name: ${{ env.NAME }}
 
-          Docker Image:
-          pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
+            🔑 Commit:
+            ${{ env.APP_COMMIT }}
 
-        to: ${{ secrets.MAIL_USERNAME_MAIN }}
-        from: ${{ secrets.MAIL_USERNAME_MAIN }}
+            🐳 Docker Image:
+            pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
 
-    # =========================
-    # 9️⃣ EMAIL ON FAILURE ❌
-    # =========================
-    - name: Send Email Failure
-      if: failure()
-      uses: dawidd6/action-send-mail@v3
-      with:
-        server_address: smtp.gmail.com
-        server_port: 587
-        username: ${{ secrets.MAIL_USERNAME_MAIN }}
-        password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-        subject: "❌ CI FAILED - Auth Service"
-        body: |
-          Build FAILED ❌
+            🔗 Repo:
+            ${{ env.REPO }}
 
-          Repo: backend-auth-service
-          Check GitHub Actions logs immediately.
+            ✅ Image pushed successfully
 
-        to: ${{ secrets.MAIL_USERNAME_MAIN }}
-        from: ${{ secrets.MAIL_USERNAME_MAIN }}
+      # ===============================
+      # ❌ Email Failure
+      # ===============================
+      - name: ❌ Email Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚨 CI FAILED - ${{ env.NAME }}"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚨 CI BUILD FAILED
+
+            📌 Type: ${{ env.TYPE }}
+            🏷️ Name: ${{ env.NAME }}
+
+            🔑 Commit:
+            ${{ env.APP_COMMIT }}
+
+            🔗 Repo:
+            ${{ env.REPO }}
+
+            🔧 Check GitHub Actions logs
