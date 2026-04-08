@@ -1,9 +1,9 @@
 name: 🚀 CD - Railway Deploy (Strict Control)
 
 on:
-  workflow_dispatch:        # ✅ manual only
+  workflow_dispatch:
   schedule:
-    - cron: "30 20 * * *"   # ✅ cron only
+    - cron: "30 20 * * *"
 
 jobs:
   deploy:
@@ -11,16 +11,27 @@ jobs:
 
     steps:
 
+      # =========================
+      # 🟢 Checkout
+      # =========================
       - name: Checkout
         uses: actions/checkout@v3
 
+      # =========================
+      # 🟢 Set Info
+      # =========================
       - name: Set Version
         run: |
           TAG="latest"
           echo "TAG=$TAG" >> $GITHUB_ENV
 
           echo "URL=https://backend-auth-service-production-7671.up.railway.app" >> $GITHUB_ENV
+          echo "REPO=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
+          echo "DOCKER=pythoncodelife/backend-auth-service:latest" >> $GITHUB_ENV
 
+      # =========================
+      # 🚀 Deploy
+      # =========================
       - name: Deploy to Railway
         run: |
           echo "🚀 Deploying latest image"
@@ -38,17 +49,69 @@ jobs:
             }
           }'
 
+      # =========================
+      # ⏳ Wait
+      # =========================
       - name: Wait
         run: sleep 60
 
+      # =========================
+      # 🧪 Health Check
+      # =========================
       - name: Health Check
+        id: health
         run: |
           RESPONSE=$(curl -s $URL)
           echo "Response: $RESPONSE"
 
           if [[ "$RESPONSE" == *"Auth service running"* ]]; then
-            echo "SUCCESS"
+            echo "status=success" >> $GITHUB_OUTPUT
           else
-            echo "FAILED"
+            echo "status=fail" >> $GITHUB_OUTPUT
             exit 1
           fi
+
+      # =========================
+      # 📧 EMAIL SUCCESS
+      # =========================
+      - name: 📧 Email Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚀 Railway CD SUCCESS"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚀 DEPLOYMENT SUCCESS
+
+            🐳 Image: ${{ env.DOCKER }}
+            🌐 URL: ${{ env.URL }}
+
+            ✅ Service is running
+
+      # =========================
+      # ❌ EMAIL FAILURE
+      # =========================
+      - name: ❌ Email Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚨 Railway CD FAILED"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚨 DEPLOYMENT FAILED
+
+            🌐 URL: ${{ env.URL }}
+
+            🔧 Check GitHub Actions logs
