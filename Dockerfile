@@ -1,20 +1,24 @@
-# 1. Use lightweight Python image
+# =====================================================
+# 🐳 DOCKERFILE – FINAL (IMMUTABLE BUILD INFO)
+# =====================================================
+
 FROM python:3.11-slim
 
-# 2. Set working directory
 WORKDIR /app
 
-# 3. Copy dependency file first (for caching)
-COPY requirements.txt .
+# 🔥 Build arguments from CI
+ARG APP_VERSION
+ARG APP_COMMIT
 
-# 4. Install dependencies
+# 🔥 Write build info into file (IMMUTABLE)
+RUN echo "{\"version\": \"$APP_VERSION\", \"commit\": \"$APP_COMMIT\"}" > /app/build_info.json
+
+# Install dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Copy project files
+# Copy project files
 COPY . .
 
-# 6. Run the app with Gunicorn
-# IMPORTANT:
-# - Use `sh -c` so $PORT is expanded by the shell
-# - Log to stdout/stderr (Render requirement)
+# Run app
 CMD ["sh", "-c", "gunicorn run:app -w 1 -b 0.0.0.0:$PORT --access-logfile - --error-logfile -"]
