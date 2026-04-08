@@ -1,13 +1,13 @@
 # =====================================================
-# 🚀 CD - Render Deploy (FINAL)
+# 🚀 CD - Render Deploy (FINAL FOR YOUR SERVICE)
 # =====================================================
 
 name: 🚀 CD - Render Deploy
 
 on:
-  workflow_dispatch:        # ✅ manual
+  workflow_dispatch:        # ✅ manual trigger
   schedule:
-    - cron: "30 20 * * *"   # ✅ daily
+    - cron: "30 20 * * *"   # ✅ daily (2:00 AM IST)
 
 jobs:
   deploy:
@@ -16,33 +16,56 @@ jobs:
     steps:
 
       # =========================
-      # 🟢 Checkout (optional)
+      # 🟢 Checkout Repo
       # =========================
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       # =========================
-      # 🚀 Deploy to Render
+      # 🟢 Fetch Tags (for info)
       # =========================
-      - name: 🚀 Trigger Render Deploy
+      - name: Fetch Tags
+        run: git fetch --tags
+
+      # =========================
+      # 🟢 Detect Latest Tag (optional tracking)
+      # =========================
+      - name: Detect Version
         run: |
-          echo "🚀 Deploying to Render..."
+          TAGS=($(git tag --sort=-v:refname))
+          
+          if [ ${#TAGS[@]} -eq 0 ]; then
+            VERSION="latest"
+          else
+            VERSION=${TAGS[0]}
+          fi
 
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
+
+          echo "🚀 Deploying Version: $VERSION"
+
+      # =========================
+      # 🚀 Trigger Render Deploy
+      # =========================
+      - name: 🚀 Deploy to Render
+        run: |
+          echo "Calling Render Deploy Hook..."
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
       # =========================
       # ⏳ Wait for deployment
       # =========================
       - name: Wait
-        run: sleep 60
+        run: sleep 70
 
       # =========================
       # 🧪 Health Check
       # =========================
       - name: Health Check
         run: |
-          URL="https://backend-auth-service-ks6f.onrender.com"
-
           RESPONSE=$(curl -s $URL)
 
           echo "Response:"
@@ -66,17 +89,19 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME_MAIN }}
           password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚀 CD SUCCESS - Render"
+          subject: "🚀 Render CD SUCCESS - ${{ env.VERSION }}"
           to: ${{ secrets.MAIL_USERNAME_MAIN }}
           cc: ${{ secrets.MAIL_TO_CC_MAIN }}
           from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
             🚀 Render Deployment SUCCESS
 
-            🌐 URL:
-            https://backend-auth-service.onrender.com
+            🏷️ Version: ${{ env.VERSION }}
 
-            ✅ Latest Docker image deployed
+            🌐 URL:
+            ${{ env.URL }}
+
+            ✅ Latest Docker image deployed successfully 🚀
 
       # =========================
       # ❌ Email Failure
@@ -89,11 +114,16 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME_MAIN }}
           password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚨 CD FAILED - Render"
+          subject: "🚨 Render CD FAILED"
           to: ${{ secrets.MAIL_USERNAME_MAIN }}
           cc: ${{ secrets.MAIL_TO_CC_MAIN }}
           from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
             🚨 Render Deployment FAILED
 
-            🔧 Check GitHub Actions logs
+            🏷️ Attempted Version: ${{ env.VERSION }}
+
+            🌐 URL:
+            ${{ env.URL }}
+
+            🔧 Check GitHub Actions logs immediately
