@@ -1,13 +1,11 @@
-# =========================================
-# 🚀 GitHub Actions CI/CD - FINAL
-# =========================================
-
 name: Build & Push Docker Image
 
 on:
   push:
+    branches:
+      - main          # auto trigger on code changes
     tags:
-      - 'v*'   # triggers on version tags like v1.0.0
+      - 'v*'          # trigger on version tags
 
 jobs:
   build:
@@ -22,11 +20,15 @@ jobs:
       uses: actions/checkout@v3
 
     # =========================
-    # 2️⃣ Set Version
+    # 2️⃣ Set Version Dynamically
     # =========================
     - name: Set version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/}
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=dev-${GITHUB_SHA}
+        fi
         echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
 
     # =========================
@@ -37,17 +39,31 @@ jobs:
         echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
     # =========================
-    # 4️⃣ Build Docker Image
+    # 4️⃣ Build Image
     # =========================
     - name: Build Docker image
       run: |
         docker build -t pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} .
+
+    # =========================
+    # 5️⃣ Tag as latest (ONLY for main branch)
+    # =========================
+    - name: Tag latest
+      if: startsWith(github.ref, 'refs/heads/main')
+      run: |
         docker tag pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} pythoncodelife/backend-auth-service:latest
 
     # =========================
-    # 5️⃣ Push Docker Image
+    # 6️⃣ Push Image
     # =========================
     - name: Push Docker image
       run: |
         docker push pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
+
+    # =========================
+    # 7️⃣ Push latest (only main)
+    # =========================
+    - name: Push latest
+      if: startsWith(github.ref, 'refs/heads/main')
+      run: |
         docker push pythoncodelife/backend-auth-service:latest
