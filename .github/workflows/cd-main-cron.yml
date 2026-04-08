@@ -1,0 +1,120 @@
+name: 🚀 CD - Railway Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # =========================
+      # 🟢 Checkout
+      # =========================
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # =========================
+      # 🟢 Get Latest Tag
+      # =========================
+      - name: Detect Tag
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+          echo "REPO=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
+          echo "DOCKER=https://hub.docker.com/r/pythoncodelife/backend-auth-service" >> $GITHUB_ENV
+
+      # =========================
+      # 🚀 Trigger Railway Deploy
+      # =========================
+      - name: Deploy to Railway
+        run: |
+          curl -X POST https://backboard.railway.app/graphql/v2 \
+          -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "query": "mutation Deploy($serviceId: String!, $environmentId: String!) { deploy(serviceId: $serviceId, environmentId: $environmentId) { id status } }",
+            "variables": {
+              "serviceId": "${{ secrets.RAILWAY_SERVICE_ID }}",
+              "environmentId": "${{ secrets.RAILWAY_ENVIRONMENT_ID }}"
+            }
+          }'
+
+      # =========================
+      # ⏳ Wait for deploy
+      # =========================
+      - name: Wait
+        run: sleep 60
+
+      # =========================
+      # 🧪 Health Check
+      # =========================
+      - name: Health Check
+        run: |
+          URL="https://backend-auth-service-production.up.railway.app"
+          RESPONSE=$(curl -s $URL)
+
+          echo "Response: $RESPONSE"
+
+          if [[ "$RESPONSE" == *"Auth service running"* ]]; then
+            echo "STATUS=success" >> $GITHUB_ENV
+          else
+            echo "STATUS=fail" >> $GITHUB_ENV
+            exit 1
+          fi
+
+      # =========================
+      # 📧 Email Success
+      # =========================
+      - name: 📧 Email Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚀 Railway Deploy SUCCESS - ${{ env.TAG }}"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚀 Railway Deployment Successful
+
+            🏷️ Tag: ${{ env.TAG }}
+
+            🔗 Repo:
+            ${{ env.REPO }}
+
+            🐳 Docker:
+            ${{ env.DOCKER }}
+
+            🌐 Service URL:
+            https://backend-auth-service-production.up.railway.app
+
+      # =========================
+      # ❌ Email Failure
+      # =========================
+      - name: ❌ Email Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚨 Railway Deploy FAILED"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚨 Railway Deployment Failed
+
+            🏷️ Tag: ${{ env.TAG }}
+
+            🔧 Check GitHub Actions logs immediately
