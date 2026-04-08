@@ -1,54 +1,142 @@
-name: 🚀 Auth DB Migration
+name: 🚀 Auth DB Migration (FULL RESET - SAFE CONFIRM)
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_reset:
+        description: "⚠️ Type YES to DROP ALL TABLES and recreate DB (default: NO)"
+        required: false
+        default: "NO"
 
 jobs:
   migrate:
     runs-on: ubuntu-latest
 
     steps:
-      # 📥 Checkout repo
-      - name: Checkout code
+      # ==========================================
+      # 📥 CHECKOUT
+      # ==========================================
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      # 🐍 Setup Python
-      - name: Setup Python
+      # ==========================================
+      # 🐍 PYTHON SETUP
+      # ==========================================
+      - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # 📦 Install dependencies
-      - name: Install dependencies
+      # ==========================================
+      # 📦 INSTALL
+      # ==========================================
+      - name: 📦 Install dependencies
         run: |
+          echo "======================================="
+          echo "📦 INSTALLING DEPENDENCIES..."
+          echo "======================================="
+
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ⚙️ Set Flask app (IMPORTANT if not already set)
-      - name: Set Flask App
-        run: echo "FLASK_APP=app" >> $GITHUB_ENV
+      # ==========================================
+      # ⚙️ FLASK CONFIG
+      # ==========================================
+      - name: ⚙️ Set Flask App
+        run: |
+          echo "FLASK_APP=app.py" >> $GITHUB_ENV
 
-      # 🧠 Smart DB handling (KEY STEP)
-      - name: Handle existing DB safely
+      # ==========================================
+      # 🛑 SAFETY CHECK
+      # ==========================================
+      - name: 🛑 Confirm before destructive action
+        run: |
+          echo "======================================="
+          echo "⚠️ SAFETY CHECK"
+          echo "You selected: ${{ github.event.inputs.confirm_reset }}"
+          echo "======================================="
+
+          if [ "${{ github.event.inputs.confirm_reset }}" != "YES" ]; then
+            echo "❌ RESET NOT CONFIRMED"
+            echo "🛑 Skipping destructive operations..."
+            echo "======================================="
+            exit 0
+          fi
+
+          echo "✅ CONFIRMED: Proceeding with FULL RESET"
+          echo "======================================="
+
+      # ==========================================
+      # 💣 DROP ALL TABLES
+      # ==========================================
+      - name: 💣 Drop ALL tables
+        if: ${{ github.event.inputs.confirm_reset == 'YES' }}
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          echo "Checking migration state..."
+          echo "======================================="
+          echo "💣 DROPPING ALL TABLES..."
+          echo "⚠️ DATA WILL BE LOST"
+          echo "======================================="
 
-          # Try to upgrade normally
-          flask db upgrade || {
+          python - <<EOF
+from sqlalchemy import create_engine, text
+import os
 
-            echo "Upgrade failed. Attempting safe recovery..."
+engine = create_engine(os.environ["DATABASE_URL"])
 
-            # If fails (likely due to existing tables), stamp DB
-            flask db stamp head
+with engine.connect() as conn:
+    conn.execute(text("""
+        DO $$ DECLARE
+            r RECORD;
+        BEGIN
+            FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+                EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+            END LOOP;
+        END $$;
+    """))
+    conn.commit()
 
-            echo "Stamped DB. Retrying upgrade..."
+print("✅ ALL TABLES DROPPED")
+EOF
 
-            # Retry upgrade
-            flask db upgrade
-          }
+      # ==========================================
+      # 🧹 CLEAN MIGRATIONS
+      # ==========================================
+      - name: 🧹 Clean migrations
+        if: ${{ github.event.inputs.confirm_reset == 'YES' }}
+        run: |
+          rm -rf migrations
+          echo "✅ OLD MIGRATIONS REMOVED"
 
-      # ✅ Done
-      - name: Done
-        run: echo "✅ Auth DB Migration Completed Successfully"
+      # ==========================================
+      # 🆕 INIT MIGRATIONS
+      # ==========================================
+      - name: 🆕 Initialize migrations
+        if: ${{ github.event.inputs.confirm_reset == 'YES' }}
+        run: |
+          flask db init
+          flask db migrate -m "🔥 fresh start"
+
+      # ==========================================
+      # ⬆️ APPLY MIGRATIONS
+      # ==========================================
+      - name: ⬆️ Apply migrations
+        if: ${{ github.event.inputs.confirm_reset == 'YES' }}
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          flask db upgrade
+
+          echo "======================================="
+          echo "🎉 DATABASE RECREATED SUCCESSFULLY"
+          echo "======================================="
+
+      # ==========================================
+      # ✅ DONE
+      # ==========================================
+      - name: ✅ Done
+        run: |
+          echo "======================================="
+          echo "🏁 WORKFLOW FINISHED"
+          echo "======================================="
