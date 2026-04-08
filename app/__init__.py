@@ -1,23 +1,34 @@
 # =====================================================
-# 🟦 APP FACTORY – FINAL VERSION (CI/CD + REQUEST ID)
+# 🟦 APP FACTORY – FINAL VERSION (WITH BUILD INFO)
 # =====================================================
 
 import os
 import logging
 import uuid
+import json
 from logging.handlers import TimedRotatingFileHandler
 
 from flask import Flask, jsonify, g, request
 from .config import Config
 from .extensions import db, migrate, jwt, cors
 
-# Import models (Alembic)
 from .models.user import User
 from .models.token_blacklist import TokenBlocklist
 
 
 # =====================================================
-# 🔹 REQUEST ID LOG FORMATTER
+# 🔹 BUILD INFO LOADER (🔥 IMPORTANT)
+# =====================================================
+def get_build_info():
+    try:
+        with open("build_info.json") as f:
+            return json.load(f)
+    except Exception:
+        return {"version": "unknown", "commit": "unknown"}
+
+
+# =====================================================
+# 🔹 REQUEST ID FORMATTER
 # =====================================================
 class RequestFormatter(logging.Formatter):
     def format(self, record):
@@ -31,22 +42,13 @@ class RequestFormatter(logging.Formatter):
 def create_app(testing: bool = False):
     app = Flask(__name__)
 
-    # --------------------------
-    # 🔹 Load config
-    # --------------------------
     app.config.from_object(Config)
 
-    # --------------------------
-    # 🔹 Testing override
-    # --------------------------
     if testing:
         app.config["TESTING"] = True
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
         app.config["JWT_SECRET_KEY"] = "test-secret"
 
-    # --------------------------
-    # 🔹 Init extensions
-    # --------------------------
     cors.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
@@ -55,15 +57,10 @@ def create_app(testing: bool = False):
     # =====================================================
     # 🔥 REQUEST ID MIDDLEWARE
     # =====================================================
-
     @app.before_request
     def assign_request_id():
         incoming_id = request.headers.get("X-Request-ID")
-
-        if incoming_id:
-            g.request_id = incoming_id
-        else:
-            g.request_id = str(uuid.uuid4())
+        g.request_id = incoming_id if incoming_id else str(uuid.uuid4())
 
     @app.after_request
     def attach_request_id(response):
@@ -71,7 +68,7 @@ def create_app(testing: bool = False):
         return response
 
     # --------------------------
-    # 🔹 Logging setup
+    # 🔹 Logging
     # --------------------------
     logs_path = os.path.join(os.getcwd(), "logs")
     os.makedirs(logs_path, exist_ok=True)
@@ -95,22 +92,24 @@ def create_app(testing: bool = False):
     app.logger.info("🚀 Auth service starting...")
 
     # --------------------------
-    # 🔹 Register routes
+    # 🔹 Routes
     # --------------------------
     from .api.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
-    # --------------------------
-    # 🔥 ROOT HEALTH CHECK (UPDATED WITH LOG)
-    # --------------------------
+    # =====================================================
+    # 🔥 HEALTH ENDPOINT (FINAL)
+    # =====================================================
     @app.get("/")
     def health():
-        app.logger.info(f"[REQ:{g.request_id}] Root health endpoint called")
+        info = get_build_info()
+
+        app.logger.info(f"[REQ:{g.request_id}] Health check called")
 
         return jsonify({
             "status": "Auth service running",
-            "version": os.getenv("APP_VERSION", "unknown"),
-            "commit": os.getenv("APP_COMMIT", "unknown")
+            "version": info["version"],
+            "commit": info["commit"]
         }), 200
 
     # --------------------------
