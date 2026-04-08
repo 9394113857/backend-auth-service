@@ -1,9 +1,13 @@
-name: 🚀 CD - Railway Deploy (Strict Control)
+# =====================================================
+# 🚀 CD - Railway Deploy (FINAL)
+# =====================================================
+
+name: 🚀 CD - Railway Deploy
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:        # ✅ manual trigger
   schedule:
-    - cron: "30 20 * * *"
+    - cron: "30 20 * * *"   # ✅ daily (2:00 AM IST)
 
 jobs:
   deploy:
@@ -18,23 +22,19 @@ jobs:
         uses: actions/checkout@v3
 
       # =========================
-      # 🟢 Set Info
+      # 🟢 Set Variables
       # =========================
-      - name: Set Version
+      - name: Set Variables
         run: |
-          TAG="latest"
-          echo "TAG=$TAG" >> $GITHUB_ENV
-
           echo "URL=https://backend-auth-service-production-7671.up.railway.app" >> $GITHUB_ENV
-          echo "REPO=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
-          echo "DOCKER=pythoncodelife/backend-auth-service:latest" >> $GITHUB_ENV
+          echo "IMAGE=pythoncodelife/backend-auth-service:latest" >> $GITHUB_ENV
 
       # =========================
-      # 🚀 Deploy
+      # 🚀 Trigger Railway Deploy
       # =========================
-      - name: Deploy to Railway
+      - name: 🚀 Deploy to Railway
         run: |
-          echo "🚀 Deploying latest image"
+          echo "🚀 Triggering Railway deploy..."
 
           curl -X POST https://backboard.railway.app/graphql/v2 \
           -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}" \
@@ -50,7 +50,7 @@ jobs:
           }'
 
       # =========================
-      # ⏳ Wait
+      # ⏳ Wait for deployment
       # =========================
       - name: Wait
         run: sleep 60
@@ -59,20 +59,21 @@ jobs:
       # 🧪 Health Check
       # =========================
       - name: Health Check
-        id: health
         run: |
           RESPONSE=$(curl -s $URL)
-          echo "Response: $RESPONSE"
+
+          echo "Response:"
+          echo "$RESPONSE"
 
           if [[ "$RESPONSE" == *"Auth service running"* ]]; then
-            echo "status=success" >> $GITHUB_OUTPUT
+            echo "✅ Deployment successful"
           else
-            echo "status=fail" >> $GITHUB_OUTPUT
+            echo "❌ Deployment failed"
             exit 1
           fi
 
       # =========================
-      # 📧 EMAIL SUCCESS
+      # 📧 Email Success
       # =========================
       - name: 📧 Email Success
         if: success()
@@ -82,20 +83,23 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME_MAIN }}
           password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚀 Railway CD SUCCESS"
+          subject: "🚀 CD SUCCESS - Railway Deploy"
           to: ${{ secrets.MAIL_USERNAME_MAIN }}
           cc: ${{ secrets.MAIL_TO_CC_MAIN }}
           from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
-            🚀 DEPLOYMENT SUCCESS
+            🚀 Railway Deployment SUCCESS
 
-            🐳 Image: ${{ env.DOCKER }}
-            🌐 URL: ${{ env.URL }}
+            🌐 URL:
+            ${{ env.URL }}
 
-            ✅ Service is running
+            🐳 Image:
+            ${{ env.IMAGE }}
+
+            ✅ Latest image deployed successfully
 
       # =========================
-      # ❌ EMAIL FAILURE
+      # ❌ Email Failure
       # =========================
       - name: ❌ Email Failure
         if: failure()
@@ -105,13 +109,14 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME_MAIN }}
           password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚨 Railway CD FAILED"
+          subject: "🚨 CD FAILED - Railway Deploy"
           to: ${{ secrets.MAIL_USERNAME_MAIN }}
           cc: ${{ secrets.MAIL_TO_CC_MAIN }}
           from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
-            🚨 DEPLOYMENT FAILED
+            🚨 Railway Deployment FAILED
 
-            🌐 URL: ${{ env.URL }}
+            🌐 URL:
+            ${{ env.URL }}
 
-            🔧 Check GitHub Actions logs
+            🔧 Check GitHub Actions logs immediately
