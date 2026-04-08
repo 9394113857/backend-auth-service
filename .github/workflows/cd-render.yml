@@ -1,0 +1,99 @@
+# =====================================================
+# 🚀 CD - Render Deploy (FINAL)
+# =====================================================
+
+name: 🚀 CD - Render Deploy
+
+on:
+  workflow_dispatch:        # ✅ manual
+  schedule:
+    - cron: "30 20 * * *"   # ✅ daily
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # =========================
+      # 🟢 Checkout (optional)
+      # =========================
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # =========================
+      # 🚀 Deploy to Render
+      # =========================
+      - name: 🚀 Trigger Render Deploy
+        run: |
+          echo "🚀 Deploying to Render..."
+
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
+      # =========================
+      # ⏳ Wait for deployment
+      # =========================
+      - name: Wait
+        run: sleep 60
+
+      # =========================
+      # 🧪 Health Check
+      # =========================
+      - name: Health Check
+        run: |
+          URL="https://backend-auth-service.onrender.com"
+
+          RESPONSE=$(curl -s $URL)
+
+          echo "Response:"
+          echo "$RESPONSE"
+
+          if [[ "$RESPONSE" == *"Auth service running"* ]]; then
+            echo "✅ Deployment successful"
+          else
+            echo "❌ Deployment failed"
+            exit 1
+          fi
+
+      # =========================
+      # 📧 Email Success
+      # =========================
+      - name: 📧 Email Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚀 CD SUCCESS - Render"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚀 Render Deployment SUCCESS
+
+            🌐 URL:
+            https://backend-auth-service.onrender.com
+
+            ✅ Latest Docker image deployed
+
+      # =========================
+      # ❌ Email Failure
+      # =========================
+      - name: ❌ Email Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚨 CD FAILED - Render"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚨 Render Deployment FAILED
+
+            🔧 Check GitHub Actions logs
