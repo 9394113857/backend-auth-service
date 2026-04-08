@@ -1,12 +1,9 @@
-name: 🚀 CD - Railway Deploy (Final)
+name: 🚀 CD - Railway Deploy (Strict Control)
 
 on:
-  workflow_dispatch:        # ✅ Manual trigger
+  workflow_dispatch:        # ✅ manual only
   schedule:
-    - cron: "30 20 * * *"   # ✅ Daily (2:00 AM IST)
-  push:
-    tags:
-      - "v*"                # ✅ Release-based deploy
+    - cron: "30 20 * * *"   # ✅ cron only
 
 jobs:
   deploy:
@@ -14,112 +11,44 @@ jobs:
 
     steps:
 
-      # =========================
-      # 🟢 Checkout
-      # =========================
       - name: Checkout
         uses: actions/checkout@v3
 
-      # =========================
-      # 🟢 Detect Tag / Version
-      # =========================
       - name: Set Version
         run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            TAG=${GITHUB_REF#refs/tags/}
-          else
-            TAG="latest"
-          fi
-
+          TAG="latest"
           echo "TAG=$TAG" >> $GITHUB_ENV
 
           echo "URL=https://backend-auth-service-production.up.railway.app" >> $GITHUB_ENV
-          echo "REPO=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
-          echo "DOCKER=pythoncodelife/backend-auth-service:$TAG" >> $GITHUB_ENV
 
-      # =========================
-      # 🚀 Trigger Railway Deploy
-      # =========================
       - name: Deploy to Railway
         run: |
-          echo "🚀 Deploying: $TAG"
+          echo "🚀 Deploying latest image"
 
           curl -X POST https://backboard.railway.app/graphql/v2 \
           -H "Authorization: Bearer ${{ secrets.RAILWAY_API_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
-            "query": "mutation Deploy($serviceId: String!, $environmentId: String!) { deploy(serviceId: $serviceId, environmentId: $environmentId) { id status } }",
+            "query": "mutation deploymentCreate($input: DeploymentCreateInput!) { deploymentCreate(input: $input) { id status } }",
             "variables": {
-              "serviceId": "${{ secrets.RAILWAY_SERVICE_ID }}",
-              "environmentId": "${{ secrets.RAILWAY_ENVIRONMENT_ID }}"
+              "input": {
+                "serviceId": "${{ secrets.RAILWAY_SERVICE_ID }}",
+                "environmentId": "${{ secrets.RAILWAY_ENVIRONMENT_ID }}"
+              }
             }
           }'
 
-      # =========================
-      # ⏳ Wait for deploy
-      # =========================
       - name: Wait
         run: sleep 60
 
-      # =========================
-      # 🧪 Health Check
-      # =========================
       - name: Health Check
         run: |
           RESPONSE=$(curl -s $URL)
           echo "Response: $RESPONSE"
 
           if [[ "$RESPONSE" == *"Auth service running"* ]]; then
-            echo "STATUS=success" >> $GITHUB_ENV
+            echo "SUCCESS"
           else
-            echo "STATUS=fail" >> $GITHUB_ENV
+            echo "FAILED"
             exit 1
           fi
-
-      # =========================
-      # 📧 Email Success
-      # =========================
-      - name: 📧 Email Success
-        if: success()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.MAIL_USERNAME_MAIN }}
-          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚀 Railway Deploy SUCCESS - ${{ env.TAG }}"
-          to: ${{ secrets.MAIL_USERNAME_MAIN }}
-          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
-          from: ${{ secrets.MAIL_USERNAME_MAIN }}
-          body: |
-            🚀 DEPLOYMENT SUCCESS
-
-            🏷️ Tag: ${{ env.TAG }}
-
-            🐳 Docker Image:
-            ${{ env.DOCKER }}
-
-            🌐 URL:
-            ${{ env.URL }}
-
-      # =========================
-      # ❌ Email Failure
-      # =========================
-      - name: ❌ Email Failure
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.MAIL_USERNAME_MAIN }}
-          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚨 Railway Deploy FAILED"
-          to: ${{ secrets.MAIL_USERNAME_MAIN }}
-          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
-          from: ${{ secrets.MAIL_USERNAME_MAIN }}
-          body: |
-            🚨 DEPLOYMENT FAILED
-
-            🏷️ Tag: ${{ env.TAG }}
-
-            🔧 Check logs immediately
