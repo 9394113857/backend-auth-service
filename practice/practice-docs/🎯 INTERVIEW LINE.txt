@@ -1,0 +1,4 @@
+🎯 INTERVIEW LINE
+
+“Integration tests validate end-to-end API flow including request handling, business logic, and database interaction.”
+
