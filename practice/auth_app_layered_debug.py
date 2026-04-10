@@ -192,11 +192,11 @@ def create_app():
     # =====================================================
     @app.get("/")
     def health_root():
-        return jsonify({"status": "Servcie Auth-UP and Running"}), 200
+        return jsonify({"status": "Auth-Servcie UP and Running"}), 200
 
     @app.get("/health")
     def health():
-        return jsonify({"status": "Servcie Auth-UP and Running with Healthcheck also."}), 200
+        return jsonify({"status": "Auth-Servcie UP and Running with Healthcheck also."}), 200
 
 
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
