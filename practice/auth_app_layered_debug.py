@@ -38,7 +38,7 @@ def create_app():
 
     def get_user(email):
         # 🔴 DEBUG POINT (MODEL - READ)
-        print("MODEL: Fetching user", email)
+        print("MODEL: Fetching user", email) 
 
         return users.get(email)
 
