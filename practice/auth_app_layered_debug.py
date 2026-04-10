@@ -33,7 +33,7 @@ def create_app():
         }
 
         # 👉 Inspect in debugger:
-        # users dict → should contain new user
+        # users dict → should contain new user 
         return users[email]
 
     def get_user(email):
