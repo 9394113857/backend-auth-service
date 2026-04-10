@@ -1,0 +1,122 @@
+Got it—you want a clean, simple map of:
+✔ exact line numbers
+ ✔ where to put print statements
+ ✔ what each one helps you debug (overall understanding)
+Let’s make this super clear 👇
+
+🔴 1. MODEL LAYER (Database Simulation)
+📍 Lines: 27, 39
+27 → print("MODEL: Creating user", email)
+39 → print("MODEL: Fetching user", email)
+🧠 What to check:
+Is user being stored?
+Is user being retrieved?
+🔍 Inspect:
+users   # should contain data like:
+{
+ "user@test.com": {"id": 1, "password": "..."}
+}
+
+🟡 2. SERVICE LAYER (Business Logic)
+📍 Lines: 53, 72, 97, 108
+53  → print("SERVICE: Register called")
+72  → print("SERVICE: Login called")
+97  → print("SERVICE: Profile called")
+108 → print("SERVICE: Logout called")
+
+➕ Add MORE useful prints (VERY IMPORTANT)
+🔹 Inside register_service (after hashing)
+print("EMAIL:", email)
+print("HASHED PASSWORD:", hashed)
+👉 Helps verify hashing
+
+🔹 Inside login_service
+print("USER FROM DB:", user)
+print("HASHED INPUT:", hashed)
+👉 Helps catch:
+wrong password
+user not found
+
+🔹 After token creation
+print("TOKEN:", token)
+👉 Confirms JWT is generated
+
+🔹 Inside profile_service
+print("USER ID FROM TOKEN:", user_id)
+
+🔹 Inside logout_service
+print("JTI:", jti)
+print("BLACKLIST:", blacklist)
+👉 Confirms logout is working
+
+🔵 3. ROUTE LAYER (Entry Point)
+📍 Lines: 118, 135, 152, 164
+118 → print("ROUTE: Register API hit")
+135 → print("ROUTE: Login API hit")
+152 → print("ROUTE: Profile API hit")
+164 → print("ROUTE: Logout API hit")
+
+➕ Add THIS (VERY IMPORTANT)
+After data = request.get_json()
+print("REQUEST DATA:", data)
+👉 Shows what frontend is sending
+
+🟣 4. JWT CHECK (CRITICAL)
+📍 Line: ~121
+print("JWT CHECK:", jwt_payload["jti"])
+
+➕ Add THIS TOO
+print("BLACKLIST:", blacklist)
+👉 Helps debug:
+Why token is invalid
+Logout issues
+
+🧠 FULL DEBUG FLOW (VERY IMPORTANT)
+✅ REGISTER FLOW
+118 (ROUTE)
+↓
+53 (SERVICE)
+↓
+27 (MODEL)
+
+✅ LOGIN FLOW
+135 (ROUTE)
+↓
+72 (SERVICE)
+↓
+39 (MODEL)
+↓
+TOKEN PRINT
+
+✅ PROFILE FLOW
+152 (ROUTE)
+↓
+JWT CHECK (~121)
+↓
+97 (SERVICE)
+
+✅ LOGOUT FLOW
+164 (ROUTE)
+↓
+JWT CHECK (~121)
+↓
+108 (SERVICE)
+↓
+BLACKLIST UPDATE
+
+🔥 FINAL SIMPLE RULE (REMEMBER THIS)
+👉 Every request follows:
+ROUTE → SERVICE → MODEL → SERVICE → ROUTE
+
+🚀 WHAT INTERVIEWER EXPECTS
+If asked debugging:
+Say this 👇
+“I start at route to check request”
+“Then step into service for logic”
+“Then into model for data”
+“Then verify response + JWT if needed”
+
+If you want next:
+ ✅ I can mark your code with ALL debug prints inserted
+ ✅ or show real bug scenarios (wrong password, token fail, etc.)
+
