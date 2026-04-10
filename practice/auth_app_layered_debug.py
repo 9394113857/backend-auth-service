@@ -41,7 +41,7 @@ def create_app():
         print("MODEL: Fetching user", email) 
 
         return users.get(email)
-
+ 
 
     # =====================================================
     # SERVICE LAYER
