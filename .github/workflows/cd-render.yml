@@ -1,13 +1,13 @@
 # =====================================================
-# 🚀 CD - Render Deploy (FINAL FOR YOUR SERVICE)
+# 🚀 CD - Render Deploy (PRODUCTION SAFE FINAL)
 # =====================================================
 
 name: 🚀 CD - Render Deploy
 
 on:
-  workflow_dispatch:        # ✅ manual trigger
+  workflow_dispatch:
   schedule:
-    - cron: "30 20 * * *"   # ✅ daily (2:00 AM IST)
+    - cron: "30 20 * * *"   # 2:00 AM IST
 
 jobs:
   deploy:
@@ -16,7 +16,7 @@ jobs:
     steps:
 
       # =========================
-      # 🟢 Checkout Repo
+      # 🟢 Checkout
       # =========================
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,18 +24,18 @@ jobs:
           fetch-depth: 0
 
       # =========================
-      # 🟢 Fetch Tags (for info)
+      # 🟢 Fetch Tags
       # =========================
       - name: Fetch Tags
         run: git fetch --tags
 
       # =========================
-      # 🟢 Detect Latest Tag (optional tracking)
+      # 🟢 Detect Version
       # =========================
       - name: Detect Version
         run: |
           TAGS=($(git tag --sort=-v:refname))
-          
+
           if [ ${#TAGS[@]} -eq 0 ]; then
             VERSION="latest"
           else
@@ -50,36 +50,45 @@ jobs:
       # =========================
       # 🚀 Trigger Render Deploy
       # =========================
-      - name: 🚀 Deploy to Render
+      - name: Trigger Render Deploy
         run: |
-          echo "Calling Render Deploy Hook..."
+          echo "🚀 Triggering Render..."
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
       # =========================
-      # ⏳ Wait for deployment
+      # ⏳ Wait for warmup
       # =========================
-      - name: Wait
-        run: sleep 70
+      - name: Initial Wait
+        run: sleep 30
 
       # =========================
-      # 🧪 Health Check
+      # 🧪 SMART HEALTH CHECK (RETRY LOGIC)
       # =========================
-      - name: Health Check
+      - name: Health Check (Retry Safe)
         run: |
-          RESPONSE=$(curl -s $URL)
+          echo "🔍 Starting health check..."
 
-          echo "Response:"
-          echo "$RESPONSE"
+          for i in {1..10}; do
+            echo "Attempt $i..."
 
-          if [[ "$RESPONSE" == *"Auth service running"* ]]; then
-            echo "✅ Deployment successful"
-          else
-            echo "❌ Deployment failed"
-            exit 1
-          fi
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+
+            echo "HTTP STATUS: $STATUS"
+
+            if [ "$STATUS" = "200" ]; then
+              echo "🟢 Service is UP"
+              exit 0
+            fi
+
+            echo "⏳ Not ready yet... waiting 10s"
+            sleep 10
+          done
+
+          echo "🔴 Service failed after retries"
+          exit 1
 
       # =========================
-      # 📧 Email Success
+      # 📧 SUCCESS EMAIL
       # =========================
       - name: 📧 Email Success
         if: success()
@@ -97,14 +106,13 @@ jobs:
             🚀 Render Deployment SUCCESS
 
             🏷️ Version: ${{ env.VERSION }}
+            🌐 URL: ${{ env.URL }}
 
-            🌐 URL:
-            ${{ env.URL }}
-
-            ✅ Latest Docker image deployed successfully 🚀
+            🟢 Service is healthy and responding
+            🚀 Deployment completed successfully
 
       # =========================
-      # ❌ Email Failure
+      # ❌ FAILURE EMAIL
       # =========================
       - name: ❌ Email Failure
         if: failure()
@@ -114,16 +122,15 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME_MAIN }}
           password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚨 Render CD FAILED"
+          subject: "🚨 Render CD FAILED - ${{ env.VERSION }}"
           to: ${{ secrets.MAIL_USERNAME_MAIN }}
           cc: ${{ secrets.MAIL_TO_CC_MAIN }}
           from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
             🚨 Render Deployment FAILED
 
-            🏷️ Attempted Version: ${{ env.VERSION }}
+            🏷️ Version: ${{ env.VERSION }}
+            🌐 URL: ${{ env.URL }}
 
-            🌐 URL:
-            ${{ env.URL }}
-
+            ❌ Health check did not pass after retries
             🔧 Check GitHub Actions logs immediately
