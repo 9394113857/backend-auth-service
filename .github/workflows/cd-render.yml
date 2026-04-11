@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CD - Render Deploy (PRODUCTION SAFE FINAL)
+# 🚀 CD - Render Deploy (FULL METADATA EMAIL)
 # =====================================================
 
 name: 🚀 CD - Render Deploy
@@ -7,7 +7,7 @@ name: 🚀 CD - Render Deploy
 on:
   workflow_dispatch:
   schedule:
-    - cron: "30 20 * * *"   # 2:00 AM IST
+    - cron: "30 20 * * *"
 
 jobs:
   deploy:
@@ -15,82 +15,49 @@ jobs:
 
     steps:
 
-      # =========================
-      # 🟢 Checkout
-      # =========================
-      - name: Checkout
+      - name: 🟢 Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      # =========================
-      # 🟢 Fetch Tags
-      # =========================
-      - name: Fetch Tags
-        run: git fetch --tags
-
-      # =========================
-      # 🟢 Detect Version
-      # =========================
-      - name: Detect Version
+      - name: 🟢 Extract Git Info
         run: |
-          TAGS=($(git tag --sort=-v:refname))
+          TAG=$(git describe --tags --abbrev=0 || echo "no-tag")
 
-          if [ ${#TAGS[@]} -eq 0 ]; then
-            VERSION="latest"
-          else
-            VERSION=${TAGS[0]}
+          COMMIT_FULL=$(git rev-parse HEAD)
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
+
+          COMMIT_TITLE=$(git log -1 --pretty=%s)
+          COMMIT_BODY=$(git log -1 --pretty=%b)
+
+          if [ -z "$COMMIT_BODY" ]; then
+            COMMIT_BODY="No details available"
           fi
 
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "COMMIT_FULL=$COMMIT_FULL" >> $GITHUB_ENV
+          echo "COMMIT_SHORT=$COMMIT_SHORT" >> $GITHUB_ENV
+          echo "COMMIT_TITLE=$COMMIT_TITLE" >> $GITHUB_ENV
+          echo "COMMIT_BODY<<EOF" >> $GITHUB_ENV
+          echo "$COMMIT_BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-          echo "🚀 Deploying Version: $VERSION"
+      - name: 🚀 Trigger Deploy
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
-      # =========================
-      # 🚀 Trigger Render Deploy
-      # =========================
-      - name: Trigger Render Deploy
-        run: |
-          echo "🚀 Triggering Render..."
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
-
-      # =========================
-      # ⏳ Wait for warmup
-      # =========================
-      - name: Initial Wait
+      - name: ⏳ Wait
         run: sleep 30
 
-      # =========================
-      # 🧪 SMART HEALTH CHECK (RETRY LOGIC)
-      # =========================
-      - name: Health Check (Retry Safe)
+      - name: 🧪 Health Check
         run: |
-          echo "🔍 Starting health check..."
-
           for i in {1..10}; do
-            echo "Attempt $i..."
-
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
-
-            echo "HTTP STATUS: $STATUS"
-
-            if [ "$STATUS" = "200" ]; then
-              echo "🟢 Service is UP"
-              exit 0
-            fi
-
-            echo "⏳ Not ready yet... waiting 10s"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://backend-auth-service-ks6f.onrender.com)
+            if [ "$STATUS" = "200" ]; then exit 0; fi
             sleep 10
           done
-
-          echo "🔴 Service failed after retries"
           exit 1
 
-      # =========================
-      # 📧 SUCCESS EMAIL
-      # =========================
-      - name: 📧 Email Success
+      - name: 📧 SUCCESS EMAIL
         if: success()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -98,23 +65,23 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME_MAIN }}
           password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚀 Render CD SUCCESS - ${{ env.VERSION }}"
+          subject: "🚀 CD SUCCESS - ${{ env.TAG }}"
           to: ${{ secrets.MAIL_USERNAME_MAIN }}
-          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
-          from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
-            🚀 Render Deployment SUCCESS
+            🚀 Deployment Success
 
-            🏷️ Version: ${{ env.VERSION }}
-            🌐 URL: ${{ env.URL }}
+            🏷️ Tag: ${{ env.TAG }}
 
-            🟢 Service is healthy and responding
-            🚀 Deployment completed successfully
+            🔹 Commit (7): ${{ env.COMMIT_SHORT }}
+            🔹 Commit (Full): ${{ env.COMMIT_FULL }}
 
-      # =========================
-      # ❌ FAILURE EMAIL
-      # =========================
-      - name: ❌ Email Failure
+            📝 Title:
+            ${{ env.COMMIT_TITLE }}
+
+            📄 Details:
+            ${{ env.COMMIT_BODY }}
+
+      - name: ❌ FAILURE EMAIL
         if: failure()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -122,15 +89,18 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME_MAIN }}
           password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚨 Render CD FAILED - ${{ env.VERSION }}"
+          subject: "🚨 CD FAILED - ${{ env.TAG }}"
           to: ${{ secrets.MAIL_USERNAME_MAIN }}
-          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
-          from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
-            🚨 Render Deployment FAILED
+            ❌ Deployment Failed
 
-            🏷️ Version: ${{ env.VERSION }}
-            🌐 URL: ${{ env.URL }}
+            🏷️ Tag: ${{ env.TAG }}
 
-            ❌ Health check did not pass after retries
-            🔧 Check GitHub Actions logs immediately
+            🔹 Commit (7): ${{ env.COMMIT_SHORT }}
+            🔹 Commit (Full): ${{ env.COMMIT_FULL }}
+
+            📝 Title:
+            ${{ env.COMMIT_TITLE }}
+
+            📄 Details:
+            ${{ env.COMMIT_BODY }}
