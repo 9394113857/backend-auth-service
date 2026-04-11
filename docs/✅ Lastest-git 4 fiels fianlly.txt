@@ -18,3 +18,9 @@ git push
 
 
 git add .; git commit -m "🚀 fix: final CI/CD + metadata pipeline stable" -m "🟢 Fixed build_info.json generation in CI" -m "🟢 Removed Docker overwrite bug for metadata" -m "🟢 Ensured tag, commit, title, body flow correctly to UI" -m "🟢 Added --no-cache Docker build for clean deploy" -m "🟢 Stabilized Render health check deployment flow"; git push
+
+=====================================================================================
+
+git add .; git commit -m "🚀 fix: complete metadata + CI/CD + Docker pipeline restoration" -m "🟢 Fixed build_info.json missing in runtime container" -m "🟢 Fixed Dockerfile overwrite issue" -m "🟢 Ensured CI is single source of truth for metadata" -m "🟢 Stabilized Render deployment health check" -m "🟢 Fixed Flask UI reading correct build info"; git push
+
+
