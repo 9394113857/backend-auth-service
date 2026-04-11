@@ -37,5 +37,5 @@ with open("build_info.json", "w") as f:
     json.dump(data, f, indent=2)
 EOF
 
-# Run app
+# Run app 
 CMD ["sh", "-c", "gunicorn run:app -w 1 -b 0.0.0.0:$PORT --access-logfile - --error-logfile -"]
