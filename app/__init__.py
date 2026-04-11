@@ -1,5 +1,5 @@
 # =====================================================
-# 🟦 APP FACTORY – FINAL (WITH SIMPLE HEALTH UI)
+# 🟦 APP FACTORY – FINAL (TAG + COMMIT METADATA UI)
 # =====================================================
 
 import os
@@ -8,7 +8,7 @@ import uuid
 import json
 from logging.handlers import TimedRotatingFileHandler
 
-from flask import Flask, jsonify, g, request
+from flask import Flask, g, request
 from .config import Config
 from .extensions import db, migrate, jwt, cors
 
@@ -27,7 +27,12 @@ def get_build_info():
         return {
             "version": "unknown",
             "commit": "unknown",
+            "commit_short": "unknown",
             "branch": "unknown",
+            "tag": "unknown",
+            "commit_title": "unknown",
+            "commit_body": "No details available",
+            "commit_time": "unknown",
             "build_time_utc": "unknown",
             "build_time_ist": "unknown",
             "error": str(e)
@@ -97,113 +102,49 @@ def create_app(testing: bool = False):
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
     # =====================================================
-    # 🔥 HEALTH ENDPOINT (SIMPLE HTML UI)
+    # 🔥 HEALTH ENDPOINT (ENHANCED UI)
     # =====================================================
     @app.get("/")
     def health():
         info = get_build_info()
 
+        commit_body = info.get("commit_body") or "No details available"
+
         html = f"""
-        <!DOCTYPE html>
         <html>
         <head>
-            <title>Auth Service Health</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    background: #f4f6f8;
-                    margin: 0;
-                    padding: 0;
-                    color: #333;
-                }}
-
-                .container {{
-                    max-width: 600px;
-                    margin: 80px auto;
-                    background: white;
-                    padding: 25px;
-                    border-radius: 10px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                }}
-
-                h1 {{
-                    text-align: center;
-                    color: #1a73e8;
-                    margin-bottom: 20px;
-                }}
-
-                .status {{
-                    text-align: center;
-                    font-weight: bold;
-                    color: green;
-                    margin-bottom: 20px;
-                }}
-
-                .row {{
-                    padding: 10px 0;
-                    border-bottom: 1px solid #eee;
-                    display: flex;
-                    justify-content: space-between;
-                }}
-
-                .label {{
-                    font-weight: bold;
-                    color: #555;
-                }}
-
-                .value {{
-                    color: #222;
-                    word-break: break-word;
-                }}
-
-                .footer {{
-                    text-align: center;
-                    margin-top: 20px;
-                    font-size: 12px;
-                    color: #999;
-                }}
-            </style>
+        <title>Auth Service</title>
+        <style>
+        body {{ font-family: Arial; background:#f4f6f8; }}
+        .box {{ max-width:700px;margin:60px auto;background:white;padding:20px;border-radius:10px; }}
+        .row {{ margin:8px 0; }}
+        .label {{ font-weight:bold; }}
+        </style>
         </head>
 
         <body>
-            <div class="container">
-                <h1>🚀 Auth Service</h1>
+        <div class="box">
+        <h2>🚀 Auth Service</h2>
+        <div>🟢 Running</div>
 
-                <div class="status">🟢 Service Running</div>
+        <div class="row"><span class="label">Tag:</span> {info.get("tag")}</div>
+        <div class="row"><span class="label">Version:</span> {info.get("version")}</div>
 
-                <div class="row">
-                    <div class="label">Version</div>
-                    <div class="value">{info.get("version")}</div>
-                </div>
+        <div class="row"><span class="label">Commit (7):</span> {info.get("commit_short")}</div>
+        <div class="row"><span class="label">Commit (Full):</span> {info.get("commit")}</div>
 
-                <div class="row">
-                    <div class="label">Commit</div>
-                    <div class="value">{info.get("commit")}</div>
-                </div>
+        <div class="row"><span class="label">Title:</span> {info.get("commit_title")}</div>
+        <div class="row"><span class="label">Details:</span><pre>{commit_body}</pre></div>
 
-                <div class="row">
-                    <div class="label">Branch</div>
-                    <div class="value">{info.get("branch")}</div>
-                </div>
+        <div class="row"><span class="label">Commit Time:</span> {info.get("commit_time")}</div>
 
-                <div class="row">
-                    <div class="label">Build UTC</div>
-                    <div class="value">{info.get("build_time_utc")}</div>
-                </div>
+        <div class="row"><span class="label">Build UTC:</span> {info.get("build_time_utc")}</div>
+        <div class="row"><span class="label">Build IST:</span> {info.get("build_time_ist")}</div>
 
-                <div class="row">
-                    <div class="label">Build IST</div>
-                    <div class="value">{info.get("build_time_ist")}</div>
-                </div>
-
-                <div class="footer">
-                    Built with Flask • Health Check Endpoint
-                </div>
-            </div>
+        </div>
         </body>
         </html>
         """
-
         return html, 200
 
     return app
