@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CI - Backend Auth Service (TAG + COMMIT METADATA) 
+# 🚀 CI - Backend Auth Service (FINAL WITH METADATA)
 # =====================================================
 
 name: 🚀 CI - Backend Auth Service
@@ -17,21 +17,26 @@ jobs:
 
     steps:
 
-      - name: 🟢 Checkout
+      # ===============================
+      # 🟢 Checkout
+      # ===============================
+      - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: 🟢 Extract Git Info
+      # ===============================
+      # 🟢 Extract Git Metadata
+      # ===============================
+      - name: Extract Git Info
         run: |
-          TAG=$(git describe --tags --abbrev=0 || echo "no-tag")
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "no-tag")
 
           COMMIT_FULL=$(git rev-parse HEAD)
           COMMIT_SHORT=$(git rev-parse --short HEAD)
 
           COMMIT_TITLE=$(git log -1 --pretty=%s)
           COMMIT_BODY=$(git log -1 --pretty=%b)
-
           COMMIT_TIME=$(git log -1 --pretty=%ci)
 
           if [ -z "$COMMIT_BODY" ]; then
@@ -43,12 +48,20 @@ jobs:
           echo "APP_COMMIT=$COMMIT_FULL" >> $GITHUB_ENV
           echo "APP_COMMIT_SHORT=$COMMIT_SHORT" >> $GITHUB_ENV
           echo "APP_COMMIT_TITLE=$COMMIT_TITLE" >> $GITHUB_ENV
+
           echo "APP_COMMIT_BODY<<EOF" >> $GITHUB_ENV
           echo "$COMMIT_BODY" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
           echo "APP_COMMIT_TIME=$COMMIT_TIME" >> $GITHUB_ENV
 
-      - name: 🟢 Generate build_info.json
+          # Repo
+          echo "REPO=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
+
+      # ===============================
+      # 🟢 Generate build_info.json
+      # ===============================
+      - name: Generate build_info.json
         run: |
           cat <<EOF > build_info.json
           {
@@ -64,14 +77,99 @@ jobs:
           }
           EOF
 
-      - name: 🔐 Docker Login
+      # ===============================
+      # 🔐 Docker Login
+      # ===============================
+      - name: Docker Login
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: 🐳 Build Image
+      # ===============================
+      # 🐳 Build Docker Image
+      # ===============================
+      - name: Build Docker Image
         run: |
           docker build -t pythoncodelife/backend-auth-service:${APP_VERSION} .
 
-      - name: 🚀 Push Image
+      # ===============================
+      # 🏷️ Tag latest (only main)
+      # ===============================
+      - name: Tag latest
+        if: startsWith(github.ref, 'refs/heads/main')
+        run: |
+          docker tag pythoncodelife/backend-auth-service:${APP_VERSION} pythoncodelife/backend-auth-service:latest
+
+      # ===============================
+      # 🚀 Push Docker Image
+      # ===============================
+      - name: Push Docker Image
         run: |
           docker push pythoncodelife/backend-auth-service:${APP_VERSION}
+
+      # ===============================
+      # 🚀 Push latest
+      # ===============================
+      - name: Push latest
+        if: startsWith(github.ref, 'refs/heads/main')
+        run: |
+          docker push pythoncodelife/backend-auth-service:latest
+
+      # ===============================
+      # 📧 Email Success (UNCHANGED + EXTRA INFO)
+      # ===============================
+      - name: 📧 Email Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚀 CI SUCCESS - ${{ env.APP_TAG }}"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚀 CI BUILD SUCCESS
+
+            🏷️ Tag: ${{ env.APP_TAG }}
+
+            🔹 Commit (7): ${{ env.APP_COMMIT_SHORT }}
+            🔹 Commit (Full):
+            ${{ env.APP_COMMIT }}
+
+            📝 Title:
+            ${{ env.APP_COMMIT_TITLE }}
+
+            📄 Details:
+            ${{ env.APP_COMMIT_BODY }}
+
+            🐳 Docker Image:
+            pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
+
+            🔗 Repo:
+            ${{ env.REPO }}
+
+            ✅ Image pushed successfully
+
+      # ===============================
+      # ❌ Email Failure
+      # ===============================
+      - name: ❌ Email Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚨 CI FAILED - ${{ env.APP_TAG }}"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚨 CI BUILD FAILED
+
+            🏷️ Tag: ${{ env.APP_TAG }}
+
+            🔧 Check GitHub Actions logs immediately
