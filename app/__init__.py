@@ -1,5 +1,5 @@
 # =====================================================
-# 🟦 APP FACTORY – FINAL (TAG + COMMIT METADATA UI)
+# 🟦 APP FACTORY – FINAL (STABLE METADATA UI)
 # =====================================================
 
 import os
@@ -16,19 +16,16 @@ from .models.user import User
 from .models.token_blacklist import TokenBlocklist
 
 
-# =====================================================
-# 🔥 BUILD INFO LOADER
-# =====================================================
 def get_build_info():
     try:
-        with open("build_info.json") as f:
+        path = os.path.join(os.getcwd(), "build_info.json")
+        with open(path) as f:
             return json.load(f)
     except Exception as e:
         return {
             "version": "unknown",
             "commit": "unknown",
             "commit_short": "unknown",
-            "branch": "unknown",
             "tag": "unknown",
             "commit_title": "unknown",
             "commit_body": "No details available",
@@ -39,9 +36,6 @@ def get_build_info():
         }
 
 
-# =====================================================
-# 🔹 REQUEST FORMATTER
-# =====================================================
 class RequestFormatter(logging.Formatter):
     def format(self, record):
         try:
@@ -53,7 +47,6 @@ class RequestFormatter(logging.Formatter):
 
 def create_app(testing: bool = False):
     app = Flask(__name__)
-
     app.config.from_object(Config)
 
     cors.init_app(app)
@@ -61,9 +54,6 @@ def create_app(testing: bool = False):
     migrate.init_app(app, db)
     jwt.init_app(app)
 
-    # --------------------------
-    # 🔥 Request ID Middleware
-    # --------------------------
     @app.before_request
     def assign_request_id():
         g.request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
@@ -73,9 +63,6 @@ def create_app(testing: bool = False):
         response.headers["X-Request-ID"] = g.request_id
         return response
 
-    # --------------------------
-    # 🔹 Logging
-    # --------------------------
     logs_path = os.path.join(os.getcwd(), "logs")
     os.makedirs(logs_path, exist_ok=True)
 
@@ -95,56 +82,31 @@ def create_app(testing: bool = False):
 
     app.logger.setLevel(logging.INFO)
 
-    # --------------------------
-    # 🔹 Routes
-    # --------------------------
     from .api.auth_routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
-    # =====================================================
-    # 🔥 HEALTH ENDPOINT (ENHANCED UI)
-    # =====================================================
     @app.get("/")
     def health():
         info = get_build_info()
+        body = info.get("commit_body") or "No details available"
 
-        commit_body = info.get("commit_body") or "No details available"
-
-        html = f"""
-        <html>
-        <head>
-        <title>Auth Service</title>
-        <style>
-        body {{ font-family: Arial; background:#f4f6f8; }}
-        .box {{ max-width:700px;margin:60px auto;background:white;padding:20px;border-radius:10px; }}
-        .row {{ margin:8px 0; }}
-        .label {{ font-weight:bold; }}
-        </style>
-        </head>
-
-        <body>
-        <div class="box">
+        return f"""
         <h2>🚀 Auth Service</h2>
-        <div>🟢 Running</div>
+        <p>🟢 Running</p>
 
-        <div class="row"><span class="label">Tag:</span> {info.get("tag")}</div>
-        <div class="row"><span class="label">Version:</span> {info.get("version")}</div>
+        <p><b>Tag:</b> {info.get("tag")}</p>
+        <p><b>Version:</b> {info.get("version")}</p>
 
-        <div class="row"><span class="label">Commit (7):</span> {info.get("commit_short")}</div>
-        <div class="row"><span class="label">Commit (Full):</span> {info.get("commit")}</div>
+        <p><b>Commit (7):</b> {info.get("commit_short")}</p>
+        <p><b>Commit (Full):</b> {info.get("commit")}</p>
 
-        <div class="row"><span class="label">Title:</span> {info.get("commit_title")}</div>
-        <div class="row"><span class="label">Details:</span><pre>{commit_body}</pre></div>
+        <p><b>Title:</b> {info.get("commit_title")}</p>
+        <pre>{body}</pre>
 
-        <div class="row"><span class="label">Commit Time:</span> {info.get("commit_time")}</div>
+        <p><b>Commit Time:</b> {info.get("commit_time")}</p>
 
-        <div class="row"><span class="label">Build UTC:</span> {info.get("build_time_utc")}</div>
-        <div class="row"><span class="label">Build IST:</span> {info.get("build_time_ist")}</div>
-
-        </div>
-        </body>
-        </html>
-        """
-        return html, 200
+        <p><b>Build UTC:</b> {info.get("build_time_utc")}</p>
+        <p><b>Build IST:</b> {info.get("build_time_ist")}</p>
+        """, 200
 
     return app

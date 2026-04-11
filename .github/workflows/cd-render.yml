@@ -1,13 +1,11 @@
 # =====================================================
-# 🚀 CD - Render Deploy (FINAL FULL METADATA)
+# 🚀 CD - FINAL
 # =====================================================
 
 name: 🚀 CD - Render Deploy
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "30 20 * * *"
 
 jobs:
   deploy:
@@ -15,80 +13,42 @@ jobs:
 
     steps:
 
-      # =========================
-      # 🟢 Checkout
-      # =========================
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      # =========================
-      # 🟢 Fetch Tags
-      # =========================
-      - name: Fetch Tags
-        run: git fetch --tags
-
-      # =========================
-      # 🟢 Extract Git Info
-      # =========================
       - name: Extract Git Info
         run: |
           TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "no-tag")
 
-          COMMIT_FULL=$(git rev-parse HEAD)
-          COMMIT_SHORT=$(git rev-parse --short HEAD)
-
-          COMMIT_TITLE=$(git log -1 --pretty=%s)
-          COMMIT_BODY=$(git log -1 --pretty=%b)
-
-          if [ -z "$COMMIT_BODY" ]; then
-            COMMIT_BODY="No details available"
-          fi
-
           echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "COMMIT_FULL=$COMMIT_FULL" >> $GITHUB_ENV
-          echo "COMMIT_SHORT=$COMMIT_SHORT" >> $GITHUB_ENV
-          echo "COMMIT_TITLE=$COMMIT_TITLE" >> $GITHUB_ENV
+          echo "COMMIT_FULL=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_TITLE=$(git log -1 --pretty=%s)" >> $GITHUB_ENV
 
           echo "COMMIT_BODY<<EOF" >> $GITHUB_ENV
-          echo "$COMMIT_BODY" >> $GITHUB_ENV
+          git log -1 --pretty=%b >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
           echo "URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
 
-      # =========================
-      # 🚀 Trigger Render Deploy
-      # =========================
-      - name: Trigger Render Deploy
-        run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+      - name: Trigger Deploy
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
-      # =========================
-      # ⏳ Wait
-      # =========================
-      - name: Initial Wait
+      - name: Wait
         run: sleep 30
 
-      # =========================
-      # 🧪 Health Check
-      # =========================
       - name: Health Check
         run: |
           for i in {1..10}; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
-            if [ "$STATUS" = "200" ]; then
-              echo "UP"
-              exit 0
-            fi
+            if [ "$STATUS" = "200" ]; then exit 0; fi
             sleep 10
           done
           exit 1
 
-      # =========================
-      # 📧 SUCCESS EMAIL
-      # =========================
-      - name: 📧 Email Success
+      - name: Email Success
         if: success()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -98,59 +58,10 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD_MAIN }}
           subject: "🚀 CD SUCCESS - ${{ env.TAG }}"
           to: ${{ secrets.MAIL_USERNAME_MAIN }}
-          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
-          from: ${{ secrets.MAIL_USERNAME_MAIN }}
           body: |
-            🚀 Deployment SUCCESS
+            Tag: ${{ env.TAG }}
+            Commit: ${{ env.COMMIT_SHORT }}
+            Title: ${{ env.COMMIT_TITLE }}
 
-            🏷️ Tag: ${{ env.TAG }}
-
-            🔹 Commit (7): ${{ env.COMMIT_SHORT }}
-            🔹 Commit (Full):
-            ${{ env.COMMIT_FULL }}
-
-            📝 Title:
-            ${{ env.COMMIT_TITLE }}
-
-            📄 Details:
+            Details:
             ${{ env.COMMIT_BODY }}
-
-            🌐 URL:
-            ${{ env.URL }}
-
-            🟢 Service is healthy
-
-      # =========================
-      # ❌ FAILURE EMAIL
-      # =========================
-      - name: ❌ Email Failure
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.MAIL_USERNAME_MAIN }}
-          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚨 CD FAILED - ${{ env.TAG }}"
-          to: ${{ secrets.MAIL_USERNAME_MAIN }}
-          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
-          from: ${{ secrets.MAIL_USERNAME_MAIN }}
-          body: |
-            🚨 Deployment FAILED
-
-            🏷️ Tag: ${{ env.TAG }}
-
-            🔹 Commit (7): ${{ env.COMMIT_SHORT }}
-            🔹 Commit (Full):
-            ${{ env.COMMIT_FULL }}
-
-            📝 Title:
-            ${{ env.COMMIT_TITLE }}
-
-            📄 Details:
-            ${{ env.COMMIT_BODY }}
-
-            🌐 URL:
-            ${{ env.URL }}
-
-            ❌ Health check failed
