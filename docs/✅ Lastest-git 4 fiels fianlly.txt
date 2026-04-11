@@ -14,3 +14,7 @@ git add .; git commit -m "🚀 feat: full metadata pipeline (CI + CD + UI)" `
 -m "🟢 Added fallback: 'No details available' when no commit body"; `
 git push
 
+=====================================================================================
+
+
+git add .; git commit -m "🚀 fix: final CI/CD + metadata pipeline stable" -m "🟢 Fixed build_info.json generation in CI" -m "🟢 Removed Docker overwrite bug for metadata" -m "🟢 Ensured tag, commit, title, body flow correctly to UI" -m "🟢 Added --no-cache Docker build for clean deploy" -m "🟢 Stabilized Render health check deployment flow"; git push

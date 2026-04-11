@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CI - FINAL (SOURCE OF TRUTH)
+# 🚀 CI - FINAL STABLE METADATA PIPELINE
 # =====================================================
 
 name: 🚀 CI - Backend Auth Service
@@ -17,51 +17,147 @@ jobs:
 
     steps:
 
+      # ===============================
+      # 🟢 Checkout
+      # ===============================
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
+      # ===============================
+      # 🟢 Extract Git Info
+      # ===============================
       - name: Extract Git Info
         run: |
           TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "no-tag")
 
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "COMMIT_FULL=$(git rev-parse HEAD)" >> $GITHUB_ENV
-          echo "COMMIT_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "COMMIT_TITLE=$(git log -1 --pretty=%s)" >> $GITHUB_ENV
+          COMMIT_FULL=$(git rev-parse HEAD)
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
 
-          echo "COMMIT_BODY<<EOF" >> $GITHUB_ENV
-          git log -1 --pretty=%b >> $GITHUB_ENV
+          COMMIT_TITLE=$(git log -1 --pretty=%s)
+          COMMIT_BODY=$(git log -1 --pretty=%b)
+          COMMIT_TIME=$(git log -1 --pretty=%ci)
+
+          if [ -z "$COMMIT_BODY" ]; then
+            COMMIT_BODY="No details available"
+          fi
+
+          echo "APP_VERSION=$TAG" >> $GITHUB_ENV
+          echo "APP_TAG=$TAG" >> $GITHUB_ENV
+          echo "APP_COMMIT=$COMMIT_FULL" >> $GITHUB_ENV
+          echo "APP_COMMIT_SHORT=$COMMIT_SHORT" >> $GITHUB_ENV
+          echo "APP_COMMIT_TITLE=$COMMIT_TITLE" >> $GITHUB_ENV
+
+          echo "APP_COMMIT_BODY<<EOF" >> $GITHUB_ENV
+          echo "$COMMIT_BODY" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-          echo "COMMIT_TIME=$(git log -1 --pretty=%ci)" >> $GITHUB_ENV
+          echo "APP_COMMIT_TIME=$COMMIT_TIME" >> $GITHUB_ENV
 
+      # ===============================
+      # 🟢 Generate build_info.json (SOURCE OF TRUTH)
+      # ===============================
       - name: Generate build_info.json
         run: |
           cat <<EOF > build_info.json
           {
-            "version": "${TAG}",
-            "tag": "${TAG}",
-            "commit": "${COMMIT_FULL}",
-            "commit_short": "${COMMIT_SHORT}",
-            "commit_title": "${COMMIT_TITLE}",
-            "commit_body": "${COMMIT_BODY:-No details available}",
-            "commit_time": "${COMMIT_TIME}",
+            "version": "${APP_VERSION}",
+            "tag": "${APP_TAG}",
+            "commit": "${APP_COMMIT}",
+            "commit_short": "${APP_COMMIT_SHORT}",
+            "commit_title": "${APP_COMMIT_TITLE}",
+            "commit_body": "${APP_COMMIT_BODY}",
+            "commit_time": "${APP_COMMIT_TIME}",
             "build_time_utc": "$(date -u)",
             "build_time_ist": "$(TZ=Asia/Kolkata date)"
           }
           EOF
 
+          echo "===== FINAL build_info.json ====="
           cat build_info.json
 
+      # ===============================
+      # 🔐 Docker Login
+      # ===============================
       - name: Docker Login
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Build Image
+      # ===============================
+      # 🐳 Build Docker Image
+      # ===============================
+      - name: Build Docker Image (NO CACHE)
         run: |
-          docker build --no-cache -t pythoncodelife/backend-auth-service:${TAG} .
+          docker build --no-cache -t pythoncodelife/backend-auth-service:${APP_VERSION} .
 
-      - name: Push Image
-        run: docker push pythoncodelife/backend-auth-service:${TAG}
+      # ===============================
+      # 🚀 Push Docker Image
+      # ===============================
+      - name: Push Docker Image
+        run: |
+          docker push pythoncodelife/backend-auth-service:${APP_VERSION}
+
+      # ===============================
+      # 🏷️ Push latest (only main)
+      # ===============================
+      - name: Tag latest
+        if: startsWith(github.ref, 'refs/heads/main')
+        run: |
+          docker tag pythoncodelife/backend-auth-service:${APP_VERSION} pythoncodelife/backend-auth-service:latest
+          docker push pythoncodelife/backend-auth-service:latest
+
+      # ===============================
+      # 📧 SUCCESS EMAIL
+      # ===============================
+      - name: 📧 Email Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚀 CI SUCCESS - ${{ env.APP_TAG }}"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚀 CI BUILD SUCCESS
+
+            🏷️ Tag: ${{ env.APP_TAG }}
+
+            🔹 Commit (7): ${{ env.APP_COMMIT_SHORT }}
+            🔹 Commit (Full):
+            ${{ env.APP_COMMIT }}
+
+            📝 Title:
+            ${{ env.APP_COMMIT_TITLE }}
+
+            📄 Details:
+            ${{ env.APP_COMMIT_BODY }}
+
+            🐳 Image:
+            pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
+
+      # ===============================
+      # ❌ FAILURE EMAIL
+      # ===============================
+      - name: ❌ Email Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME_MAIN }}
+          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
+          subject: "🚨 CI FAILED - ${{ env.APP_TAG }}"
+          to: ${{ secrets.MAIL_USERNAME_MAIN }}
+          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
+          from: ${{ secrets.MAIL_USERNAME_MAIN }}
+          body: |
+            🚨 CI FAILED
+
+            🏷️ Tag: ${{ env.APP_TAG }}
+
+            🔧 Check logs immediately
