@@ -76,7 +76,7 @@ jobs:
             echo "HTTP STATUS: $STATUS"
 
             if [ "$STATUS" = "200" ]; then
-              echo "🟢 Service is UP"
+              echo "🟢 Service is UP and Running 🚀"
               exit 0
             fi
 
