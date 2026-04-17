@@ -5,12 +5,13 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 from flask import Flask, jsonify, g, request
+from werkzeug.exceptions import HTTPException
 
 from .config import Config
 from .extensions import db, migrate, jwt, cors
 from .models.token_blacklist import TokenBlocklist
 
-# ✅ NEW IMPORT
+# ✅ NEW: error handlers
 from .errors.handlers import register_error_handlers
 
 
@@ -106,12 +107,12 @@ def create_app(testing: bool = False):
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
     # =====================================================
-    # ❌ REGISTER ERROR HANDLERS (NEW)
+    # ❌ REGISTER GLOBAL ERROR HANDLERS
     # =====================================================
     register_error_handlers(app)
 
     # =====================================================
-    # ❤️ HEALTH
+    # ❤️ HEALTH (HTML UI + JSON fallback)
     # =====================================================
     @app.get("/")
     def health():
@@ -119,12 +120,19 @@ def create_app(testing: bool = False):
 
         if "text/html" in request.headers.get("Accept", ""):
             html = f"""
+            <!DOCTYPE html>
             <html>
-            <head><title>Auth Service</title></head>
+            <head>
+                <title>Auth Service Health</title>
+            </head>
             <body>
                 <h1>🚀 Auth Service</h1>
-                <p>Status: UP</p>
+                <p>Status: 🟢 UP</p>
                 <p>Version: {info.get("version")}</p>
+                <p>Commit: {info.get("commit")}</p>
+                <p>Branch: {info.get("branch")}</p>
+                <p>UTC: {info.get("build_time_utc")}</p>
+                <p>IST: {info.get("build_time_ist")}</p>
             </body>
             </html>
             """
