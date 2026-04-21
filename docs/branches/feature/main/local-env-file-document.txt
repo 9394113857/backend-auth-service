@@ -1,0 +1,42 @@
+Perfect 👍 — I’ll give you clean local .env for Auth service based on your Render setup.
+________________________________________ 
+📄 ✅ LOCAL .env (AUTH SERVICE)
+# ============================================================
+# 🔐 AUTH SERVICE - Local Environment Variables:-
+# ============================================================
+
+# 🗄️ DATABASE (LOCAL DEVELOPMENT)
+DATABASE_URL=sqlite:///auth.db
+
+# 🔐 JWT (MUST match across all services)
+JWT_SECRET_KEY=9fA3xP@7Rk!2DqM8#ZbLw4^sC0N%YVJH
+
+# 🌱 FLASK ENV
+FLASK_ENV=development
+
+# 🔌 PORT (optional for local)
+PORT=5001
+________________________________________
+🔥 OPTIONAL (IF YOU WANT SUPABASE LOCALLY)
+DATABASE_URL=postgresql://postgres:<password>@db.<project>.supabase.co:5432/postgres?sslmode=require
+👉 Replace <password> and <project>
+________________________________________
+🧠 HOW THIS WORKS
+💻 LOCAL
+.env → load_dotenv() → used ✅
+________________________________________
+☁️ RENDER
+Render ENV → overrides .env (no .env used) ✅
+________________________________________
+⚠️ IMPORTANT RULE
+JWT_SECRET_KEY must be SAME in:
+- Auth service
+- Cart service
+- Product service
+👉 Otherwise login breaks ❌
+________________________________________
+🎯 FINAL
+SAFE ✅
+MATCHES RENDER ✅
+NO CODE CHANGE NEEDED ✅
+
