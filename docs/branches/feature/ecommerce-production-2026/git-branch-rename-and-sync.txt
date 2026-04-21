@@ -4,38 +4,34 @@
 
 # =====================================
 
-# CURRENT BRANCH
-
-feature/ecommerce-production-2026
-
-# =====================================
-
-# STANDARD SYNC FLOW (NO RENAME)
-
-# =====================================
+# 1. Checkout branch
 
 git checkout feature/ecommerce-production-2026
+
+# 2. Push latest commits
+
 git push origin feature/ecommerce-production-2026
+
+# 3. Set upstream (IMPORTANT)
+
 git push -u origin feature/ecommerce-production-2026
 
 # =====================================
 
-# SAFE RENAME FLOW (RECOMMENDED)
+# OPTIONAL (ONLY IF RENAMING BRANCH)
 
 # =====================================
 
-# OLD BRANCH
+# Rename locally
 
-feature/ecommerce-production-2026
+git branch -m feature/ecommerce-production-2026 feature/ecommerce-production-2026-✅
 
-# NEW BRANCH
+# Delete old branch from remote
 
-feature/ecommerce-production-2026-final
-
-git branch -m feature/ecommerce-production-2026-final
 git push origin --delete feature/ecommerce-production-2026
-git push origin feature/ecommerce-production-2026-final
-git push -u origin feature/ecommerce-production-2026-final
+
+git push origin "feature/ecommerce-production-2026-✅"
+git push -u origin "feature/ecommerce-production-2026-✅"
 
 # =====================================
 
