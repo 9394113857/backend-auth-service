@@ -1,0 +1,47 @@
+# =====================================
+
+# GIT BRANCH FINAL SYNC (FEATURE FLOW)
+
+# =====================================
+
+# CURRENT BRANCH
+
+feature/ecommerce-production-2026
+
+# =====================================
+
+# STANDARD SYNC FLOW (NO RENAME)
+
+# =====================================
+
+git checkout feature/ecommerce-production-2026
+git push origin feature/ecommerce-production-2026
+git push -u origin feature/ecommerce-production-2026
+
+# =====================================
+
+# SAFE RENAME FLOW (RECOMMENDED)
+
+# =====================================
+
+# OLD BRANCH
+
+feature/ecommerce-production-2026
+
+# NEW BRANCH
+
+feature/ecommerce-production-2026-final
+
+git branch -m feature/ecommerce-production-2026-final
+git push origin --delete feature/ecommerce-production-2026
+git push origin feature/ecommerce-production-2026-final
+git push -u origin feature/ecommerce-production-2026-final
+
+# =====================================
+
+# VERIFY
+
+# =====================================
+
+git branch -vv
+git branch -a
