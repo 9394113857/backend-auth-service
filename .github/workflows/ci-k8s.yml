@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CI - K8S AUTH SERVICE (DOCKER + GCP)
+# 🚀 CI - K8S AUTH SERVICE (DOCKER + GCP FINAL)
 # =====================================================
 
 name: 🚀 CI - K8S Auth Service
@@ -15,11 +15,15 @@ jobs:
 
     steps:
 
-      # 🟢 Checkout
+      # ===============================
+      # 🟢 Checkout Code
+      # ===============================
       - name: Checkout
         uses: actions/checkout@v3
 
-      # 🟢 Set Version
+      # ===============================
+      # 🟢 Set Version Info
+      # ===============================
       - name: Set Version
         run: |
           VERSION=k8s-${GITHUB_SHA}
@@ -27,25 +31,33 @@ jobs:
           echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "APP_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
+      # ===============================
       # 🔐 DockerHub Login (K8S)
+      # ===============================
       - name: Docker Login (DockerHub)
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN_K8S }}" | docker login \
             -u "${{ secrets.DOCKERHUB_USERNAME_K8S }}" \
             --password-stdin
 
-      # 🔐 GCP AUTH
+      # ===============================
+      # 🔐 Authenticate to GCP
+      # ===============================
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
+      # ===============================
       # 🐳 Configure Docker for GCP
+      # ===============================
       - name: Configure Docker for GCP
         run: |
-          gcloud auth configure-docker asia-south1-docker.pkg.dev
+          gcloud auth configure-docker asia-south2-docker.pkg.dev
 
-      # 🐳 Build Image
+      # ===============================
+      # 🐳 Build Docker Image
+      # ===============================
       - name: Build Docker Image
         run: |
           docker build \
@@ -54,29 +66,37 @@ jobs:
             --build-arg APP_BRANCH=${APP_BRANCH} \
             -t pythoncodelife/backend-auth-service:${APP_VERSION} .
 
-      # 🏷️ Tag DockerHub
+      # ===============================
+      # 🏷️ Tag for DockerHub
+      # ===============================
       - name: Tag DockerHub
         run: |
           docker tag pythoncodelife/backend-auth-service:${APP_VERSION} \
           pythoncodelife/backend-auth-service:k8s-latest
 
-      # 🏷️ Tag GCP Image
+      # ===============================
+      # 🏷️ Tag for GCP Artifact Registry
+      # ===============================
       - name: Tag GCP Image
         run: |
           docker tag pythoncodelife/backend-auth-service:${APP_VERSION} \
-          asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION}
+          asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION}
 
           docker tag pythoncodelife/backend-auth-service:${APP_VERSION} \
-          asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
+          asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
 
-      # 🚀 Push DockerHub
+      # ===============================
+      # 🚀 Push DockerHub Images
+      # ===============================
       - name: Push DockerHub
         run: |
           docker push pythoncodelife/backend-auth-service:${APP_VERSION}
           docker push pythoncodelife/backend-auth-service:k8s-latest
 
-      # 🚀 Push GCP
+      # ===============================
+      # 🚀 Push to GCP Artifact Registry
+      # ===============================
       - name: Push GCP Artifact Registry
         run: |
-          docker push asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION}
-          docker push asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
+          docker push asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION}
+          docker push asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
