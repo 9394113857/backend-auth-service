@@ -1,0 +1,43 @@
+flask or powershell
+
+
+bash console:-
+# Step 1: Go to your project folder
+cd your-project-folder
+
+
+# Step 2: Fetch latest changes from remote (IMPORTANT)
+# 👉 This updates your local knowledge of remote branches without changing files
+git fetch origin
+
+
+# Step 3: Switch to main branch
+# 👉 Ensures you are starting from stable production code
+git checkout main
+
+
+# Step 4: Pull latest code from GitHub
+# 👉 Syncs your local main with remote main (must before creating branch)
+git pull origin main
+
+
+# Step 5: Create new feature branch for Kubernetes work
+# 👉 Safe experimentation without touching main
+git checkout -b feature/k8s-auth-deploy
+
+
+# Step 6: Verify current branch
+# 👉 Make sure you are NOT on main
+git branch
+
+
+# Step 7: Push branch to GitHub and set upstream
+# 👉 Required so GitHub Actions (CI) can trigger on this branch
+git push -u origin feature/k8s-auth-deploy
+
+
+
+
+
+
+
