@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CD - K8S AUTH SERVICE (MANUAL + CRON ONLY)
+# 🚀 CD - K8S AUTH SERVICE (FINAL FIXED)
 # =====================================================
 
 name: 🚀 CD - K8S Auth Service (Manual + Scheduled)
@@ -16,24 +16,46 @@ jobs:
 
     steps:
 
+    # ===============================
+    # 🟢 Checkout
+    # ===============================
     - name: Checkout
       uses: actions/checkout@v4
 
+    # ===============================
+    # 🔐 Authenticate to GCP
+    # ===============================
     - name: Authenticate to GCP
       uses: google-github-actions/auth@v2
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
+    # ===============================
+    # 🛠 Setup gcloud
+    # ===============================
     - name: Setup gcloud
       uses: google-github-actions/setup-gcloud@v2
 
+    # ===============================
+    # 🔧 FIX: Install GKE Auth Plugin
+    # ===============================
+    - name: Install GKE Auth Plugin
+      run: |
+        gcloud components install gke-gcloud-auth-plugin --quiet
+
+    # ===============================
+    # 🔗 Connect to GKE
+    # ===============================
     - name: Get GKE credentials
       run: |
         gcloud container clusters get-credentials auth-cluster \
           --region ${{ secrets.GCP_REGION }} \
           --project ${{ secrets.GCP_PROJECT_ID }}
 
-    - name: Deploy latest image
+    # ===============================
+    # 🚀 Deploy latest image
+    # ===============================
+    - name: Deploy to Kubernetes
       run: |
         kubectl set image deployment/auth-deployment \
         auth-service-sha256-1=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
