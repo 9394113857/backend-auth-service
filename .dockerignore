@@ -1,15 +1,28 @@
+# =====================================================
+# 📁 DOCKERIGNORE – CLEAN BUILD CONTEXT
+# =====================================================
+
+# 🧠 Python cache files (not needed in image)
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
+# 🔐 Environment files (NEVER include secrets)
 .env
 .env.*
 
+# 🐍 Virtual environments (local only)
 venv/
 .venv/
 
+# 🔧 Git files (not needed in container)
 .git/
 .gitignore
 
+# 📂 Logs (runtime generated)
 logs/
+
+# 📦 Build artifacts (not needed)
+build/
+dist/
