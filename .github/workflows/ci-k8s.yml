@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CI - K8S AUTH SERVICE (DOCKER + GCP FINAL)
+# 🚀 CI - K8S AUTH SERVICE (FINAL CLEAN)
 # =====================================================
 
 name: 🚀 CI - K8S Auth Service
@@ -15,88 +15,67 @@ jobs:
 
     steps:
 
-      # ===============================
-      # 🟢 Checkout Code
-      # ===============================
-      - name: Checkout
-        uses: actions/checkout@v3
+    # ===============================
+    # 🟢 Checkout Code
+    # ===============================
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      # ===============================
-      # 🟢 Set Version Info
-      # ===============================
-      - name: Set Version
-        run: |
-          VERSION=k8s-${GITHUB_SHA}
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-          echo "APP_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+    # ===============================
+    # 🟢 Set Version Info
+    # ===============================
+    - name: Set Version
+      run: |
+        VERSION=k8s-${GITHUB_SHA}
+        echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+        echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+        echo "APP_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
-      # ===============================
-      # 🔐 DockerHub Login (K8S)
-      # ===============================
-      - name: Docker Login (DockerHub)
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN_K8S }}" | docker login \
-            -u "${{ secrets.DOCKERHUB_USERNAME_K8S }}" \
-            --password-stdin
+    # ===============================
+    # 🔐 Authenticate to GCP
+    # ===============================
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      # ===============================
-      # 🔐 Authenticate to GCP
-      # ===============================
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+    # ===============================
+    # 🛠 Setup gcloud
+    # ===============================
+    - name: Setup gcloud
+      uses: google-github-actions/setup-gcloud@v2
 
-      # ===============================
-      # 🐳 Configure Docker for GCP
-      # ===============================
-      - name: Configure Docker for GCP
-        run: |
-          gcloud auth configure-docker asia-south2-docker.pkg.dev
+    # ===============================
+    # 🐳 Configure Docker for GCP
+    # ===============================
+    - name: Configure Docker
+      run: |
+        gcloud auth configure-docker asia-south2-docker.pkg.dev
 
-      # ===============================
-      # 🐳 Build Docker Image
-      # ===============================
-      - name: Build Docker Image
-        run: |
-          docker build \
-            --build-arg APP_VERSION=${APP_VERSION} \
-            --build-arg APP_COMMIT=${APP_COMMIT} \
-            --build-arg APP_BRANCH=${APP_BRANCH} \
-            -t pythoncodelife/backend-auth-service:${APP_VERSION} .
+    # ===============================
+    # 🐳 Build Docker Image
+    # ===============================
+    - name: Build Image
+      run: |
+        docker build \
+          --build-arg APP_VERSION=${APP_VERSION} \
+          --build-arg APP_COMMIT=${APP_COMMIT} \
+          --build-arg APP_BRANCH=${APP_BRANCH} \
+          -t asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION} .
 
-      # ===============================
-      # 🏷️ Tag for DockerHub
-      # ===============================
-      - name: Tag DockerHub
-        run: |
-          docker tag pythoncodelife/backend-auth-service:${APP_VERSION} \
-          pythoncodelife/backend-auth-service:k8s-latest
+    # ===============================
+    # 🏷️ Tag Latest
+    # ===============================
+    - name: Tag Latest
+      run: |
+        docker tag \
+        asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION} \
+        asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
 
-      # ===============================
-      # 🏷️ Tag for GCP Artifact Registry
-      # ===============================
-      - name: Tag GCP Image
-        run: |
-          docker tag pythoncodelife/backend-auth-service:${APP_VERSION} \
-          asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION}
-
-          docker tag pythoncodelife/backend-auth-service:${APP_VERSION} \
-          asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
-
-      # ===============================
-      # 🚀 Push DockerHub Images
-      # ===============================
-      - name: Push DockerHub
-        run: |
-          docker push pythoncodelife/backend-auth-service:${APP_VERSION}
-          docker push pythoncodelife/backend-auth-service:k8s-latest
-
-      # ===============================
-      # 🚀 Push to GCP Artifact Registry
-      # ===============================
-      - name: Push GCP Artifact Registry
-        run: |
-          docker push asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION}
-          docker push asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
+    # ===============================
+    # 🚀 Push Images
+    # ===============================
+    - name: Push Images
+      run: |
+        docker push asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION}
+        docker push asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
