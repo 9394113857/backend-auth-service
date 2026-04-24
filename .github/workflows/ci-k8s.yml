@@ -1,0 +1,61 @@
+# =====================================================
+# 🚀 CI - K8S AUTH SERVICE (FINAL STABLE)
+# =====================================================
+
+name: 🚀 CI - K8S Auth Service
+
+on:
+  push:
+    branches:
+      - feature/k8s-auth-deploy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # 🟢 Checkout code
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # 🟢 Version info
+      - name: Set Version
+        run: |
+          VERSION=k8s-${GITHUB_SHA}
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "APP_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      # 🔐 Docker login (SECURE)
+      - name: Docker Login
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN_K8S }}" | docker login \
+            -u "${{ secrets.DOCKERHUB_USERNAME_K8S }}" \
+            --password-stdin
+
+      # 🐳 Build image
+      - name: Build Docker Image
+        run: |
+          docker build \
+            --build-arg APP_VERSION=${APP_VERSION} \
+            --build-arg APP_COMMIT=${APP_COMMIT} \
+            --build-arg APP_BRANCH=${APP_BRANCH} \
+            -t pythoncodelife/backend-auth-service:${APP_VERSION} .
+
+      # 🏷️ Tag k8s-latest
+      - name: Tag K8S Latest
+        run: |
+          docker tag \
+            pythoncodelife/backend-auth-service:${APP_VERSION} \
+            pythoncodelife/backend-auth-service:k8s-latest
+
+      # 🚀 Push version
+      - name: Push Version Image
+        run: |
+          docker push pythoncodelife/backend-auth-service:${APP_VERSION}
+
+      # 🚀 Push latest
+      - name: Push K8S Latest
+        run: |
+          docker push pythoncodelife/backend-auth-service:k8s-latest
