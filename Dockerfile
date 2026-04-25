@@ -1,28 +1,27 @@
 # =====================================================
-# 🐳 DOCKERFILE – AUTH SERVICE (FIXED BUILD INFO)
+# 🐳 DOCKERFILE – AUTH SERVICE (FINAL FIXED NO CACHE BUG)
 # =====================================================
 
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# 🔥 Build args
 ARG APP_VERSION=dev
 ARG APP_COMMIT=local
 ARG APP_BRANCH=local
 
-# 🔥 FORCE CACHE BREAK (VERY IMPORTANT)
-RUN echo "BUILD_ID=${APP_COMMIT}"
-
-# Install deps
+# Install deps first
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app
+# Copy full code
 COPY . .
 
-# 🔥 ALWAYS regenerate build_info.json
-RUN rm -f build_info.json && python - <<EOF
+# 🔥 FORCE CACHE BREAK HERE (IMPORTANT)
+RUN echo "BUILD_ID=${APP_COMMIT}"
+
+# 🔥 ALWAYS regenerate build info AFTER cache break
+RUN python - <<EOF
 import json
 from datetime import datetime, timezone, timedelta
 
