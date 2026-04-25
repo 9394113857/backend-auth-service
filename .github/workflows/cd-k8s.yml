@@ -1,87 +1,49 @@
 # =====================================================
-# 🚀 CD - K8S AUTH SERVICE (FINAL - BRANCH SYNCED)
+# 🚀 CD - K8S AUTH SERVICE (FINAL)
 # =====================================================
 
 name: 🚀 CD - K8S Auth Service
 
 on:
-  # ✅ Manual trigger
-  workflow_dispatch:
-
-  # ✅ Auto deploy on feature branch (your dev flow)
   push:
     branches:
       - feature/k8s-auth-deploy
-      - main
-
-  # ✅ Nightly cron (optional)
-  schedule:
-    - cron: "30 20 * * *"   # 2 AM IST
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    # ===============================
-    # 🟢 Checkout SAME BRANCH
-    # ===============================
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.ref }}
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-    # ===============================
-    # 🔐 Authenticate to GCP
-    # ===============================
-    - name: Authenticate to GCP
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
 
-    # ===============================
-    # 🛠 Setup gcloud
-    # ===============================
-    - name: Setup gcloud
-      uses: google-github-actions/setup-gcloud@v2
+      - name: Install GKE Plugin
+        run: gcloud components install gke-gcloud-auth-plugin --quiet
 
-    # ===============================
-    # 🔧 Install GKE Plugin
-    # ===============================
-    - name: Install GKE Auth Plugin
-      run: |
-        gcloud components install gke-gcloud-auth-plugin --quiet
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials auth-cluster \
+            --region ${{ secrets.GCP_REGION }} \
+            --project ${{ secrets.GCP_PROJECT_ID }}
 
-    # ===============================
-    # 🔗 Connect to GKE
-    # ===============================
-    - name: Get GKE credentials
-      run: |
-        gcloud container clusters get-credentials auth-cluster \
-          --region ${{ secrets.GCP_REGION }} \
-          --project ${{ secrets.GCP_PROJECT_ID }}
+      # 🔥 SHA BASED DEPLOY (FINAL FIX)
+      - name: Deploy
+        run: |
+          IMAGE=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-${{ github.sha }}
 
-    # ===============================
-    # 🚀 Deploy Latest Image
-    # ===============================
-    - name: Deploy to Kubernetes
-      run: |
-        IMAGE=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
+          echo "🚀 Deploying $IMAGE"
 
-        echo "🚀 Deploying IMAGE: $IMAGE"
-        echo "🚀 Branch: ${{ github.ref }}"
-        echo "🚀 Commit: ${{ github.sha }}"
+          kubectl set image deployment/auth-deployment \
+          auth-container=$IMAGE
 
-        # Set image
-        kubectl set image deployment/auth-deployment \
-        auth-container=$IMAGE
+          kubectl rollout status deployment/auth-deployment
 
-        # Force restart (avoid cache issues)
-        kubectl rollout restart deployment/auth-deployment
-
-        # Wait for rollout
-        kubectl rollout status deployment/auth-deployment
-
-        # Show pods
-        kubectl get pods -o wide
+          kubectl get pods -o wide
