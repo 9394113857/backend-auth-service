@@ -1,5 +1,5 @@
 # =====================================================
-# 🐳 DOCKERFILE – AUTH SERVICE (FINAL WITH COMMENTS)
+# 🐳 DOCKERFILE – AUTH SERVICE (FINAL WITH COMMENTS) 
 # =====================================================
 
 # 🔹 Use lightweight Python base image
