@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CD - K8S AUTH SERVICE (FINAL FIXED)
+# 🚀 CD - K8S AUTH SERVICE (PRODUCTION SHA BASED)
 # =====================================================
 
 name: 🚀 CD - K8S Auth Service (Manual + Scheduled)
@@ -53,11 +53,15 @@ jobs:
           --project ${{ secrets.GCP_PROJECT_ID }}
 
     # ===============================
-    # 🚀 Deploy latest image (FIXED)
+    # 🚀 Deploy EXACT SHA (🔥 FINAL)
     # ===============================
     - name: Deploy to Kubernetes
       run: |
+        IMAGE=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-${GITHUB_SHA}
+
+        echo "Deploying IMAGE: $IMAGE"
+
         kubectl set image deployment/auth-deployment \
-        auth-container=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
+        auth-container=$IMAGE
 
         kubectl rollout status deployment/auth-deployment
