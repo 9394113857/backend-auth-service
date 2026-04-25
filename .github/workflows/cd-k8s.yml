@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CD - K8S AUTH SERVICE (FINAL STABLE)
+# 🚀 CD - K8S AUTH SERVICE (FINAL PRODUCTION STABLE)
 # =====================================================
 
 name: 🚀 CD - K8S Auth Service (Manual + Scheduled)
@@ -37,7 +37,7 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
 
     # ===============================
-    # 🔧 Install GKE Plugin
+    # 🔧 Install GKE Auth Plugin
     # ===============================
     - name: Install GKE Auth Plugin
       run: |
@@ -53,15 +53,23 @@ jobs:
           --project ${{ secrets.GCP_PROJECT_ID }}
 
     # ===============================
-    # 🚀 Deploy Latest (SAFE)
+    # 🚀 Deploy Latest Image
     # ===============================
     - name: Deploy to Kubernetes
       run: |
         IMAGE=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
 
-        echo "Deploying IMAGE: $IMAGE"
+        echo "🚀 Deploying IMAGE: $IMAGE"
 
+        # Set image
         kubectl set image deployment/auth-deployment \
         auth-container=$IMAGE
 
+        # 🔥 Force fresh pull (important for latest tag)
+        kubectl rollout restart deployment/auth-deployment
+
+        # Wait for rollout
         kubectl rollout status deployment/auth-deployment
+
+        # Show running pods
+        kubectl get pods -o wide
