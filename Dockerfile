@@ -1,30 +1,28 @@
 # =====================================================
-# 🐳 DOCKERFILE – AUTH SERVICE (FINAL WITH COMMENTS) 
+# 🐳 DOCKERFILE – AUTH SERVICE (FIXED BUILD INFO)
 # =====================================================
 
-# 🔹 Use lightweight Python base image
 FROM python:3.11-slim
 
-# 🔹 Set working directory inside container
 WORKDIR /app
 
-# 🔥 Build-time arguments (coming from CI)
-# These help track version, commit, branch
+# 🔥 Build args
 ARG APP_VERSION=dev
 ARG APP_COMMIT=local
 ARG APP_BRANCH=local
 
-# 📦 Copy only requirements first (for better caching)
-COPY requirements.txt .
+# 🔥 FORCE CACHE BREAK (VERY IMPORTANT)
+RUN echo "BUILD_ID=${APP_COMMIT}"
 
-# 📦 Install dependencies (no cache → smaller image)
+# Install deps
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 📂 Copy full project code into container
+# Copy app
 COPY . .
 
-# 🧾 Generate build metadata file (used in your health API)
-RUN python - <<EOF
+# 🔥 ALWAYS regenerate build_info.json
+RUN rm -f build_info.json && python - <<EOF
 import json
 from datetime import datetime, timezone, timedelta
 
@@ -42,9 +40,6 @@ with open("build_info.json", "w") as f:
     json.dump(data, f, indent=2)
 EOF
 
-# 🌐 Expose port (documentation purpose for container tools)
 EXPOSE 5000
 
-# 🚀 Run Flask app using Gunicorn (production-ready)
-# Fixed port 5000 → Kubernetes compatible
 CMD ["gunicorn", "run:app", "-w", "1", "-b", "0.0.0.0:5000", "--access-logfile", "-", "--error-logfile", "-"]
