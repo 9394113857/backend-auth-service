@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CD - K8S AUTH SERVICE (PRODUCTION SHA BASED)
+# 🚀 CD - K8S AUTH SERVICE (FINAL STABLE)
 # =====================================================
 
 name: 🚀 CD - K8S Auth Service (Manual + Scheduled)
@@ -37,7 +37,7 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
 
     # ===============================
-    # 🔧 Install GKE Auth Plugin
+    # 🔧 Install GKE Plugin
     # ===============================
     - name: Install GKE Auth Plugin
       run: |
@@ -53,11 +53,11 @@ jobs:
           --project ${{ secrets.GCP_PROJECT_ID }}
 
     # ===============================
-    # 🚀 Deploy EXACT SHA (🔥 FINAL)
+    # 🚀 Deploy Latest (SAFE)
     # ===============================
     - name: Deploy to Kubernetes
       run: |
-        IMAGE=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-${GITHUB_SHA}
+        IMAGE=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
 
         echo "Deploying IMAGE: $IMAGE"
 
