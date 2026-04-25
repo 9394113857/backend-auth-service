@@ -37,7 +37,7 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
 
     # ===============================
-    # 🔧 FIX: Install GKE Auth Plugin
+    # 🔧 Install GKE Auth Plugin
     # ===============================
     - name: Install GKE Auth Plugin
       run: |
@@ -53,11 +53,11 @@ jobs:
           --project ${{ secrets.GCP_PROJECT_ID }}
 
     # ===============================
-    # 🚀 Deploy latest image
+    # 🚀 Deploy latest image (FIXED)
     # ===============================
     - name: Deploy to Kubernetes
       run: |
         kubectl set image deployment/auth-deployment \
-        auth-service-sha256-1=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
+        auth-container=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
 
         kubectl rollout status deployment/auth-deployment
