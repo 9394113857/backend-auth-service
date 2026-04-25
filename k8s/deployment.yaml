@@ -20,7 +20,12 @@ spec:
     spec:
       containers:
         - name: auth-container
-          image: asia-south2-docker.pkg.dev/auth-k8s-project/auth-repo/auth-service:k8s-latest
+
+          # 🔥 FINAL FIX → USE SHA TAG (NOT latest)
+          image: asia-south2-docker.pkg.dev/auth-k8s-project/auth-repo/auth-service:k8s-77fadd4f8d100acb2e02a6195d7ab5deb0106acf
+
+          # 🔥 Always pull latest version of this tag
+          imagePullPolicy: Always
 
           ports:
             - containerPort: 5000
