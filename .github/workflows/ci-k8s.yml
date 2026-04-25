@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CI - K8S AUTH SERVICE (FINAL STABLE)
+# 🚀 CI - K8S AUTH SERVICE (FINAL NO-CACHE VERSION)
 # =====================================================
 
 name: 🚀 CI - K8S Auth Service
@@ -22,7 +22,7 @@ jobs:
       uses: actions/checkout@v4
 
     # ===============================
-    # 🟢 Set Version
+    # 🟢 Set Version Info
     # ===============================
     - name: Set Version
       run: |
@@ -32,7 +32,7 @@ jobs:
         echo "APP_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
     # ===============================
-    # 🔐 Authenticate GCP
+    # 🔐 Authenticate to GCP
     # ===============================
     - name: Authenticate to GCP
       uses: google-github-actions/auth@v2
@@ -46,25 +46,25 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
 
     # ===============================
-    # 🐳 Docker auth
+    # 🐳 Configure Docker
     # ===============================
     - name: Configure Docker
       run: |
         gcloud auth configure-docker asia-south2-docker.pkg.dev
 
     # ===============================
-    # 🐳 Build image
+    # 🐳 Build Image (NO CACHE 🔥)
     # ===============================
     - name: Build Image
       run: |
-        docker build \
+        docker build --no-cache \
           --build-arg APP_VERSION=${APP_VERSION} \
           --build-arg APP_COMMIT=${APP_COMMIT} \
           --build-arg APP_BRANCH=${APP_BRANCH} \
           -t asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION} .
 
     # ===============================
-    # 🏷️ Tag latest
+    # 🏷️ Tag Latest
     # ===============================
     - name: Tag Latest
       run: |
@@ -73,7 +73,7 @@ jobs:
         asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
 
     # ===============================
-    # 🚀 Push
+    # 🚀 Push Images
     # ===============================
     - name: Push Images
       run: |
