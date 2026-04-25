@@ -1,12 +1,20 @@
 # =====================================================
-# 🚀 CD - K8S AUTH SERVICE (FINAL PRODUCTION STABLE)
+# 🚀 CD - K8S AUTH SERVICE (FINAL - BRANCH SYNCED)
 # =====================================================
 
-name: 🚀 CD - K8S Auth Service (Manual + Scheduled)
+name: 🚀 CD - K8S Auth Service
 
 on:
+  # ✅ Manual trigger
   workflow_dispatch:
 
+  # ✅ Auto deploy on feature branch (your dev flow)
+  push:
+    branches:
+      - feature/k8s-auth-deploy
+      - main
+
+  # ✅ Nightly cron (optional)
   schedule:
     - cron: "30 20 * * *"   # 2 AM IST
 
@@ -17,10 +25,12 @@ jobs:
     steps:
 
     # ===============================
-    # 🟢 Checkout
+    # 🟢 Checkout SAME BRANCH
     # ===============================
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref }}
 
     # ===============================
     # 🔐 Authenticate to GCP
@@ -37,7 +47,7 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
 
     # ===============================
-    # 🔧 Install GKE Auth Plugin
+    # 🔧 Install GKE Plugin
     # ===============================
     - name: Install GKE Auth Plugin
       run: |
@@ -60,16 +70,18 @@ jobs:
         IMAGE=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
 
         echo "🚀 Deploying IMAGE: $IMAGE"
+        echo "🚀 Branch: ${{ github.ref }}"
+        echo "🚀 Commit: ${{ github.sha }}"
 
         # Set image
         kubectl set image deployment/auth-deployment \
         auth-container=$IMAGE
 
-        # 🔥 Force fresh pull (important for latest tag)
+        # Force restart (avoid cache issues)
         kubectl rollout restart deployment/auth-deployment
 
         # Wait for rollout
         kubectl rollout status deployment/auth-deployment
 
-        # Show running pods
+        # Show pods
         kubectl get pods -o wide
