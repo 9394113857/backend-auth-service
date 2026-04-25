@@ -1,5 +1,5 @@
 # =====================================================
-# 🚀 CI - K8S AUTH SERVICE (FINAL CLEAN)
+# 🚀 CI - K8S AUTH SERVICE (PRODUCTION SHA BASED)
 # =====================================================
 
 name: 🚀 CI - K8S Auth Service
@@ -64,18 +64,8 @@ jobs:
           -t asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION} .
 
     # ===============================
-    # 🏷️ Tag Latest
+    # 🚀 Push SHA Image ONLY (🔥 KEY)
     # ===============================
-    - name: Tag Latest
-      run: |
-        docker tag \
-        asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION} \
-        asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
-
-    # ===============================
-    # 🚀 Push Images
-    # ===============================
-    - name: Push Images
+    - name: Push Image
       run: |
         docker push asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION}
-        docker push asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-latest
