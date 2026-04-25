@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  labels:
+    app: auth-service
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: auth-service
+
+  template:
+    metadata:
+      labels:
+        app: auth-service
+
+    spec:
+      containers:
+        - name: auth-container
+          image: asia-south2-docker.pkg.dev/auth-k8s-project/auth-repo/auth-service:k8s-latest
+
+          ports:
+            - containerPort: 5000
+
+          env:
+            - name: DATABASE_URL
+              value: postgresql://postgres.ktwpojchloawedeiruvi:Raghunadh_1992@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+
+            - name: JWT_SECRET_KEY
+              value: 9fA3xP@7Rk!2DqM8#ZbLw4^sC0N%YVJH
+
+            - name: SECRET_KEY
+              value: super-secret-key
+
+            - name: FLASK_ENV
+              value: Production
