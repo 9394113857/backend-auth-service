@@ -1,30 +1,30 @@
 # =====================================================
-# 🚀 CD - K8S AUTH SERVICE (FINAL FIXED)
+# 🚀 CD - K8S AUTH SERVICE (FINAL PRODUCTION)
 # =====================================================
 
 name: 🚀 CD - K8S Auth Service
 
 on:
-  # 🔘 Manual trigger (Run button in GitHub)
+  # 🔥 Trigger ONLY after CI success (same SHA)
+  workflow_run:
+    workflows: ["🚀 CI - K8S Auth Service"]
+    types:
+      - completed
+
+  # 🔘 Manual trigger (optional)
   workflow_dispatch:
-
-  # ⏰ Daily run (2 AM IST)
-  schedule:
-    - cron: "30 20 * * *"
-
-  # 🔁 Auto deploy on push
-  push:
-    branches:
-      - feature/k8s-auth-deploy
 
 jobs:
   deploy:
+    # ✅ Only run if CI succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     runs-on: ubuntu-latest
 
     steps:
 
       # -----------------------------------
-      # 📥 Checkout Code
+      # 📥 Checkout
       # -----------------------------------
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,7 +44,15 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       # -----------------------------------
-      # 🔗 Connect to GKE Cluster
+      # 🔧 FIX: Install GKE Auth Plugin (WORKING WAY)
+      # -----------------------------------
+      - name: Install GKE Auth Plugin
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+
+      # -----------------------------------
+      # 🔗 Connect to GKE
       # -----------------------------------
       - name: Get GKE credentials
         run: |
@@ -53,11 +61,11 @@ jobs:
             --project ${{ secrets.GCP_PROJECT_ID }}
 
       # -----------------------------------
-      # 🚀 Deploy Latest SHA Image
+      # 🚀 Deploy (SAME SHA AS CI)
       # -----------------------------------
       - name: Deploy to Kubernetes
         run: |
-          IMAGE=asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service:${{ github.sha }}
+          IMAGE=asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service:${{ github.event.workflow_run.head_sha }}
 
           echo "🚀 Deploying image: $IMAGE"
 
