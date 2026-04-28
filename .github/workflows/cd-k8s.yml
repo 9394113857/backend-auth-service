@@ -1,18 +1,18 @@
 # =====================================================
-# 🚀 CD - K8S AUTH SERVICE (FINAL)
+# 🚀 CD - K8S AUTH SERVICE (FINAL FIXED)
 # =====================================================
 
 name: 🚀 CD - K8S Auth Service
 
 on:
-  # 🔘 Manual button
+  # 🔘 Manual trigger (Run button in GitHub)
   workflow_dispatch:
 
-  # ⏰ Daily 2 AM IST (20:30 UTC)
+  # ⏰ Daily run (2 AM IST)
   schedule:
     - cron: "30 20 * * *"
 
-  # 🔁 Auto deploy on push (feature branch)
+  # 🔁 Auto deploy on push
   push:
     branches:
       - feature/k8s-auth-deploy
@@ -23,37 +23,43 @@ jobs:
 
     steps:
 
-      # 🟢 Checkout
+      # -----------------------------------
+      # 📥 Checkout Code
+      # -----------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
+      # -----------------------------------
       # 🔐 Authenticate to GCP
+      # -----------------------------------
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      # 🛠 Setup gcloud
+      # -----------------------------------
+      # ☁️ Setup gcloud
+      # -----------------------------------
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      # 🔧 Install GKE plugin
-      - name: Install GKE Auth Plugin
-        run: gcloud components install gke-gcloud-auth-plugin --quiet
-
-      # 🔗 Connect to GKE
+      # -----------------------------------
+      # 🔗 Connect to GKE Cluster
+      # -----------------------------------
       - name: Get GKE credentials
         run: |
-          gcloud container clusters get-credentials auth-cluster \
-            --region ${{ secrets.GCP_REGION }} \
+          gcloud container clusters get-credentials my-cluster \
+            --zone asia-south1-a \
             --project ${{ secrets.GCP_PROJECT_ID }}
 
-      # 🚀 Deploy (SHA-based — FINAL FIX)
+      # -----------------------------------
+      # 🚀 Deploy Latest SHA Image
+      # -----------------------------------
       - name: Deploy to Kubernetes
         run: |
-          IMAGE=asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:k8s-${{ github.sha }}
+          IMAGE=asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service:${{ github.sha }}
 
-          echo "Deploying: $IMAGE"
+          echo "🚀 Deploying image: $IMAGE"
 
           kubectl set image deployment/auth-deployment \
           auth-container=$IMAGE
