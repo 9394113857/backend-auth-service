@@ -26,7 +26,7 @@ spec:
       containers:
         - name: auth-container     # Container name
 
-          # 🔥 FINAL FIX → NEW SHA IMAGE (VERY IMPORTANT)
+          # 🔥 FINAL FIX → NEW SHA IMAGE (VERY IMPORTANT) 
           image: asia-south1-docker.pkg.dev/backend-auth-service-494704/auth-repo/auth-service:99efa9f199464d3602aa9cd04326257026c37ffe
 
           imagePullPolicy: Always  # Always pull latest image from registry
