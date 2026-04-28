@@ -4,6 +4,10 @@ import uuid
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
+# 🔥 IMPORTANT: LOAD .env FILE
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, jsonify, g, request
 from werkzeug.exceptions import HTTPException
 
@@ -11,7 +15,7 @@ from .config import Config
 from .extensions import db, migrate, jwt, cors
 from .models.token_blacklist import TokenBlocklist
 
-# ✅ NEW: error handlers
+# ✅ error handlers
 from .errors.handlers import register_error_handlers
 
 
