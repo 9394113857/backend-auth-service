@@ -1,44 +1,48 @@
-apiVersion: apps/v1
-kind: Deployment
+# =========================
+# AUTH SERVICE DEPLOYMENT
+# =========================
+
+apiVersion: apps/v1                 # Kubernetes API version for Deployment
+kind: Deployment                   # We are creating a Deployment resource
+
 metadata:
-  name: auth-deployment
+  name: auth-deployment            # Name of the deployment
   labels:
-    app: auth-service
+    app: auth-service              # Label for identification
 
 spec:
-  replicas: 1
+  replicas: 1                      # Number of pod instances (can scale later)
 
   selector:
     matchLabels:
-      app: auth-service
+      app: auth-service            # Must match pod labels
 
   template:
     metadata:
       labels:
-        app: auth-service
+        app: auth-service          # Label applied to pods
 
     spec:
       containers:
-        - name: auth-container
+        - name: auth-container     # Container name inside pod
 
-          # 🔥 FINAL FIX → USE SHA TAG (NOT latest)
-          image: asia-south2-docker.pkg.dev/auth-k8s-project/auth-repo/auth-service:k8s-77fadd4f8d100acb2e02a6195d7ab5deb0106acf
+          # 🔥 FINAL IMAGE (SHA-BASED — PRODUCTION SAFE)
+          image: asia-south1-docker.pkg.dev/backend-auth-service-494704/auth-repo/auth-service:277e918362c2fbc935254868543395ef828607e6
 
-          # 🔥 Always pull latest version of this tag
-          imagePullPolicy: Always
+          imagePullPolicy: Always  # Always pull image from registry
 
           ports:
-            - containerPort: 5000
+            - containerPort: 5000  # Flask/Gunicorn runs on port 5000
 
           env:
-            - name: DATABASE_URL
+            - name: DATABASE_URL   # Database connection string
               value: postgresql://postgres.ktwpojchloawedeiruvi:Raghunadh_1992@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
 
-            - name: JWT_SECRET_KEY
+            - name: JWT_SECRET_KEY # JWT signing key
               value: 9fA3xP@7Rk!2DqM8#ZbLw4^sC0N%YVJH
 
-            - name: SECRET_KEY
+            - name: SECRET_KEY     # Flask secret key
               value: super-secret-key
 
-            - name: FLASK_ENV
+            - name: FLASK_ENV      # Environment mode
               value: Production
