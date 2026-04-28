@@ -1,39 +1,23 @@
-```yaml
-name: CI - Backend Auth Service
+```yaml id="clean-ci"
+name: CI Auth Service
 
 on:
   push:
     branches:
-      - "**"
+      - main
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest
+      - run: pip install pytest
 
-      - name: Run Tests
-        run: pytest -v
-
-      - name: Docker Login
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-      - name: Build Image
-        run: docker build -t pythoncodelife/backend-auth-service:latest .
-
-      - name: Push Image
-        run: docker push pythoncodelife/backend-auth-service:latest
+      - run: PYTHONPATH=. pytest -v
 ```
