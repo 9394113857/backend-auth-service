@@ -1,5 +1,6 @@
+```yaml
 # =====================================================
-# 🚀 CI - Backend Auth Service (FINAL PRODUCTION)  
+# 🚀 CI - Backend Auth Service (FINAL PRODUCTION WITH TESTS)
 # =====================================================
 
 name: 🚀 CI - Backend Auth Service
@@ -18,10 +19,33 @@ jobs:
     steps:
 
       # ===============================
-      # 🟢 Checkout
+      # 🟢 Checkout Code
       # ===============================
       - name: Checkout
         uses: actions/checkout@v3
+
+      # ===============================
+      # 🟢 Setup Python
+      # ===============================
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # ===============================
+      # 📦 Install Dependencies
+      # ===============================
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      # ===============================
+      # 🧪 Run Tests (BLOCKER STEP)
+      # ===============================
+      - name: Run Tests
+        run: |
+          pytest --maxfail=1 --disable-warnings -v
 
       # ===============================
       # 🟢 Set Version Info
@@ -45,7 +69,6 @@ jobs:
           echo "APP_BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "TYPE=$TYPE" >> $GITHUB_ENV
           echo "NAME=$NAME" >> $GITHUB_ENV
-
           echo "REPO=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
 
       # ===============================
@@ -122,7 +145,7 @@ jobs:
             🔗 Repo:
             ${{ env.REPO }}
 
-            ✅ Image pushed successfully for 👉 Auth Service 👈
+            ✅ Tests Passed + Image pushed successfully
 
       # ===============================
       # ❌ Email Failure
@@ -154,4 +177,5 @@ jobs:
             🔗 Repo:
             ${{ env.REPO }}
 
-            🔧 Check GitHub Actions logs immediately 
+            🔧 Check GitHub Actions logs immediately
+```
