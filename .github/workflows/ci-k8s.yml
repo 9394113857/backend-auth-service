@@ -1,49 +1,81 @@
 # =====================================================
-# 🚀 CI - K8S AUTH SERVICE (FINAL)
+# 🚀 CI - K8S AUTH SERVICE (FINAL WITH COMMENTS)
 # =====================================================
 
-name: 🚀 CI - K8S Auth Service
+name: 🚀 CI - K8S Auth Service   # Workflow name (shown in GitHub Actions)
 
+# -----------------------------------------------------
+# 🔁 Trigger
+# -----------------------------------------------------
 on:
   push:
     branches:
-      - feature/k8s-auth-deploy
+      - feature/k8s-auth-deploy   # Run CI when code pushed to this branch
 
+# -----------------------------------------------------
+# ⚙️ Jobs
+# -----------------------------------------------------
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest        # GitHub runner (Linux machine)
 
     steps:
+
+      # -----------------------------------
+      # 📥 STEP 1: Checkout repository code
+      # -----------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
+      # -----------------------------------
+      # 🏷️ STEP 2: Set version + metadata
+      # -----------------------------------
       - name: Set Version
         run: |
-          VERSION=k8s-${GITHUB_SHA}
+          # Use commit SHA as image version (best practice)
+          VERSION=${GITHUB_SHA}
+
+          # Store values as environment variables
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
           echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "APP_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
+      # -----------------------------------
+      # 🔐 STEP 3: Authenticate with GCP
+      # -----------------------------------
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'   # Service account key
 
+      # -----------------------------------
+      # ☁️ STEP 4: Setup gcloud CLI
+      # -----------------------------------
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
+      # -----------------------------------
+      # 🐳 STEP 5: Configure Docker for GCP Artifact Registry
+      # -----------------------------------
       - name: Configure Docker
-        run: gcloud auth configure-docker asia-south2-docker.pkg.dev
+        run: |
+          # Allow docker to push images to Artifact Registry
+          gcloud auth configure-docker asia-south1-docker.pkg.dev
 
-      # 🔥 NO CACHE BUILD
+      # -----------------------------------
+      # 🏗️ STEP 6: Build Docker Image
+      # -----------------------------------
       - name: Build Image
         run: |
-          docker build --no-cache \
-            --build-arg APP_VERSION=${APP_VERSION} \
-            --build-arg APP_COMMIT=${APP_COMMIT} \
-            --build-arg APP_BRANCH=${APP_BRANCH} \
-            -t asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION} .
+          docker build --no-cache \                 # Fresh build (no cache issues)
+            --build-arg APP_VERSION=${APP_VERSION} \   # Pass version into image
+            --build-arg APP_COMMIT=${APP_COMMIT} \     # Pass commit SHA
+            --build-arg APP_BRANCH=${APP_BRANCH} \     # Pass branch name
+            -t asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service:${APP_VERSION} .
 
+      # -----------------------------------
+      # 📦 STEP 7: Push Image to GCP
+      # -----------------------------------
       - name: Push Image
         run: |
-          docker push asia-south2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/auth-service:${APP_VERSION}
+          docker push asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service:${APP_VERSION}
