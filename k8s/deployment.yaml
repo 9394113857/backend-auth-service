@@ -1,48 +1,60 @@
 # =====================================================
-# 🚀 AUTH SERVICE – KUBERNETES DEPLOYMENT
+# 🚀 AUTH SERVICE – KUBERNETES DEPLOYMENT (FINAL CLEAN)
 # =====================================================
 
-apiVersion: apps/v1                 # Kubernetes API version for Deployment
+apiVersion: apps/v1                 # Kubernetes API version
 kind: Deployment                   # Resource type
 
 metadata:
   name: auth-deployment            # Deployment name
   labels:
-    app: auth-service              # Label for grouping
+    app: auth-service
 
 spec:
-  replicas: 1                      # Number of pods (can scale later)
+  replicas: 1                      # Increase to 2+ for zero downtime later
 
   selector:
     matchLabels:
-      app: auth-service            # Must match pod labels
+      app: auth-service
 
   template:
     metadata:
       labels:
-        app: auth-service          # Pod label
+        app: auth-service
 
     spec:
       containers:
-        - name: auth-container     # Container name
+        - name: auth-container
 
-          # 🔥 FINAL FIX → NEW SHA IMAGE (VERY IMPORTANT) 
+          # 🔥 Latest image (update this SHA via CI/CD)
           image: asia-south1-docker.pkg.dev/backend-auth-service-494704/auth-repo/auth-service:99efa9f199464d3602aa9cd04326257026c37ffe
 
-          imagePullPolicy: Always  # Always pull latest image from registry
+          imagePullPolicy: Always
 
           ports:
-            - containerPort: 5000  # App runs on port 5000
+            - containerPort: 5000
 
           env:
-            - name: DATABASE_URL   # DB connection
-              value: postgresql://postgres.ktwpojchloawedeiruvi:Raghunadh_1992@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+            # -----------------------------------
+            # 🗄️ DATABASE (Supabase PostgreSQL)
+            # -----------------------------------
+            - name: DATABASE_URL
+              value: "postgresql://postgres.ktwpojchloawedeiruvi:Raghunadh_1992@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require"
 
-            - name: JWT_SECRET_KEY # JWT key
-              value: 9fA3xP@7Rk!2DqM8#ZbLw4^sC0N%YVJH
+            # -----------------------------------
+            # 🔐 SECURITY KEYS
+            # -----------------------------------
+            - name: JWT_SECRET_KEY
+              value: "9fA3xP@7Rk!2DqM8#ZbLw4^sC0N%YVJH"
 
-            - name: SECRET_KEY     # Flask secret
-              value: super-secret-key
+            - name: SECRET_KEY
+              value: "super-secret-key"
 
-            - name: FLASK_ENV      # Environment mode
-              value: Production
+            # -----------------------------------
+            # ⚙️ APP CONFIG
+            # -----------------------------------
+            - name: FLASK_ENV
+              value: "production"
+
+            - name: PORT
+              value: "5000"
