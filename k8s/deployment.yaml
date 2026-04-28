@@ -1,17 +1,17 @@
-# =========================
-# AUTH SERVICE DEPLOYMENT
-# =========================
+# =====================================================
+# 🚀 AUTH SERVICE – KUBERNETES DEPLOYMENT
+# =====================================================
 
 apiVersion: apps/v1                 # Kubernetes API version for Deployment
-kind: Deployment                   # We are creating a Deployment resource
+kind: Deployment                   # Resource type
 
 metadata:
-  name: auth-deployment            # Name of the deployment
+  name: auth-deployment            # Deployment name
   labels:
-    app: auth-service              # Label for identification
+    app: auth-service              # Label for grouping
 
 spec:
-  replicas: 1                      # Number of pod instances (can scale later)
+  replicas: 1                      # Number of pods (can scale later)
 
   selector:
     matchLabels:
@@ -20,28 +20,28 @@ spec:
   template:
     metadata:
       labels:
-        app: auth-service          # Label applied to pods
+        app: auth-service          # Pod label
 
     spec:
       containers:
-        - name: auth-container     # Container name inside pod
+        - name: auth-container     # Container name
 
-          # 🔥 FINAL IMAGE (SHA-BASED — PRODUCTION SAFE)
-          image: asia-south1-docker.pkg.dev/backend-auth-service-494704/auth-repo/auth-service:277e918362c2fbc935254868543395ef828607e6
+          # 🔥 FINAL FIX → NEW SHA IMAGE (VERY IMPORTANT)
+          image: asia-south1-docker.pkg.dev/backend-auth-service-494704/auth-repo/auth-service:e0c3bedcf347d4bbca23d1c28106067a0bc11090
 
-          imagePullPolicy: Always  # Always pull image from registry
+          imagePullPolicy: Always  # Always pull latest image from registry
 
           ports:
-            - containerPort: 5000  # Flask/Gunicorn runs on port 5000
+            - containerPort: 5000  # App runs on port 5000
 
           env:
-            - name: DATABASE_URL   # Database connection string
+            - name: DATABASE_URL   # DB connection
               value: postgresql://postgres.ktwpojchloawedeiruvi:Raghunadh_1992@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
 
-            - name: JWT_SECRET_KEY # JWT signing key
+            - name: JWT_SECRET_KEY # JWT key
               value: 9fA3xP@7Rk!2DqM8#ZbLw4^sC0N%YVJH
 
-            - name: SECRET_KEY     # Flask secret key
+            - name: SECRET_KEY     # Flask secret
               value: super-secret-key
 
             - name: FLASK_ENV      # Environment mode
