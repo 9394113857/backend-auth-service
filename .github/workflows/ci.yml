@@ -1,23 +1,50 @@
-```yaml id="clean-ci"
-name: CI Auth Service
+name: CI - Backend Auth Service
 
 on:
   push:
     branches:
-      - main
+      - "**"
+    tags:
+      - "v*"
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      - run: pip install pytest
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
 
-      - run: PYTHONPATH=. pytest -v
-```
+      - name: Run Tests
+        run: PYTHONPATH=. pytest -v
+
+      - name: Set Version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            BRANCH="release"
+          else
+            VERSION=dev-${GITHUB_SHA}
+            BRANCH=${GITHUB_REF#refs/heads/}
+          fi
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "APP_BRANCH=$BRANCH" >> $GITHUB_ENV
+
+      - name: Docker Login
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build Image
+        run: docker build -t pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} .
+
+      - name: Push Image
+        run: docker push pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
