@@ -27,9 +27,9 @@ def health():
     return jsonify({"status": "auth-service UP"}), 200
 
 # This is a test route to trigger an error and verify logging:-  
-@auth_bp.route("/sentry-test")
+@auth_bp.route("/sentry-test", methods=["GET"])
 def sentry_test():
-    return 1 / 0
+    return 1 / 0  # This will raise a ZeroDivisionError and should be captured by Sentry
 
 
 # ------------------------------------------------
