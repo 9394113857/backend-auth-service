@@ -24,7 +24,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 def init_sentry():
     dsn = os.environ.get("SENTRY_DSN")
 
-    if dsn:  # only enable if DSN exists
+    if dsn:  # only enable if DSN exists 
         sentry_sdk.init(
             dsn=dsn,
             integrations=[FlaskIntegration()],
