@@ -2,7 +2,7 @@
 # 🟦 AUTH ROUTES – API LAYER (REQUEST/RESPONSE)
 # =====================================================
 
-from flask import Blueprint, request, jsonify, current_app, g
+from flask import Blueprint, app, request, jsonify, current_app, g
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
@@ -25,6 +25,11 @@ auth_bp = Blueprint("auth", __name__)
 def health():
     current_app.logger.info(f"[REQ:{g.request_id}] Health check called")
     return jsonify({"status": "auth-service UP"}), 200
+
+# This is a test route to trigger an error and verify logging:-  
+@auth_bp.route("/sentry-test", methods=["GET"])
+def sentry_test():
+    return 1 / 0  # This will raise a ZeroDivisionError and should be captured by Sentry
 
 
 # ------------------------------------------------

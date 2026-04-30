@@ -1,0 +1,66 @@
+name: 🚀 CI - Backend Auth Service
+
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run Tests
+        run: PYTHONPATH=. pytest -v
+
+      - name: Set Build Variables
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            BRANCH=main
+          else
+            VERSION=dev-${GITHUB_SHA}
+            BRANCH=${GITHUB_REF#refs/heads/}
+          fi
+
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "APP_BRANCH=$BRANCH" >> $GITHUB_ENV
+          echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+
+      - name: Generate Build Info
+        run: |
+          echo "{
+            \"version\": \"${APP_VERSION}\",
+            \"branch\": \"${APP_BRANCH}\",
+            \"commit\": \"${APP_COMMIT}\",
+            \"build_time_utc\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\",
+            \"build_time_ist\": \"$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')\"
+          }" > build_info.json
+
+      - name: Docker Login
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build Image
+        run: |
+          docker build -t pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} .
+          docker tag pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} pythoncodelife/backend-auth-service:latest
+
+      - name: Push Image
+        run: |
+          docker push pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
+          docker push pythoncodelife/backend-auth-service:latest

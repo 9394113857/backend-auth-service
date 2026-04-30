@@ -1,0 +1,69 @@
+# =====================================================
+# 🚀 CD - K8S AUTH SERVICE (FINAL WORKING)
+# =====================================================
+
+name: 🚀 CD - K8S Auth Service
+
+on:
+  workflow_dispatch:   # 🔘 Manual button
+  schedule:
+    - cron: "30 20 * * *"   # ⏰ 2 AM IST
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # 📥 Checkout
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 🔐 Authenticate to GCP
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      # ☁️ Setup gcloud
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      # 🔥 FIX: Install GKE Auth Plugin (CORRECT WAY)
+      - name: Install GKE Auth Plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin --quiet
+
+      # 🔗 Connect to cluster
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials my-cluster \
+            --zone asia-south1-a \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+
+      # 🔍 Get latest image tag
+      - name: Get latest image
+        id: latest
+        run: |
+          TAG=$(gcloud artifacts docker images list \
+          asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service \
+          --include-tags \
+          --sort-by=~UPDATE_TIME \
+          --limit=1 \
+          --format="value(TAGS)")
+
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+
+      # 🚀 Deploy
+      - name: Deploy to Kubernetes
+        run: |
+          IMAGE=asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service:${{ steps.latest.outputs.TAG }}
+
+          echo "🚀 Deploying: $IMAGE"
+
+          kubectl set image deployment/auth-deployment \
+          auth-container=$IMAGE
+
+          kubectl rollout status deployment/auth-deployment
+
+          kubectl get pods -o wide
