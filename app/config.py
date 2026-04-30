@@ -1,11 +1,15 @@
 import os
+from dotenv import load_dotenv
+
+# 🔹 Load .env if present (safe)
+load_dotenv()
 
 
 class Config:
     """
-    Unified configuration for:
-    - Local development (SQLite)
-    - Production on Render + Neon PostgreSQL
+    Works for:
+    - Local (SQLite)
+    - Production (Render + Supabase PostgreSQL)
     """
 
     # -------------------------------------------------
@@ -19,8 +23,8 @@ class Config:
     # -------------------------------------------------
     # Local:
     #   sqlite:///auth.db
-    # Production (Render):
-    #   DATABASE_URL = postgresql://... (Neon)
+    # Supabase:
+    #   postgresql://... (from Supabase dashboard)
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         "sqlite:///auth.db"
@@ -29,9 +33,9 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # -------------------------------------------------
-    # ✅ CRITICAL FIX FOR RENDER + NEON (SSL DISCONNECT)
+    # ✅ STABILITY (GOOD FOR SUPABASE TOO)
     # -------------------------------------------------
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,   # Reconnect if SSL connection dropped
-        "pool_recycle": 300,     # Recycle connections every 5 minutes
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
     }
