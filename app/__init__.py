@@ -72,12 +72,18 @@ def create_app(testing: bool = False):
     migrate.init_app(app, db)
     jwt.init_app(app)
 
+    # =====================================================
+    # 🔐 JWT BLOCKLIST
+    # =====================================================
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(jwt_header, jwt_payload):
         jti = jwt_payload["jti"]
         token = TokenBlocklist.query.filter_by(jti=jti).first()
         return token is not None
 
+    # =====================================================
+    # 🆔 REQUEST ID
+    # =====================================================
     @app.before_request
     def assign_request_id():
         g.request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
@@ -121,11 +127,54 @@ def create_app(testing: bool = False):
     register_error_handlers(app)
 
     # =====================================================
-    # ❤️ HEALTH CHECK (JSON)
+    # ❤️ HEALTH (HTML + JSON)
     # =====================================================
     @app.get("/")
     def health():
         info = get_build_info()
+
+        # HTML (browser)
+        if "text/html" in request.headers.get("Accept", ""):
+            return f"""
+            <html>
+            <head>
+                <title>🚀 Auth Service</title>
+                <style>
+                    body {{
+                        font-family: Arial;
+                        background: #0f172a;
+                        color: white;
+                        text-align: center;
+                        padding-top: 60px;
+                    }}
+                    .card {{
+                        background: #1e293b;
+                        padding: 30px;
+                        border-radius: 12px;
+                        display: inline-block;
+                        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+                    }}
+                    h1 {{ color: #38bdf8; }}
+                    .ok {{ color: #22c55e; }}
+                    .label {{ color: #94a3b8; }}
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <h1>🚀 Auth Service</h1>
+                    <p class="ok">🟢 UP</p>
+
+                    <p><span class="label">Version:</span> {info.get("version")}</p>
+                    <p><span class="label">Commit:</span> {info.get("commit")}</p>
+                    <p><span class="label">Branch:</span> {info.get("branch")}</p>
+                    <p><span class="label">UTC:</span> {info.get("build_time_utc")}</p>
+                    <p><span class="label">IST:</span> {info.get("build_time_ist")}</p>
+                </div>
+            </body>
+            </html>
+            """, 200
+
+        # JSON (API)
         return jsonify({
             "status": "auth-service UP",
             "build": info
