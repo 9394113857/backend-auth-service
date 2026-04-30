@@ -116,7 +116,7 @@ def create_app(testing: bool = False):
     register_error_handlers(app)
 
     # =====================================================
-    # ❤️ HEALTH (HTML + SHA INFO)
+    # ❤️ HEALTH (HTML + JSON)
     # =====================================================
     @app.get("/")
     def health():
