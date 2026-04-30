@@ -32,8 +32,8 @@ jobs:
       - name: Run Tests
         run: PYTHONPATH=. pytest -v
 
-      # 🟢 Set Version (no hardcoding)
-      - name: Set Version
+      # 🟢 Set Version + Branch + Commit
+      - name: Set Build Variables
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
@@ -42,31 +42,33 @@ jobs:
             VERSION=dev-${GITHUB_SHA}
             BRANCH=${GITHUB_REF#refs/heads/}
           fi
+
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
           echo "APP_BRANCH=$BRANCH" >> $GITHUB_ENV
+          echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
-      # 🟢 Generate build_info.json (dynamic)
+      # 🟢 Generate build_info.json
       - name: Generate Build Info
         run: |
           echo "{
             \"version\": \"${APP_VERSION}\",
             \"branch\": \"${APP_BRANCH}\",
-            \"commit\": \"${GITHUB_SHA}\",
+            \"commit\": \"${APP_COMMIT}\",
             \"build_time_utc\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\",
             \"build_time_ist\": \"$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')\"
           }" > build_info.json
 
-      # 🟢 Docker Login (secrets only)
+      # 🟢 Docker Login
       - name: Docker Login
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      # 🔥 Build Image (version + latest)
+      # 🔥 Build Docker Image
       - name: Build Image
         run: |
           docker build -t pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} .
           docker tag pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} pythoncodelife/backend-auth-service:latest
 
-      # 🔥 Push BOTH tags
+      # 🔥 Push Image
       - name: Push Image
         run: |
           docker push pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
