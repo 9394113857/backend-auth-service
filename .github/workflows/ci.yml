@@ -32,12 +32,12 @@ jobs:
       - name: Run Tests
         run: PYTHONPATH=. pytest -v
 
-      # 🟢 Set Version + Branch + Commit
+      # 🔥 Set Build Variables (FINAL FIX)
       - name: Set Build Variables
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
-            BRANCH="release"
+            BRANCH=${GITHUB_REF_NAME}
           else
             VERSION=dev-${GITHUB_SHA}
             BRANCH=${GITHUB_REF#refs/heads/}
@@ -68,7 +68,7 @@ jobs:
           docker build -t pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} .
           docker tag pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} pythoncodelife/backend-auth-service:latest
 
-      # 🔥 Push Image
+      # 🔥 Push Docker Image
       - name: Push Image
         run: |
           docker push pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
