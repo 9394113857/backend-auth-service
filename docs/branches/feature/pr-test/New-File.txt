@@ -3,3 +3,6 @@ docs\branches\feature\pr-test\New-File.txt
 
 This is the new file ✅
 
+==================================
+
+Merging into main fiannlly broo 🖐🖐
