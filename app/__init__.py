@@ -4,6 +4,10 @@ import uuid
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
+# 🔥 LOAD .env
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, jsonify, g, request
 from werkzeug.exceptions import HTTPException
 
@@ -11,29 +15,12 @@ from .config import Config
 from .extensions import db, migrate, jwt, cors
 from .models.token_blacklist import TokenBlocklist
 
-# ✅ NEW: error handlers
+# ✅ error handlers
 from .errors.handlers import register_error_handlers
 
-# =====================================================
-# 🚀 SENTRY SETUP (NEW)
-# =====================================================
-import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
-
-
-def init_sentry():
-    dsn = os.environ.get("SENTRY_DSN")
-
-    if dsn:  # only enable if DSN exists 
-        sentry_sdk.init(
-            dsn=dsn,
-            integrations=[FlaskIntegration()],
-            traces_sample_rate=1.0
-        )
-
 
 # =====================================================
-# 🔧 BUILD INFO
+# 🔧 BUILD INFO (SHA / VERSION / BRANCH)
 # =====================================================
 def get_build_info():
     try:
@@ -51,7 +38,7 @@ def get_build_info():
 
 
 # =====================================================
-# 🧾 LOG FORMATTER WITH REQUEST ID
+# 🧾 LOG FORMATTER
 # =====================================================
 class RequestFormatter(logging.Formatter):
     def format(self, record):
@@ -68,9 +55,6 @@ class RequestFormatter(logging.Formatter):
 def create_app(testing: bool = False):
     app = Flask(__name__)
     app.config.from_object(Config)
-
-    # 🔥 INIT SENTRY HERE
-    init_sentry()
 
     cors.init_app(app)
     db.init_app(app)
@@ -127,16 +111,68 @@ def create_app(testing: bool = False):
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
     # =====================================================
-    # ❌ REGISTER GLOBAL ERROR HANDLERS
+    # ❌ ERROR HANDLERS
     # =====================================================
     register_error_handlers(app)
 
     # =====================================================
-    # ❤️ HEALTH
+    # ❤️ HEALTH (HTML + SHA INFO)
     # =====================================================
     @app.get("/")
     def health():
         info = get_build_info()
+
+        if "text/html" in request.headers.get("Accept", ""):
+            html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Auth Service Health</title>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        background: #f4f6f8;
+                        padding: 40px;
+                    }}
+                    .card {{
+                        max-width: 600px;
+                        margin: auto;
+                        background: white;
+                        padding: 20px;
+                        border-radius: 10px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    }}
+                    h1 {{
+                        text-align: center;
+                        color: #34a853;
+                    }}
+                    .row {{
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 8px 0;
+                        border-bottom: 1px solid #eee;
+                    }}
+                    .status {{
+                        color: #34a853;
+                        font-weight: bold;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <h1>🚀 Auth Service</h1>
+                    <div class="row"><b>Status</b><span class="status">🟢 UP</span></div>
+                    <div class="row"><b>Version</b><span>{info.get("version")}</span></div>
+                    <div class="row"><b>Commit</b><span>{info.get("commit")}</span></div>
+                    <div class="row"><b>Branch</b><span>{info.get("branch")}</span></div>
+                    <div class="row"><b>UTC</b><span>{info.get("build_time_utc")}</span></div>
+                    <div class="row"><b>IST</b><span>{info.get("build_time_ist")}</span></div>
+                </div>
+            </body>
+            </html>
+            """
+            return html, 200
+
         return jsonify({
             "status": "auth-service UP",
             "build": info
