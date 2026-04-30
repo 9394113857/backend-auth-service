@@ -11,9 +11,14 @@ jobs:
 
     steps:
 
-      # 🟢 Checkout
       - name: Checkout
         uses: actions/checkout@v4
+
+      # 🔥 WAIT FOR DOCKER IMAGE TO BE READY
+      - name: Wait for Image Push
+        run: |
+          echo "⏳ Waiting for image to be available..."
+          sleep 30
 
       # 🚀 Trigger Render Deploy
       - name: Trigger Render Deploy
@@ -23,7 +28,7 @@ jobs:
 
       # ⏳ Wait for startup
       - name: Wait
-        run: sleep 40
+        run: sleep 50
 
       # 🧪 Health Check
       - name: Health Check
@@ -45,39 +50,3 @@ jobs:
 
           echo "🔴 Deployment failed"
           exit 1
-
-      # 📧 SUCCESS EMAIL
-      - name: Email Success
-        if: success()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.MAIL_USERNAME_MAIN }}
-          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚀 Render Deployment SUCCESS"
-          to: ${{ secrets.MAIL_USERNAME_MAIN }}
-          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
-          from: ${{ secrets.MAIL_USERNAME_MAIN }}
-          body: |
-            🚀 Deployment SUCCESS
-            🌐 https://backend-auth-service-ks6f.onrender.com
-            🟢 Service is healthy
-
-      # ❌ FAILURE EMAIL
-      - name: Email Failure
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.MAIL_USERNAME_MAIN }}
-          password: ${{ secrets.MAIL_PASSWORD_MAIN }}
-          subject: "🚨 Render Deployment FAILED"
-          to: ${{ secrets.MAIL_USERNAME_MAIN }}
-          cc: ${{ secrets.MAIL_TO_CC_MAIN }}
-          from: ${{ secrets.MAIL_USERNAME_MAIN }}
-          body: |
-            🚨 Deployment FAILED
-            🌐 https://backend-auth-service-ks6f.onrender.com
-            ❌ Health check failed
