@@ -1,181 +1,75 @@
-import os
-import json
-import uuid
-import logging
-from logging.handlers import TimedRotatingFileHandler
+name: CI - Backend Auth Service
 
-# 🔥 LOAD .env
-from dotenv import load_dotenv
-load_dotenv()
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
 
-from flask import Flask, jsonify, g, request
-from werkzeug.exceptions import HTTPException
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-from .config import Config
-from .extensions import db, migrate, jwt, cors
-from .models.token_blacklist import TokenBlocklist
+    steps:
+      # 🟢 Checkout
+      - name: Checkout
+        uses: actions/checkout@v4
 
-# ✅ error handlers
-from .errors.handlers import register_error_handlers
+      # 🟢 Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
+      # 🟢 Install Dependencies
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
 
-# =====================================================
-# 🔧 BUILD INFO (SHA / VERSION / BRANCH)
-# =====================================================
-def get_build_info():
-    try:
-        with open("build_info.json") as f:
-            return json.load(f)
-    except Exception as e:
-        return {
-            "version": "unknown",
-            "commit": "unknown",
-            "branch": "unknown",
-            "build_time_utc": "unknown",
-            "build_time_ist": "unknown",
-            "error": str(e)
-        }
+      # 🟢 Run Tests
+      - name: Run Tests
+        run: PYTHONPATH=. pytest -v
 
+      # 🔥 FINAL BUILD VARIABLES (FIXED)
+      - name: Set Build Variables
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            BRANCH=main   # ✅ FORCE MAIN FOR TAG BUILDS
+          else
+            VERSION=dev-${GITHUB_SHA}
+            BRANCH=${GITHUB_REF#refs/heads/}
+          fi
 
-# =====================================================
-# 🧾 LOG FORMATTER
-# =====================================================
-class RequestFormatter(logging.Formatter):
-    def format(self, record):
-        try:
-            record.request_id = getattr(g, "request_id", "N/A")
-        except RuntimeError:
-            record.request_id = "N/A"
-        return super().format(record)
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "APP_BRANCH=$BRANCH" >> $GITHUB_ENV
+          echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
+      # 🟢 Generate build_info.json
+      - name: Generate Build Info
+        run: |
+          echo "{
+            \"version\": \"${APP_VERSION}\",
+            \"branch\": \"${APP_BRANCH}\",
+            \"commit\": \"${APP_COMMIT}\",
+            \"build_time_utc\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\",
+            \"build_time_ist\": \"$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')\"
+          }" > build_info.json
 
-# =====================================================
-# 🚀 APP FACTORY
-# =====================================================
-def create_app(testing: bool = False):
-    app = Flask(__name__)
-    app.config.from_object(Config)
+      # 🟢 Docker Login
+      - name: Docker Login
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-    cors.init_app(app)
-    db.init_app(app)
-    migrate.init_app(app, db)
-    jwt.init_app(app)
+      # 🔥 Build Docker Image
+      - name: Build Image
+        run: |
+          docker build -t pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} .
+          docker tag pythoncodelife/backend-auth-service:${{ env.APP_VERSION }} pythoncodelife/backend-auth-service:latest
 
-    # =====================================================
-    # 🔐 JWT BLOCKLIST
-    # =====================================================
-    @jwt.token_in_blocklist_loader
-    def check_if_token_revoked(jwt_header, jwt_payload):
-        jti = jwt_payload["jti"]
-        token = TokenBlocklist.query.filter_by(jti=jti).first()
-        return token is not None
-
-    # =====================================================
-    # 🆔 REQUEST ID
-    # =====================================================
-    @app.before_request
-    def assign_request_id():
-        g.request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
-
-    @app.after_request
-    def attach_request_id(response):
-        response.headers["X-Request-ID"] = g.request_id
-        return response
-
-    # =====================================================
-    # 📂 LOGGING
-    # =====================================================
-    logs_path = os.path.join(os.getcwd(), "logs")
-    os.makedirs(logs_path, exist_ok=True)
-
-    handler = TimedRotatingFileHandler(
-        os.path.join(logs_path, "auth.log"),
-        when="midnight",
-        backupCount=30,
-        encoding="utf-8"
-    )
-
-    handler.setFormatter(RequestFormatter(
-        "%(asctime)s [%(levelname)s] [REQ:%(request_id)s] %(message)s"
-    ))
-
-    if not app.logger.handlers:
-        app.logger.addHandler(handler)
-
-    app.logger.setLevel(logging.INFO)
-
-    # =====================================================
-    # 📦 ROUTES
-    # =====================================================
-    from .api.auth_routes import auth_bp
-    app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
-
-    # =====================================================
-    # ❌ ERROR HANDLERS
-    # =====================================================
-    register_error_handlers(app)
-
-    # =====================================================
-    # ❤️ HEALTH (HTML + JSON)
-    # =====================================================
-    @app.get("/")
-    def health():
-        info = get_build_info()
-
-        if "text/html" in request.headers.get("Accept", ""):
-            html = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Auth Service Health</title>
-                <style>
-                    body {{
-                        font-family: Arial, sans-serif;
-                        background: #f4f6f8;
-                        padding: 40px;
-                    }}
-                    .card {{
-                        max-width: 600px;
-                        margin: auto;
-                        background: white;
-                        padding: 20px;
-                        border-radius: 10px;
-                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    }}
-                    h1 {{
-                        text-align: center;
-                        color: #34a853;
-                    }}
-                    .row {{
-                        display: flex;
-                        justify-content: space-between;
-                        padding: 8px 0;
-                        border-bottom: 1px solid #eee;
-                    }}
-                    .status {{
-                        color: #34a853;
-                        font-weight: bold;
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class="card">
-                    <h1>🚀 Auth Service</h1>
-                    <div class="row"><b>Status</b><span class="status">🟢 UP</span></div>
-                    <div class="row"><b>Version</b><span>{info.get("version")}</span></div>
-                    <div class="row"><b>Commit</b><span>{info.get("commit")}</span></div>
-                    <div class="row"><b>Branch</b><span>{info.get("branch")}</span></div>
-                    <div class="row"><b>UTC</b><span>{info.get("build_time_utc")}</span></div>
-                    <div class="row"><b>IST</b><span>{info.get("build_time_ist")}</span></div>
-                </div>
-            </body>
-            </html>
-            """
-            return html, 200
-
-        return jsonify({
-            "status": "auth-service UP",
-            "build": info
-        }), 200
-
-    return app
+      # 🔥 Push Docker Image
+      - name: Push Image
+        run: |
+          docker push pythoncodelife/backend-auth-service:${{ env.APP_VERSION }}
+          docker push pythoncodelife/backend-auth-service:latest
