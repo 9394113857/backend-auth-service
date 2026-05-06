@@ -5,36 +5,49 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 from flask import Flask, jsonify, g, request
-from werkzeug.exceptions import HTTPException
 
 from .config import Config
 from .extensions import db, migrate, jwt, cors
 from .models.token_blacklist import TokenBlocklist
 
-# ✅ NEW: error handlers
 from .errors.handlers import register_error_handlers
+
+# =====================================================
+# 🚀 SENTRY
+# =====================================================
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+
+
+def init_sentry():
+    dsn = os.environ.get("SENTRY_DSN")
+    if dsn:
+        sentry_sdk.init(
+            dsn=dsn,
+            integrations=[FlaskIntegration()],
+            traces_sample_rate=1.0
+        )
 
 
 # =====================================================
-# 🔧 BUILD INFO
+# 🔧 BUILD INFO (READ ONLY)
 # =====================================================
 def get_build_info():
     try:
         with open("build_info.json") as f:
             return json.load(f)
-    except Exception as e:
+    except Exception:
         return {
             "version": "unknown",
             "commit": "unknown",
             "branch": "unknown",
             "build_time_utc": "unknown",
-            "build_time_ist": "unknown",
-            "error": str(e)
+            "build_time_ist": "unknown"
         }
 
 
 # =====================================================
-# 🧾 LOG FORMATTER WITH REQUEST ID
+# 🧾 LOG FORMATTER
 # =====================================================
 class RequestFormatter(logging.Formatter):
     def format(self, record):
@@ -51,6 +64,8 @@ class RequestFormatter(logging.Formatter):
 def create_app(testing: bool = False):
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    init_sentry()
 
     cors.init_app(app)
     db.init_app(app)
@@ -107,68 +122,59 @@ def create_app(testing: bool = False):
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
 
     # =====================================================
-    # ❌ REGISTER GLOBAL ERROR HANDLERS
+    # ❌ ERROR HANDLERS
     # =====================================================
     register_error_handlers(app)
 
     # =====================================================
-    # ❤️ HEALTH (HTML UI + JSON fallback)
+    # ❤️ HEALTH (HTML + JSON)
     # =====================================================
     @app.get("/")
     def health():
         info = get_build_info()
 
+        # HTML (browser)
         if "text/html" in request.headers.get("Accept", ""):
-            html = f"""
-            <!DOCTYPE html>
+            return f"""
             <html>
             <head>
-                <title>Auth Service Health</title>
+                <title>🚀 Auth Service</title>
                 <style>
                     body {{
-                        font-family: Arial, sans-serif;
-                        background: #f4f6f8;
-                        padding: 40px;
+                        font-family: Arial;
+                        background: #0f172a;
+                        color: white;
+                        text-align: center;
+                        padding-top: 60px;
                     }}
                     .card {{
-                        max-width: 600px;
-                        margin: auto;
-                        background: white;
-                        padding: 20px;
-                        border-radius: 10px;
-                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        background: #1e293b;
+                        padding: 30px;
+                        border-radius: 12px;
+                        display: inline-block;
+                        box-shadow: 0 0 20px rgba(0,0,0,0.5);
                     }}
-                    h1 {{
-                        text-align: center;
-                        color: #34a853;
-                    }}
-                    .row {{
-                        display: flex;
-                        justify-content: space-between;
-                        padding: 8px 0;
-                        border-bottom: 1px solid #eee;
-                    }}
-                    .status {{
-                        color: #34a853;
-                        font-weight: bold;
-                    }}
+                    h1 {{ color: #38bdf8; }}
+                    .ok {{ color: #22c55e; }}
+                    .label {{ color: #94a3b8; }}
                 </style>
             </head>
             <body>
                 <div class="card">
                     <h1>🚀 Auth Service</h1>
-                    <div class="row"><b>Status</b><span class="status">🟢 UP</span></div>
-                    <div class="row"><b>Version</b><span>{info.get("version")}</span></div>
-                    <div class="row"><b>Commit</b><span>{info.get("commit")}</span></div>
-                    <div class="row"><b>Branch</b><span>{info.get("branch")}</span></div>
-                    <div class="row"><b>UTC</b><span>{info.get("build_time_utc")}</span></div>
-                    <div class="row"><b>IST</b><span>{info.get("build_time_ist")}</span></div>
+                    <p class="ok">🟢 UP</p>
+
+                    <p><span class="label">Version:</span> {info.get("version")}</p>
+                    <p><span class="label">Commit:</span> {info.get("commit")}</p>
+                    <p><span class="label">Branch:</span> {info.get("branch")}</p>
+                    <p><span class="label">UTC:</span> {info.get("build_time_utc")}</p>
+                    <p><span class="label">IST:</span> {info.get("build_time_ist")}</p>
                 </div>
             </body>
             </html>
-            """
-            return html, 200
+            """, 200
 
+        # JSON (API)
         return jsonify({
             "status": "auth-service UP",
             "build": info
