@@ -1,4 +1,4 @@
-If you want I can also modify the logger to:
+If you want I can also modify the logger to: 
 
 ✔ Rotate logs every hour
 ✔ Rotate logs every 5 minutes
