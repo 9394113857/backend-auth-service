@@ -1,0 +1,118 @@
+========================================
+AUTH SERVICE LOGIN FLOW (DEBUG LOG EXPLANATION)
+========================================
+
+PROJECT: backend-auth-service
+ENV: Local Development (Flask)
+
+----------------------------------------
+STEP 1: SERVER START
+----------------------------------------
+Command:
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned)
+
+Meaning:
+- PowerShell temporarily allows script execution
+- Needed to activate virtual environment (venv)
+
+Flask Output:
+* Debug mode: off
+WARNING: Development server (not for production)
+Running on: http://127.0.0.1:5001
+
+----------------------------------------
+STEP 2: CORS PREFLIGHT REQUEST (OPTIONS)
+----------------------------------------
+LOG:
+"OPTIONS /api/v1/auth/angularUser/login HTTP/1.1" 200
+
+Meaning:
+- Angular frontend sent a preflight request
+- Browser checks:
+    ✔ Allowed methods (POST)
+    ✔ Allowed headers (Authorization, Content-Type)
+    ✔ CORS permissions
+
+Result:
+✅ Server responded with 200 OK
+→ CORS is correctly configured
+
+----------------------------------------
+STEP 3: ACTUAL LOGIN REQUEST
+----------------------------------------
+LOG:
+"POST /api/v1/auth/angularUser/login HTTP/1.1" 200
+
+Meaning:
+- Angular app sent login request with credentials
+- Endpoint:
+    /api/v1/auth/angularUser/login
+
+----------------------------------------
+STEP 4: AUTHENTICATION SUCCESS
+----------------------------------------
+LOG:
+INFO in auth_routes:
+[REQ:addd70cf-8695-4b4f-bb0b-bd4b4c3c45c1]
+Login success user_id=6
+
+Breakdown:
+- REQ ID → Unique request tracking ID (for debugging/log tracing)
+- user_id=6 → User found in DB and authenticated successfully
+
+Internally this means:
+✔ User credentials verified
+✔ Password matched (bcrypt)
+✔ JWT token generated
+✔ Response returned to frontend
+
+----------------------------------------
+STEP 5: FINAL RESPONSE
+----------------------------------------
+Status:
+200 OK
+
+Frontend receives:
+- Access Token (JWT)
+- Possibly Refresh Token
+- User details (optional)
+
+----------------------------------------
+FULL FLOW SUMMARY
+----------------------------------------
+1. Angular → sends OPTIONS (CORS check)
+2. Flask → responds OK
+3. Angular → sends POST login
+4. Flask:
+    - Validates user
+    - Generates JWT
+    - Logs success
+5. Response → 200 OK
+
+----------------------------------------
+IMPORTANT NOTES
+----------------------------------------
+⚠ Development server warning:
+- Do NOT use Flask built-in server in production
+- Use:
+    ✔ Gunicorn
+    ✔ Nginx (reverse proxy)
+
+----------------------------------------
+INTERVIEW READY POINTS
+----------------------------------------
+- What is OPTIONS request?
+  → CORS preflight validation
+
+- Why 2 requests (OPTIONS + POST)?
+  → Browser security (CORS policy)
+
+- What happens after login?
+  → JWT issued for stateless authentication
+
+- Why request ID?
+  → Helps trace logs in microservices
+
+----------------------------------------
+END OF FILE
+----------------------------------------

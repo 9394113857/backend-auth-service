@@ -1,0 +1,279 @@
+
+# ============================================================
+# 🔐 AUTH SERVICE (backend-auth-service/app/models/)
+# ============================================================
+
+# -------------------------------
+# File: user.py
+# -------------------------------
+from datetime import datetime
+from app.extensions import db
+
+class User(db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, index=True, nullable=True)
+    phone_number = db.Column(db.String(20), unique=True, index=True, nullable=True)
+    password_hash = db.Column(db.String(255), nullable=True)
+
+    role = db.Column(db.String(20), nullable=False)
+
+    is_active = db.Column(db.Boolean, default=True)
+    is_verified = db.Column(db.Boolean, default=False)
+
+    last_login_at = db.Column(db.DateTime)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# -------------------------------
+# File: user_profile.py
+# -------------------------------
+from app.extensions import db
+
+class UserProfile(db.Model):
+    __tablename__ = "user_profiles"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
+
+    full_name = db.Column(db.String(255))
+    address_line1 = db.Column(db.String(255))
+    address_line2 = db.Column(db.String(255))
+    city = db.Column(db.String(100))
+    state = db.Column(db.String(100))
+    pincode = db.Column(db.String(20))
+    country = db.Column(db.String(100))
+
+
+# -------------------------------
+# File: user_address.py
+# -------------------------------
+from datetime import datetime
+from app.extensions import db
+
+class UserAddress(db.Model):
+    __tablename__ = "user_addresses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    full_name = db.Column(db.String(255))
+    phone_number = db.Column(db.String(20))
+    address_line1 = db.Column(db.String(255))
+    address_line2 = db.Column(db.String(255))
+    city = db.Column(db.String(100))
+    state = db.Column(db.String(100))
+    pincode = db.Column(db.String(20))
+    country = db.Column(db.String(100))
+
+    is_default = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# -------------------------------
+# File: otp.py
+# -------------------------------
+from datetime import datetime
+from app.extensions import db
+
+class OTP(db.Model):
+    __tablename__ = "otps"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+
+    code = db.Column(db.String(10), nullable=False)
+    purpose = db.Column(db.String(50))
+
+    expires_at = db.Column(db.DateTime)
+    is_used = db.Column(db.Boolean, default=False)
+    attempt_count = db.Column(db.Integer, default=0)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+
+# ============================================================
+# 🛒 PRODUCT SERVICE (backend-product-service/app/models/)
+# ============================================================
+
+# -------------------------------
+# File: category.py
+# -------------------------------
+from datetime import datetime
+from app.extensions import db
+
+class Category(db.Model):
+    __tablename__ = "categories"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+
+    parent_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# -------------------------------
+# File: product.py
+# -------------------------------
+from datetime import datetime
+from app.extensions import db
+
+class Product(db.Model):
+    __tablename__ = "products"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text)
+
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"))
+    brand = db.Column(db.String(255))
+
+    seller_id = db.Column(db.Integer, nullable=False)
+
+    base_price = db.Column(db.Float)
+
+    is_active = db.Column(db.Boolean, default=True)
+    is_deleted = db.Column(db.Boolean, default=False)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# -------------------------------
+# File: product_variant.py
+# -------------------------------
+from datetime import datetime
+from app.extensions import db
+
+class ProductVariant(db.Model):
+    __tablename__ = "product_variants"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+
+    sku = db.Column(db.String(100), unique=True, nullable=False)
+    attributes_json = db.Column(db.JSON)
+
+    price = db.Column(db.Float, nullable=False)
+    discount_price = db.Column(db.Float)
+    stock = db.Column(db.Integer, default=0)
+
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# -------------------------------
+# File: product_image.py
+# -------------------------------
+from app.extensions import db
+
+class ProductImage(db.Model):
+    __tablename__ = "product_images"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+
+    image_url = db.Column(db.String(500))
+    is_primary = db.Column(db.Boolean, default=False)
+    display_order = db.Column(db.Integer)
+
+
+# -------------------------------
+# File: product_price_history.py
+# -------------------------------
+from datetime import datetime
+from app.extensions import db
+
+class ProductPriceHistory(db.Model):
+    __tablename__ = "product_price_history"
+
+    id = db.Column(db.Integer, primary_key=True)
+    variant_id = db.Column(db.Integer)
+
+    old_price = db.Column(db.Float)
+    new_price = db.Column(db.Float)
+
+    changed_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+
+# ============================================================
+# 🧺 CART SERVICE (backend-cart-order-service/app/models/)
+# ============================================================
+
+# -------------------------------
+# File: cart.py
+# -------------------------------
+from datetime import datetime
+from app.extensions import db
+
+class Cart(db.Model):
+    __tablename__ = "carts"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# -------------------------------
+# File: cart_item.py
+# -------------------------------
+from datetime import datetime
+from app.extensions import db
+
+class CartItem(db.Model):
+    __tablename__ = "cart_items"
+
+    id = db.Column(db.Integer, primary_key=True)
+    cart_id = db.Column(db.Integer, db.ForeignKey("carts.id"), nullable=False)
+
+    product_id = db.Column(db.Integer, nullable=False)
+    variant_id = db.Column(db.Integer, nullable=False)
+
+    quantity = db.Column(db.Integer, default=1)
+
+    price_at_added_time = db.Column(db.Float)
+    discount_price_at_added_time = db.Column(db.Float)
+
+    current_price = db.Column(db.Float)
+    current_discount_price = db.Column(db.Float)
+
+    is_saved_for_later = db.Column(db.Boolean, default=False)
+    is_selected = db.Column(db.Boolean, default=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+
+# ============================================================
+# 🚀 FINAL GIT COMMANDS (RUN PER PROJECT)
+# ============================================================
+
+"""
+# 🔐 AUTH SERVICE
+cd backend-auth-service
+git add .
+git commit -m "models: add user, profile, address, otp tables (final 2026 design)"
+git push
+
+# 🛒 PRODUCT SERVICE
+cd backend-product-service
+git add .
+git commit -m "models: add category, product, variant, image, price history (final 2026 design)"
+git push
+
+# 🧺 CART SERVICE
+cd backend-cart-order-service
+git add .
+git commit -m "models: add cart and cart_item with price snapshot (final 2026 design)"
+git push
+"""
