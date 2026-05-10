@@ -1,29 +1,54 @@
+import os
+import logging
+
+from logging.handlers import TimedRotatingFileHandler
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-import logging
-from logging.handlers import TimedRotatingFileHandler
-import os
+from flask_mail import Mail
 
-# Initialize extension instances
+
+# =====================================================
+# EXTENSIONS
+# =====================================================
+
 db = SQLAlchemy()
+
 migrate = Migrate()
+
 jwt = JWTManager()
+
 cors = CORS()
 
+mail = Mail()
+
+
+# =====================================================
+# LOGGING
+# =====================================================
+
 def setup_logging(app):
-    """
-    Configure daily rotating logs under /logs/auth.log
-    """
-    logs_dir = os.path.join(os.getcwd(), "logs")
-    if not os.path.exists(logs_dir):
-        os.makedirs(logs_dir)
 
-    log_file = os.path.join(logs_dir, "auth.log")
+    logs_dir = os.path.join(
+        os.getcwd(),
+        "logs"
+    )
 
-    # Avoid attaching multiple handlers during reload
-    if not any(isinstance(h, TimedRotatingFileHandler) for h in app.logger.handlers):
+    os.makedirs(logs_dir, exist_ok=True)
+
+    log_file = os.path.join(
+        logs_dir,
+        "auth.log"
+    )
+
+    # Avoid duplicate handlers
+    if not any(
+        isinstance(h, TimedRotatingFileHandler)
+        for h in app.logger.handlers
+    ):
+
         handler = TimedRotatingFileHandler(
             log_file,
             when="midnight",
@@ -35,7 +60,9 @@ def setup_logging(app):
         formatter = logging.Formatter(
             "%(asctime)s [%(levelname)s] %(name)s - %(message)s"
         )
+
         handler.setFormatter(formatter)
+
         handler.setLevel(logging.INFO)
 
         app.logger.addHandler(handler)
