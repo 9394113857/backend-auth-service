@@ -1,0 +1,180 @@
+# =====================================================
+# 🟦 AUTH SERVICE — LOCAL DATABASE RESET + FLASK SHELL
+# =====================================================
+
+# =====================================================
+# STEP 1 — ACTIVATE VENV
+# =====================================================
+
+.\venv\Scripts\activate
+
+# Expected:
+# (venv) PS E:\Devops-projects\backend-auth-service>
+
+
+# =====================================================
+# STEP 2 — SET FLASK APP
+# =====================================================
+
+$env:FLASK_APP="run.py"
+
+# VERIFY
+echo $env:FLASK_APP
+
+# Expected:
+# run.py
+
+
+# =====================================================
+# STEP 3 — REMOVE OLD MIGRATIONS
+# =====================================================
+
+Remove-Item -Recurse -Force migrations
+
+# VERIFY
+Test-Path migrations
+
+# Expected:
+# False
+
+
+# =====================================================
+# STEP 4 — REMOVE OLD SQLITE DATABASE
+# =====================================================
+
+Remove-Item .\instance\auth.db
+
+# VERIFY
+Test-Path .\instance\auth.db
+
+# Expected:
+# False
+
+
+# =====================================================
+# STEP 5 — CREATE FRESH MIGRATIONS
+# =====================================================
+
+flask db init
+
+# Expected:
+# Creating directory migrations ...
+# Generating migrations ...
+
+
+# =====================================================
+# STEP 6 — CREATE NEW MIGRATION FILE
+# =====================================================
+
+flask db migrate -m "initial migration"
+
+# Expected:
+# Detected added table ...
+# Generating migrations\versions\xxxx.py
+
+
+# =====================================================
+# STEP 7 — APPLY DATABASE
+# =====================================================
+
+flask db upgrade
+
+# Expected:
+# Running upgrade ...
+
+
+# =====================================================
+# STEP 8 — VERIFY CURRENT MIGRATION
+# =====================================================
+
+flask db current
+
+# Expected:
+# <migration-id> (head)
+
+
+# =====================================================
+# STEP 9 — OPEN FLASK SHELL
+# =====================================================
+
+flask shell
+
+
+# =====================================================
+# INSIDE FLASK SHELL
+# =====================================================
+
+from sqlalchemy import inspect
+
+from app.extensions import db
+
+from app.models.user import User
+
+
+# =====================================================
+# PRINT ALL TABLES
+# =====================================================
+
+print(
+    inspect(db.engine).get_table_names()
+)
+
+# Expected:
+# ['users', 'password_history', ...]
+
+
+# =====================================================
+# COUNT USERS
+# =====================================================
+
+print(
+    User.query.count()
+)
+
+# Expected:
+# 0
+
+
+# =====================================================
+# VIEW USERS
+# =====================================================
+
+print(
+    User.query.all()
+)
+
+# Expected:
+# []
+
+
+# =====================================================
+# EXIT FLASK SHELL
+# =====================================================
+
+exit()
+
+
+# =====================================================
+# STEP 10 — REMOVE FLASK APP VARIABLE
+# =====================================================
+
+Remove-Item Env:FLASK_APP
+
+# VERIFY
+echo $env:FLASK_APP
+
+# Expected:
+# (blank)
+
+
+# =====================================================
+# STEP 11 — START FLASK SERVER
+# =====================================================
+
+flask run
+
+# Expected:
+# Running on http://127.0.0.1:5000
+# Database IDs restarted from 1
+# Fresh local database ready
+# =====================================================
