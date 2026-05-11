@@ -1,0 +1,215 @@
+# =====================================================
+# 🟦 AUTH SERVICE — LOCAL SQLITE DATABASE RESET
+# =====================================================
+
+Write-Host ""
+Write-Host "=========================================" -ForegroundColor Cyan
+Write-Host "LOCAL SQLITE DATABASE RESET STARTED"
+Write-Host "=========================================" -ForegroundColor Cyan
+Write-Host ""
+
+
+# =====================================================
+# STEP 1 — ACTIVATE VENV
+# =====================================================
+
+Write-Host "STEP 1 → Activate virtual environment" -ForegroundColor Yellow
+
+.\venv\Scripts\activate
+
+Write-Host ""
+Write-Host "Virtual environment activated" -ForegroundColor Green
+Write-Host ""
+
+
+# =====================================================
+# STEP 2 — SET FLASK APP
+# =====================================================
+
+Write-Host "STEP 2 → Setting FLASK_APP" -ForegroundColor Yellow
+
+$env:FLASK_APP="run.py"
+
+Write-Host ""
+Write-Host "FLASK_APP set to run.py" -ForegroundColor Green
+Write-Host ""
+
+
+# =====================================================
+# STEP 3 — VERIFY FLASK APP
+# =====================================================
+
+Write-Host "STEP 3 → Verifying FLASK_APP" -ForegroundColor Yellow
+
+echo $env:FLASK_APP
+
+Write-Host ""
+
+
+# =====================================================
+# STEP 4 — REMOVE OLD MIGRATIONS
+# =====================================================
+
+Write-Host "STEP 4 → Removing migrations folder" -ForegroundColor Yellow
+
+if (Test-Path migrations) {
+
+    Remove-Item -Recurse -Force migrations
+
+    Write-Host ""
+    Write-Host "Migrations folder removed" -ForegroundColor Green
+
+} else {
+
+    Write-Host ""
+    Write-Host "No migrations folder found" -ForegroundColor Yellow
+}
+
+Write-Host ""
+
+
+# =====================================================
+# STEP 5 — REMOVE SQLITE DATABASE
+# =====================================================
+
+Write-Host "STEP 5 → Removing local SQLite database" -ForegroundColor Yellow
+
+if (Test-Path .\instance\auth.db) {
+
+    Remove-Item .\instance\auth.db
+
+    Write-Host ""
+    Write-Host "SQLite database removed" -ForegroundColor Green
+
+} else {
+
+    Write-Host ""
+    Write-Host "No auth.db file found" -ForegroundColor Yellow
+}
+
+Write-Host ""
+
+
+# =====================================================
+# STEP 6 — VERIFY DATABASE REMOVED
+# =====================================================
+
+Write-Host "STEP 6 → Verifying database removal" -ForegroundColor Yellow
+
+Test-Path .\instance\auth.db
+
+Write-Host ""
+
+
+# =====================================================
+# STEP 7 — CREATE NEW MIGRATIONS
+# =====================================================
+
+Write-Host "STEP 7 → Creating migrations" -ForegroundColor Yellow
+
+flask db init
+
+Write-Host ""
+
+
+# =====================================================
+# STEP 8 — CREATE MIGRATION FILE
+# =====================================================
+
+Write-Host "STEP 8 → Creating migration file" -ForegroundColor Yellow
+
+flask db migrate -m "initial migration"
+
+Write-Host ""
+
+
+# =====================================================
+# STEP 9 — APPLY MIGRATIONS
+# =====================================================
+
+Write-Host "STEP 9 → Applying migrations" -ForegroundColor Yellow
+
+flask db upgrade
+
+Write-Host ""
+Write-Host "Fresh database created successfully" -ForegroundColor Green
+Write-Host ""
+
+
+# =====================================================
+# STEP 10 — VERIFY CURRENT MIGRATION
+# =====================================================
+
+Write-Host "STEP 10 → Checking current migration" -ForegroundColor Yellow
+
+flask db current
+
+Write-Host ""
+
+
+# =====================================================
+# STEP 11 — OPEN FLASK SHELL
+# =====================================================
+
+Write-Host "STEP 11 → Opening Flask shell" -ForegroundColor Yellow
+
+flask shell
+
+
+# =====================================================
+# INSIDE FLASK SHELL
+# =====================================================
+
+# from sqlalchemy import inspect
+# from app.extensions import db
+# from app.models.user import User
+#
+# print(inspect(db.engine).get_table_names())
+# print(User.query.count())
+# print(User.query.all())
+#
+# exit()
+
+
+# =====================================================
+# STEP 12 — REMOVE FLASK APP VARIABLE
+# =====================================================
+
+Write-Host "STEP 12 → Removing FLASK_APP variable" -ForegroundColor Yellow
+
+Remove-Item Env:FLASK_APP
+
+Write-Host ""
+Write-Host "FLASK_APP removed" -ForegroundColor Green
+Write-Host ""
+
+
+# =====================================================
+# STEP 13 — VERIFY FLASK_APP REMOVED
+# =====================================================
+
+Write-Host "STEP 13 → Verifying removal" -ForegroundColor Yellow
+
+echo $env:FLASK_APP
+
+Write-Host ""
+
+
+# =====================================================
+# STEP 14 — START FLASK SERVER
+# =====================================================
+
+Write-Host "STEP 14 → Starting Flask server" -ForegroundColor Yellow
+
+flask run
+
+
+# =====================================================
+# FINAL OUTPUT
+# =====================================================
+
+# ✔ Local SQLite database reset
+# ✔ All tables recreated
+# ✔ IDs restarted from 1
+# ✔ Fresh local backend ready
+# =====================================================
