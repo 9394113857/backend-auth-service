@@ -150,3 +150,28 @@ flask db upgrade
 
 
 
+✅ SET FLASK APP
+$env:FLASK_APP="run.py"
+✅ VERIFY FLASK APP
+echo $env:FLASK_APP
+
+Expected:
+
+run.py
+✅ REMOVE FLASK APP VARIABLE
+Remove-Item Env:FLASK_APP
+✅ VERIFY REMOVED
+echo $env:FLASK_APP
+
+Expected:
+
+(blank output)
+
+# Run the servcie now:-
+flask run
+
+
+
+
+
+
