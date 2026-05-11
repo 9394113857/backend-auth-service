@@ -1,0 +1,42 @@
+✅ ENABLE FULL ERROR LOGS
+STEP 1
+Stop backend:
+CTRL + C
+________________________________________
+STEP 2
+Set debug mode:
+$env:FLASK_DEBUG="1"
+________________________________________
+STEP 3
+VERIFY:
+echo $env:FLASK_DEBUG
+Expected:
+1
+________________________________________
+STEP 4
+Run again:
+flask run
+NOW expected:
+Debug mode: on
+________________________________________
+✅ NOW TEST SIGNUP AGAIN
+This time backend terminal will show FULL traceback like:
+SMTPAuthenticationError
+OR:
+KeyError
+OR:
+Route not found
+OR:
+Database error
+THAT is what we need now 🔥
+________________________________________
+✅ ALSO OPEN ANGULAR BROWSER CONSOLE
+Press:
+F12
+→ Network tab
+→ signup request
+Check:
+status code
+response
+VERY important now.
+
