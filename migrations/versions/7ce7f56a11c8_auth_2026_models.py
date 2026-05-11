@@ -1,8 +1,8 @@
-"""auth 2026 initial models
+"""Auth 2026 models
 
-Revision ID: d6d7d9081314
+Revision ID: 7ce7f56a11c8
 Revises: 
-Create Date: 2026-05-11 12:58:31.739755
+Create Date: 2026-05-11 18:38:41.726770
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd6d7d9081314'
+revision = '7ce7f56a11c8'
 down_revision = None
 branch_labels = None
 depends_on = None
