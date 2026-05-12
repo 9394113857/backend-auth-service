@@ -16,9 +16,15 @@ curl http://127.0.0.1:5001/
 # 2. REGISTER USER
 # ===========================================================
 
-curl -X POST http://127.0.0.1:5000/angularUser/register ^
+# REGISTER SELLER ✅
+curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/register ^
 -H "Content-Type: application/json" ^
--d "{\"email\":\"practicesession3@gmail.com\",\"password\":\"Raghu@123\",\"first_name\":\"Raghu\",\"last_name\":\"DevOps\"}"
+-d "{\"email\":\"raghunadh28@gmail.com\",\"password\":\"Seller@123\",\"first_name\":\"Raghunadh\",\"last_name\":\"Seller\",\"role\":\"seller\"}"
+
+# REGISTER CUSTOMER ✅
+curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"barlapudiraghu@gmail.com\",\"password\":\"User@123\",\"first_name\":\"Raghu\",\"last_name\":\"Customer\",\"role\":\"user\"}"
 
 
 # =============
