@@ -1,0 +1,198 @@
+# ===========================================================
+# 🚀 AUTH SERVICE FULL CURL TEST FLOW
+# ===========================================================
+
+# ===========================================================
+# 1. HEALTH CHECK
+# ===========================================================
+
+curl http://127.0.0.1:5001/
+
+# ===========================================================
+# 2. REGISTER USER
+# ===========================================================
+
+curl -X POST http://127.0.0.1:5001/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"practicesession3@gmail.com\",\"password\":\"Raghu@123\",\"first_name\":\"Raghu\",\"last_name\":\"DevOps\"}"
+
+# ===========================================================
+# EXPECTED:
+# Email verification mail sent
+# ===========================================================
+
+# ===========================================================
+# 3. VERIFY EMAIL
+# ===========================================================
+
+# STEP:
+# Open email manually
+# Copy verification link
+# Paste into browser
+
+# Example:
+
+# http://127.0.0.1:5001/angularUser/verify-email/TOKEN_HERE
+
+# ===========================================================
+# EXPECTED:
+# Email verified successfully
+# ===========================================================
+
+# ===========================================================
+# 4. LOGIN
+# ===========================================================
+
+curl -X POST http://127.0.0.1:5001/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"practicesession3@gmail.com\",\"password\":\"Raghu@123\"}"
+
+# ===========================================================
+# EXPECTED:
+# JWT access token returned
+# ===========================================================
+
+# ===========================================================
+# 5. COPY ACCESS TOKEN
+# ===========================================================
+
+# Save token manually
+
+# Example:
+
+# set TOKEN=PASTE_JWT_TOKEN_HERE
+
+# ===========================================================
+# 6. PROFILE API
+# ===========================================================
+
+curl http://127.0.0.1:5001/profile ^
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# ===========================================================
+# EXPECTED:
+# User profile details
+# ===========================================================
+
+# ===========================================================
+# 7. UPDATE PROFILE
+# ===========================================================
+
+curl -X PUT http://127.0.0.1:5001/profile ^
+-H "Content-Type: application/json" ^
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" ^
+-d "{\"first_name\":\"Raghu Updated\",\"phone_number\":\"9394113857\"}"
+
+# ===========================================================
+# EXPECTED:
+# Profile updated successfully
+# ===========================================================
+
+# ===========================================================
+# 8. CHANGE PASSWORD
+# ===========================================================
+
+curl -X POST http://127.0.0.1:5001/change-password ^
+-H "Content-Type: application/json" ^
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" ^
+-d "{\"old_password\":\"Raghu@123\",\"new_password\":\"Raghu@456\"}"
+
+# ===========================================================
+# EXPECTED:
+# Password changed successfully
+# Please login again
+# ===========================================================
+
+# ===========================================================
+# 9. LOGIN WITH NEW PASSWORD
+# ===========================================================
+
+curl -X POST http://127.0.0.1:5001/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"practicesession3@gmail.com\",\"password\":\"Raghu@456\"}"
+
+# ===========================================================
+# 10. FORGOT PASSWORD
+# ===========================================================
+
+curl -X POST http://127.0.0.1:5001/forgot-password ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"practicesession3@gmail.com\"}"
+
+# ===========================================================
+# EXPECTED:
+# Password reset email sent
+# ===========================================================
+
+# ===========================================================
+# 11. RESET PASSWORD
+# ===========================================================
+
+# STEP:
+# Open email manually
+# Copy reset token link
+
+# Example:
+
+# http://127.0.0.1:5001/reset-password/TOKEN_HERE
+
+# Then use:
+
+curl -X POST http://127.0.0.1:5001/reset-password/YOUR_RESET_TOKEN ^
+-H "Content-Type: application/json" ^
+-d "{\"password\":\"Raghu@789\"}"
+
+# ===========================================================
+# EXPECTED:
+# Password reset successful
+# ===========================================================
+
+# ===========================================================
+# 12. LOGIN WITH RESET PASSWORD
+# ===========================================================
+
+curl -X POST http://127.0.0.1:5001/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"practicesession3@gmail.com\",\"password\":\"Raghu@789\"}"
+
+# ===========================================================
+# 13. CREATE ADDRESS
+# ===========================================================
+
+curl -X POST http://127.0.0.1:5001/addresses ^
+-H "Content-Type: application/json" ^
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" ^
+-d "{\"full_name\":\"Raghu\",\"phone_number\":\"9394113857\",\"address_line_1\":\"Street 1\",\"city\":\"Hyderabad\",\"state\":\"Telangana\",\"country\":\"India\",\"postal_code\":\"500001\"}"
+
+# ===========================================================
+# EXPECTED:
+# Address created successfully
+# ===========================================================
+
+# ===========================================================
+# 14. GET ADDRESSES
+# ===========================================================
+
+curl http://127.0.0.1:5001/addresses ^
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# ===========================================================
+# EXPECTED:
+# Address list
+# ===========================================================
+
+# ===========================================================
+# 15. LOGOUT
+# ===========================================================
+
+curl -X POST http://127.0.0.1:5001/logout ^
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# ===========================================================
+# EXPECTED:
+# Logged out successfully
+# ===========================================================
+
+# ===========================================================
+# 🚀 END OF FULL AUTH TEST FLOW
+# ===========================================================
