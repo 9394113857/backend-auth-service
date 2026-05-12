@@ -10,6 +10,13 @@ from app.extensions import mail
 
 
 # =====================================================
+# FRONTEND URL
+# =====================================================
+
+FRONTEND_URL = "http://localhost:4200"
+
+
+# =====================================================
 # EMAIL VERIFICATION
 # =====================================================
 
@@ -19,12 +26,12 @@ def send_verification_email(
 ):
 
     # =====================================================
-    # DIRECT BACKEND VERIFY URL
+    # ANGULAR VERIFY URL
     # =====================================================
 
     verify_link = (
-        f"http://127.0.0.1:5000"
-        f"/api/v1/auth/angularUser/verify-email/{token}"
+        f"{FRONTEND_URL}"
+        f"/verify-email/{token}"
     )
 
     msg = Message(
@@ -65,12 +72,12 @@ def send_reset_email(
 ):
 
     # =====================================================
-    # DIRECT BACKEND RESET URL
+    # ANGULAR RESET URL
     # =====================================================
 
     reset_link = (
-        f"http://127.0.0.1:5000"
-        f"/api/v1/auth/reset-password/{token}"
+        f"{FRONTEND_URL}"
+        f"/reset-password/{token}"
     )
 
     msg = Message(
@@ -96,4 +103,4 @@ def send_reset_email(
     </a>
     """
 
-    mail.send(msg)
+    mail.send(msg) 
