@@ -1,0 +1,6 @@
+Remove-Item ".\AUTH_SERVICE_MODELS_REFERENCE_2026.txt" -ErrorAction SilentlyContinue; Get-ChildItem ".\app\models" -File | ForEach-Object { if ($_.Extension -eq ".py" -and $_.Name -ne "__init__.py") { " `r`n# ======================================================`r`n# FILE: $($_.Name)`r`n# ======================================================`r`n " | Out-File ".\AUTH_SERVICE_MODELS_REFERENCE_2026.txt" -Append; Get-Content $_.FullName | Out-File ".\AUTH_SERVICE_MODELS_REFERENCE_2026.txt" -Append } }; notepad ".\AUTH_SERVICE_MODELS_REFERENCE_2026.txt"
+tree app\models /F
+
+
+
+
