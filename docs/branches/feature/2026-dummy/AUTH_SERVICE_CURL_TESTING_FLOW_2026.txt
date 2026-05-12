@@ -43,6 +43,100 @@ curl -X POST http://127.0.0.1:5000/api/v1/auth/logout ^
 curl http://127.0.0.1:5000/api/v1/auth/profile ^
 -H "Authorization: Bearer %TOKEN%"
 
+-----------------------------------------------------------------------
+# After Login Success Change password now for Seller:
+curl -X POST http://127.0.0.1:5000/api/v1/auth/change-password ^
+-H "Content-Type: application/json" ^
+-H "Authorization: Bearer %TOKEN%" ^
+-d "{\"old_password\":\"Seller@123\",\"new_password\":\"Raghu@123\"}"
+
+# Now test profile immediately using SAME token:
+curl http://127.0.0.1:5000/api/v1/auth/profile ^
+-H "Authorization: Bearer %TOKEN%"
+
+# Check if OLD password fails now for seller:
+curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"raghunadh28@gmail.com\",\"password\":\"Seller@123\"}"
+
+# Login using NEW password for seller:
+curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"raghunadh28@gmail.com\",\"password\":\"Raghu@123\"}"
+
+# STEP COPY ACCESS TOKEN:
+set TOKEN=PASTE_ACCESS_TOKEN_HERE
+
+# STEP PROFILE CHECK (WHILE LOGGED IN) ✅
+curl http://127.0.0.1:5000/api/v1/auth/profile ^
+-H "Authorization: Bearer %TOKEN%"
+
+# STEP LOGOUT ✅
+curl -X POST http://127.0.0.1:5000/api/v1/auth/logout ^
+-H "Authorization: Bearer %TOKEN%"
+
+# PROFILE AGAIN USING SAME OLD TOKEN:
+curl http://127.0.0.1:5000/api/v1/auth/profile ^
+-H "Authorization: Bearer %TOKEN%"
+
+----------------------------------------------------------------
+
+# First trigger forgot password mail for seller:
+curl -X POST http://127.0.0.1:5000/api/v1/auth/forgot-password ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"raghunadh28@gmail.com\"}"
+
+1️⃣ Open Gmail
+2️⃣ Click “Reset Password” button
+3️⃣ Browser opens URL like:
+
+http://127.0.0.1:5000/api/v1/auth/reset-password/VERY_LONG_TOKEN
+
+4️⃣ Copy ONLY token part after:
+
+/reset-password/
+
+Example:
+
+abcxyz123token....
+
+THEN use:
+
+curl -X POST http://127.0.0.1:5000/api/v1/auth/reset-password/PASTE_TOKEN_HERE ^
+-H "Content-Type: application/json" ^
+-d "{\"new_password\":\"Final@123\"}"
+
+No verification needed now broooo 🚀
+
+Your token:
+
+uLkVKVD31CZnkIN52MZ5zRI_-lSN1NcN-tsgnBMm0TfRyJBL7fxytO-2ltzLnWhI
+
+# Now run for password chage for seller for forgot password flow:
+curl -X POST http://127.0.0.1:5000/api/v1/auth/reset-password/uLkVKVD31CZnkIN52MZ5zRI_-lSN1NcN-tsgnBMm0TfRyJBL7fxytO-2ltzLnWhI ^
+-H "Content-Type: application/json" ^
+-d "{\"password\":\"Final@123\"}"
+
+# OLD password should FAIL for seller:
+curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"raghunadh28@gmail.com\",\"password\":\"Raghu@123\"}"
+
+# NEW reset password should WORK:
+curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"raghunadh28@gmail.com\",\"password\":\"Final@123\"}"
+
+
+
+
+
+
+
+
+
+
+============================================================================
 
 # REGISTER CUSTOMER ✅
 curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/register ^
