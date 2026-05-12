@@ -77,6 +77,8 @@ def angular_register():
 
     last_name = data.get("last_name")
 
+    role = data.get("role", "user")
+
     if not email or not password:
         return jsonify({
             "message": "email and password required"
@@ -86,7 +88,8 @@ def angular_register():
         email=email,
         password=password,
         first_name=first_name,
-        last_name=last_name
+        last_name=last_name,
+        role=role
     )
 
     return jsonify(resp), status

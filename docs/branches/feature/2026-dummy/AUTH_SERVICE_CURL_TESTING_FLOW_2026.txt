@@ -21,10 +21,63 @@ curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/register ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"raghunadh28@gmail.com\",\"password\":\"Seller@123\",\"first_name\":\"Raghunadh\",\"last_name\":\"Seller\",\"role\":\"seller\"}"
 
+
+# LOGIN SELLER ✅
+curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"raghunadh28@gmail.com\",\"password\":\"Seller@123\"}"
+
+
+# STEP COPY ACCESS TOKEN:
+set TOKEN=PASTE_ACCESS_TOKEN_HERE
+
+# STEP PROFILE CHECK (WHILE LOGGED IN) ✅
+curl http://127.0.0.1:5000/api/v1/auth/profile ^
+-H "Authorization: Bearer %TOKEN%"
+
+# STEP LOGOUT ✅
+curl -X POST http://127.0.0.1:5000/api/v1/auth/logout ^
+-H "Authorization: Bearer %TOKEN%"
+
+# PROFILE AGAIN USING SAME OLD TOKEN:
+curl http://127.0.0.1:5000/api/v1/auth/profile ^
+-H "Authorization: Bearer %TOKEN%"
+
+
 # REGISTER CUSTOMER ✅
 curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/register ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"barlapudiraghu@gmail.com\",\"password\":\"User@123\",\"first_name\":\"Raghu\",\"last_name\":\"Customer\",\"role\":\"user\"}"
+
+
+# Blcth the user if not verfied:-
+curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"barlapudiraghu@gmail.com\",\"password\":\"User@123\"}"
+
+# Login after email verification broooo 🚀:
+curl -X POST http://127.0.0.1:5000/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"barlapudiraghu@gmail.com\",\"password\":\"User@123\"}"
+
+# Set access token for Customer Now 🚀:
+set TOKEN=PASTE_ACCESS_TOKEN_HERE
+
+# Check Customer profile ✅
+curl http://127.0.0.1:5000/api/v1/auth/profile ^
+-H "Authorization: Bearer %TOKEN%"
+
+
+# Customer logout ✅:
+curl -X POST http://127.0.0.1:5000/api/v1/auth/logout ^
+-H "Authorization: Bearer %TOKEN%"
+
+
+# Then customer profile again using SAME old token 🚀:
+curl http://127.0.0.1:5000/api/v1/auth/profile ^
+-H "Authorization: Bearer %TOKEN%"
+
+
 
 
 # =============
