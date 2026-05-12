@@ -199,3 +199,72 @@ def authenticate_user(
         "role": user.role,
         "userId": user.id
     }, 200
+
+
+# =====================================================
+# VERIFY EMAIL
+# =====================================================
+
+def verify_email_token(
+    token: str
+):
+
+    verification = EmailVerificationToken.query.filter_by(
+        token=token
+    ).first()
+
+    # =====================================================
+    # INVALID TOKEN
+    # =====================================================
+
+    if not verification:
+
+        return {
+            "error": "Invalid verification link"
+        }, 400
+
+    # =====================================================
+    # USER
+    # =====================================================
+
+    user = User.query.get(
+        verification.user_id
+    )
+
+    if not user:
+
+        return {
+            "error": "User not found"
+        }, 404
+
+    # =====================================================
+    # ALREADY VERIFIED
+    # =====================================================
+
+    if user.is_verified:
+
+        return {
+            "message": "Email already verified"
+        }, 200
+
+    # =====================================================
+    # EXPIRED TOKEN
+    # =====================================================
+
+    if verification.expires_at < datetime.utcnow():
+
+        return {
+            "error": "Verification link expired"
+        }, 400
+
+    # =====================================================
+    # VERIFY USER
+    # =====================================================
+
+    user.is_verified = True
+
+    db.session.commit()
+
+    return {
+        "message": "Email verified successfully"
+    }, 200
