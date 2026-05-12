@@ -13,7 +13,8 @@ from app.extensions import mail
 # FRONTEND URL
 # =====================================================
 
-FRONTEND_URL = "http://localhost:4200"
+# FRONTEND_URL = "http://localhost:4200"
+FRONTEND_URL = "https://scintillating-cheesecake-39e8db.netlify.app"
 
 
 # =====================================================
