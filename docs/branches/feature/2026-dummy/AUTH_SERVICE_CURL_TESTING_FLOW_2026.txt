@@ -2,6 +2,10 @@
 # 🚀 AUTH SERVICE FULL CURL TEST FLOW
 # ===========================================================
 
+# First Check Available Routes
+# Run in another terminal:
+flask routes
+
 # ===========================================================
 # 1. HEALTH CHECK
 # ===========================================================
@@ -12,11 +16,13 @@ curl http://127.0.0.1:5001/
 # 2. REGISTER USER
 # ===========================================================
 
-curl -X POST http://127.0.0.1:5001/angularUser/register ^
+curl -X POST http://127.0.0.1:5000/angularUser/register ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"practicesession3@gmail.com\",\"password\":\"Raghu@123\",\"first_name\":\"Raghu\",\"last_name\":\"DevOps\"}"
 
-# ===========================================================
+
+# =============
+==============================================
 # EXPECTED:
 # Email verification mail sent
 # ===========================================================
