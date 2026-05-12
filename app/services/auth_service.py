@@ -1,3 +1,7 @@
+# =====================================================
+# AUTH SERVICE
+# =====================================================
+
 from datetime import datetime, timedelta
 
 import secrets
@@ -21,6 +25,10 @@ from app.services.email_service import (
     send_verification_email
 )
 
+from app.services.token_service import (
+    save_refresh_token
+)
+
 
 # =====================================================
 # REGISTER USER
@@ -30,7 +38,8 @@ def register_user(
     email: str,
     password: str,
     first_name: str,
-    last_name: str
+    last_name: str,
+    role: str = "user"
 ):
 
     existing_user = User.query.filter_by(
@@ -42,11 +51,26 @@ def register_user(
             "error": "Email already exists"
         }, 409
 
+    # =====================================================
+    # ROLE VALIDATION
+    # =====================================================
+
+    if role not in ["user", "seller"]:
+        role = "user"
+
+    # =====================================================
+    # USER
+    # =====================================================
+
     user = User(
         email=email,
-        role="user",
+        role=role,
         first_name=first_name,
         last_name=last_name,
+        full_name=(
+            f"{first_name or ''} "
+            f"{last_name or ''}"
+        ).strip(),
         is_verified=False
     )
 
@@ -68,7 +92,7 @@ def register_user(
     db.session.add(history)
 
     # =====================================================
-    # EMAIL VERIFICATION
+    # EMAIL VERIFICATION TOKEN
     # =====================================================
 
     token = secrets.token_urlsafe(48)
@@ -93,7 +117,9 @@ def register_user(
     )
 
     current_app.logger.info(
-        f"User created id={user.id} email={user.email}"
+        f"User created id={user.id} "
+        f"email={user.email} "
+        f"role={user.role}"
     )
 
     return {
@@ -155,6 +181,16 @@ def authenticate_user(
 
     refresh_token = create_refresh_token(
         identity=str(user.id)
+    )
+
+    # =====================================================
+    # SAVE REFRESH TOKEN
+    # =====================================================
+
+    save_refresh_token(
+        user_id=user.id,
+        token=refresh_token,
+        expires_at=datetime.utcnow() + timedelta(days=7)
     )
 
     return {

@@ -1,3 +1,7 @@
+# =====================================================
+# EMAIL SERVICE
+# =====================================================
+
 from flask import current_app
 
 from flask_mail import Message
@@ -14,9 +18,13 @@ def send_verification_email(
     token
 ):
 
+    # =====================================================
+    # DIRECT BACKEND VERIFY URL
+    # =====================================================
+
     verify_link = (
-        f"{current_app.config['FRONTEND_URL']}"
-        f"/verify-email?token={token}"
+        f"http://127.0.0.1:5000"
+        f"/api/v1/auth/angularUser/verify-email/{token}"
     )
 
     msg = Message(
@@ -56,9 +64,13 @@ def send_reset_email(
     token
 ):
 
+    # =====================================================
+    # DIRECT BACKEND RESET URL
+    # =====================================================
+
     reset_link = (
-        f"{current_app.config['FRONTEND_URL']}"
-        f"/reset-password?token={token}"
+        f"http://127.0.0.1:5000"
+        f"/api/v1/auth/reset-password/{token}"
     )
 
     msg = Message(
