@@ -4,9 +4,7 @@
 
 from flask import current_app
 
-from flask_mail import Message
-
-from app.extensions import mail
+import resend
 
 
 # =====================================================
@@ -14,7 +12,10 @@ from app.extensions import mail
 # =====================================================
 
 # FRONTEND_URL = "http://localhost:4200"
-FRONTEND_URL = "https://scintillating-cheesecake-39e8db.netlify.app"
+
+FRONTEND_URL = (
+    "https://scintillating-cheesecake-39e8db.netlify.app"
+)
 
 
 # =====================================================
@@ -27,6 +28,14 @@ def send_verification_email(
 ):
 
     # =====================================================
+    # RESEND API KEY
+    # =====================================================
+
+    resend.api_key = current_app.config[
+        "RESEND_API_KEY"
+    ]
+
+    # =====================================================
     # ANGULAR VERIFY URL
     # =====================================================
 
@@ -35,32 +44,36 @@ def send_verification_email(
         f"/verify-email/{token}"
     )
 
-    msg = Message(
-        subject="Verify Your Email",
-        recipients=[email],
-        sender=current_app.config["MAIL_USERNAME"]
-    )
+    resend.Emails.send({
 
-    msg.html = f"""
-    <h2>Welcome to Our Platform</h2>
+        "from": "onboarding@resend.dev",
 
-    <p>Thank you for registering.</p>
+        "to": email,
 
-    <p>Please verify your email below:</p>
+        "subject": "Verify Your Email",
 
-    <a href="{verify_link}"
-       style="
-            padding:10px 20px;
-            background:#4CAF50;
-            color:white;
-            text-decoration:none;
-            border-radius:5px;
-       ">
-       Verify Email
-    </a>
-    """
+        "html": f"""
 
-    mail.send(msg)
+        <h2>Welcome to Our Platform</h2>
+
+        <p>Thank you for registering.</p>
+
+        <p>Please verify your email below:</p>
+
+        <a href="{verify_link}"
+           style="
+                padding:10px 20px;
+                background:#4CAF50;
+                color:white;
+                text-decoration:none;
+                border-radius:5px;
+           ">
+           Verify Email
+        </a>
+
+        """
+
+    })
 
 
 # =====================================================
@@ -73,6 +86,14 @@ def send_reset_email(
 ):
 
     # =====================================================
+    # RESEND API KEY
+    # =====================================================
+
+    resend.api_key = current_app.config[
+        "RESEND_API_KEY"
+    ]
+
+    # =====================================================
     # ANGULAR RESET URL
     # =====================================================
 
@@ -81,27 +102,31 @@ def send_reset_email(
         f"/reset-password/{token}"
     )
 
-    msg = Message(
-        subject="Password Reset Request",
-        recipients=[email],
-        sender=current_app.config["MAIL_USERNAME"]
-    )
+    resend.Emails.send({
 
-    msg.html = f"""
-    <h2>Password Reset</h2>
+        "from": "onboarding@resend.dev",
 
-    <p>You requested a password reset.</p>
+        "to": email,
 
-    <a href="{reset_link}"
-       style="
-            padding:10px 20px;
-            background:#ff6600;
-            color:white;
-            text-decoration:none;
-            border-radius:5px;
-       ">
-       Reset Password
-    </a>
-    """
+        "subject": "Password Reset Request",
 
-    mail.send(msg) 
+        "html": f"""
+
+        <h2>Password Reset</h2>
+
+        <p>You requested a password reset.</p>
+
+        <a href="{reset_link}"
+           style="
+                padding:10px 20px;
+                background:#ff6600;
+                color:white;
+                text-decoration:none;
+                border-radius:5px;
+           ">
+           Reset Password
+        </a>
+
+        """
+
+    })
