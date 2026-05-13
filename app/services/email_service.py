@@ -112,7 +112,7 @@ def send_reset_email(
         # TEST EMAIL (SANDBOX)
         # =================================================
 
-        "from": "practicesession3@gmail.com",
+        "from": "onboarding@resend.dev",
 
         "to": email,
 
