@@ -47,10 +47,10 @@ def send_verification_email(
     resend.Emails.send({
 
         # =================================================
-        # TEST EMAIL (SANDBOX)
+        # TEST EMAIL (SANDBOX)    
         # =================================================
 
-        "from": "practicesession3@gmail.com",
+        "from": "onboarding@resend.dev",
 
         "to": email,
 
