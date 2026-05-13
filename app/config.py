@@ -74,18 +74,6 @@ class Config:
 
     )
 
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(
-
-        days=int(
-
-            os.getenv(
-                "JWT_REFRESH_TOKEN_EXPIRES_DAYS",
-                7
-            )
-
-        )
-
-    )
 
     # =====================================================
     # RESEND EMAIL API
