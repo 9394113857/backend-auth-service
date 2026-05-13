@@ -68,7 +68,13 @@ class Config:
     # FRONTEND
     # =====================================================
 
+    # FRONTEND_URL = os.getenv(
+    #     "FRONTEND_URL",
+    #     "http://localhost:4200"
+    # )
+
+    
     FRONTEND_URL = os.getenv(
         "FRONTEND_URL",
-        "http://localhost:4200"
+        "https://scintillating-cheesecake-39e8db.netlify.app"
     )
