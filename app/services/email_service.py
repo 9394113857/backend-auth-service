@@ -46,7 +46,11 @@ def send_verification_email(
 
     resend.Emails.send({
 
-        "from": "onboarding@resend.dev",
+        # =================================================
+        # TEST EMAIL (SANDBOX)
+        # =================================================
+
+        "from": "practicesession3@gmail.com",
 
         "to": email,
 
@@ -104,7 +108,11 @@ def send_reset_email(
 
     resend.Emails.send({
 
-        "from": "onboarding@resend.dev",
+        # =================================================
+        # TEST EMAIL (SANDBOX)
+        # =================================================
+
+        "from": "practicesession3@gmail.com",
 
         "to": email,
 
