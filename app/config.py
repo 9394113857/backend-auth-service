@@ -67,7 +67,7 @@ class Config:
 
             os.getenv(
                 "JWT_ACCESS_TOKEN_EXPIRES",
-                1800
+                3600
             )
 
         )
@@ -93,6 +93,7 @@ class Config:
 
     RESEND_API_KEY = os.getenv(
         "RESEND_API_KEY"
+        # re_Dmd8GKRJ_67HMq4Va9pcd9HB5VtbytxpQ
     )
 
     # =====================================================
@@ -137,17 +138,19 @@ class Config:
 
     MAIL_USERNAME = os.getenv(
         "MAIL_USERNAME"
+        # practicesession3@gmail.com
     )
 
     MAIL_PASSWORD = os.getenv(
         "MAIL_PASSWORD"
+        # klcw gvyo prqp sazb
     )
 
     MAIL_DEFAULT_SENDER = os.getenv(
 
         "MAIL_DEFAULT_SENDER",
 
-        MAIL_USERNAME
+        # practicesession3@gmail.com
 
     )
 
@@ -160,6 +163,10 @@ class Config:
         "CORS_ALLOWED_ORIGINS",
 
         "http://localhost:4200"
+        
+        # "https://scintillating-cheesecake-39e8db.netlify.app"
+        
+
 
     )
 
@@ -170,8 +177,10 @@ class Config:
     FRONTEND_URL = os.getenv(
 
         "FRONTEND_URL",
+        
+        "http://localhost:4200"
 
-        "https://scintillating-cheesecake-39e8db.netlify.app"
+        # "https://scintillating-cheesecake-39e8db.netlify.app"
 
     )
 
