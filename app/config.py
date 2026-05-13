@@ -74,7 +74,26 @@ class Config:
 
     )
 
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(
+
+        days=int(
+
+            os.getenv(
+                "JWT_REFRESH_TOKEN_EXPIRES_DAYS",
+                7
+            )
+
+        )
+
+    )
+
+    # =====================================================
+    # RESEND EMAIL API
+    # =====================================================
+
+    RESEND_API_KEY = os.getenv(
+        "RESEND_API_KEY"
+    )
 
     # =====================================================
     # MAIL (OPTIONAL FALLBACK SMTP)
@@ -151,5 +170,19 @@ class Config:
     FRONTEND_URL = os.getenv(
 
         "FRONTEND_URL",
-        "http://localhost:4200"
+
+        "https://scintillating-cheesecake-39e8db.netlify.app"
+
+    )
+
+    # =====================================================
+    # FLASK ENV
+    # =====================================================
+
+    FLASK_ENV = os.getenv(
+
+        "FLASK_ENV",
+
+        "development"
+
     )
