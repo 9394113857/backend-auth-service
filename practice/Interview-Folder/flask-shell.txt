@@ -1,0 +1,55 @@
+🟦 PROJECT 1 — AUTH SERVICE (Users, Tokens, Auth DB)
+# =====================================================
+# AUTH SERVICE – DATABASE INSPECTION (FLASK SHELL)
+# =====================================================
+
+# Step 1: Activate virtual environment
+.\venv\Scripts\activate
+
+# Step 2: Set DATABASE_URL (modify if needed)
+$env:DATABASE_URL="postgresql+psycopg://neondb_owner:npg_Z2AynLcN0eVH@ep-bitter-lab-a1o801hx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+
+flask db current
+
+
+# Step 3: Open Flask shell
+flask shell
+
+# -----------------------------
+# INSIDE FLASK SHELL
+# -----------------------------
+
+from sqlalchemy import inspect
+from app.extensions import db
+from app.models.user import User
+
+# List all tables
+inspect(db.engine).get_table_names()
+
+# View users
+User.query.all()
+
+# Count users
+User.query.count()
+
+# Exit shell
+exit()
+
+---------------------------------------------------------
+Step : REMOVE DATABASE_URL (CLEAN & SAFE)
+---------------------------------------------------------
+if (Test-Path Env:DATABASE_URL) {
+    Remove-Item Env:DATABASE_URL
+    Write-Host "DATABASE_URL removed" -ForegroundColor Green
+} else {
+    Write-Host "DATABASE_URL not set" -ForegroundColor Yellow
+}
+
+----------------------------------------------------
+STEP : (OPTIONAL) CLEAR DATABASE_URL
+----------------------------------------------------
+# Removes Neon URL from terminal session
+# Good practice but not mandatory
+
+Remove-Item Env:DATABASE_URL
