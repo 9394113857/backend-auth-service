@@ -33,7 +33,7 @@ User.query.all()
 # Count users
 User.query.count()
 
-# Exit shell
+# Exit shell 
 exit()
 
 ---------------------------------------------------------
