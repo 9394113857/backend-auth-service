@@ -1,0 +1,102 @@
+=====================================================
+🟦 POSTMAN TESTING FLOW
+=====================================================
+🔹 1. HEALTH CHECK
+Method
+GET
+URL
+http://127.0.0.1:5000/
+Expected Response
+{
+  "status": "auth-service UP"
+}
+________________________________________
+🔹 2. REGISTER USER
+Method
+POST
+URL
+http://127.0.0.1:5000/angularUser/register
+Headers
+Content-Type : application/json
+Body → raw → JSON
+{
+  "email": "raghu@example.com",
+  "password": "Password123",
+  "role": "user"
+}
+Expected Response
+{
+  "message": "User registered successfully"
+}
+________________________________________
+🔹 3. LOGIN USER
+Method
+POST
+URL
+http://127.0.0.1:5000/angularUser/login
+Headers
+Content-Type : application/json
+Body
+{
+  "email": "raghu@example.com",
+  "password": "Password123"
+}
+Expected Response
+{
+  "access_token": "JWT_TOKEN",
+  "userId": 1,
+  "role": "user"
+}
+________________________________________
+🔹 4. COPY JWT TOKEN
+Copy:
+access_token
+from login response.
+________________________________________
+🔹 5. PROFILE API
+Method
+GET
+URL
+http://127.0.0.1:5000/profile
+Headers
+Authorization : Bearer JWT_TOKEN
+Expected Response
+{
+  "user_id": "1"
+}
+________________________________________
+🔹 6. LOGOUT API
+Method
+POST
+URL
+http://127.0.0.1:5000/logout
+Headers
+Authorization : Bearer JWT_TOKEN
+Expected Response
+{
+  "message": "Logged out successfully"
+}
+________________________________________
+🔹 7. PROFILE AFTER LOGOUT
+Use SAME token again.
+Expected Response
+{
+  "msg": "Token has been revoked"
+}
+________________________________________
+=====================================================
+🟦 LOG TRACE VERIFICATION
+=====================================================
+Check:
+logs/auth.log
+Expected:
+[REQ:abc123] Health check called
+
+[REQ:def456] User registered email=raghu@example.com
+
+[REQ:ghi789] Login success user_id=1
+
+[REQ:jkl111] Profile accessed user_id=1
+
+[REQ:mno222] Logout success
+
