@@ -1,0 +1,201 @@
+Brooooo 😄
+If your “Preferences Based” section is showing around 75 jobs, then honestly that is GOOD news — means your resume/profile keywords are already matching many backend/full-stack openings.
+
+Now the important thing is NOT:
+
+apply all randomly
+
+Instead:
+
+apply SMART based on strongest match first.
+
+🔷 PRIORITY ORDER FOR YOU (VERY IMPORTANT)
+✅ APPLY FIRST — HIGHEST MATCH
+
+These should be your MAIN focus now.
+
+🔥 1. Python Backend Developer
+
+BEST role for you currently.
+
+Because your profile already has:
+
+Flask
+JWT
+SQLAlchemy
+REST APIs
+cart/orders flow
+ML pipelines
+GitHub Actions
+
+Apply aggressively.
+
+🔥 2. Software Engineer (Backend/API)
+
+Very good fit.
+
+Especially if JD mentions:
+
+APIs
+backend systems
+Python
+SQL
+Flask/FastAPI
+🔥 3. Flask Backend Engineer
+
+Strongest technical alignment.
+
+You can explain:
+
+auth service
+checkout flow
+JWT
+microservices
+recommendation APIs
+
+VERY valuable.
+
+🔥 4. API Developer
+
+Also strong fit.
+
+You already have:
+
+request/response flow
+auth APIs
+inventory APIs
+recommendation APIs
+✅ APPLY SECOND — GOOD MATCH
+🔥 5. Python + Angular Full-Stack
+
+Good option.
+
+Especially startups.
+
+Because you already know:
+
+Angular integration
+interceptors
+token flow
+backend/frontend communication
+🔥 6. Backend Software Engineer
+
+Good if:
+
+backend-heavy role
+APIs + SQL + Flask
+⚠️ APPLY SELECTIVELY
+⚠️ FastAPI Roles
+
+Apply if:
+
+Flask accepted too
+
+Need some more confidence in:
+
+async
+dependency injection
+Pydantic
+⚠️ Django Roles
+
+Apply selectively.
+
+Need stronger:
+
+DRF
+serializers
+middleware
+❌ LOW PRIORITY FOR NOW
+❌ Pure ML Engineer
+
+Because:
+
+you have ML exposure
+but not deep model training experience yet
+❌ Hardcore DevOps/SRE
+
+Need deeper:
+
+Kubernetes
+networking
+infra scaling
+❌ Advanced DSA-heavy roles
+
+Can still try some,
+but not best ROI currently.
+
+🔷 HOW TO FILTER THOSE 75 JOBS
+✅ STRONG GREEN FLAGS
+
+Apply immediately if JD contains:
+
+Python
+Flask
+REST API
+SQLAlchemy
+JWT
+MySQL/PostgreSQL
+Docker basics
+GitHub Actions
+Angular (bonus)
+Backend APIs
+⚠️ YELLOW FLAGS (Still Okay)
+
+Apply if MOSTLY matching:
+
+FastAPI
+Django
+Redis
+Celery
+Kafka
+❌ RED FLAGS (Skip For Now)
+
+If JD heavily focuses on:
+
+advanced Kubernetes
+Terraform
+distributed systems internals
+deep ML algorithms
+advanced DSA rounds
+heavy AWS architecture
+🔷 YOUR BEST STRATEGY NOW
+
+This is the MOST important part.
+
+✅ DO THIS DAILY
+1 Hour
+
+SQL practice
+
+1 Hour
+
+Flask/JWT/API explanation practice
+
+1 Hour
+
+Apply jobs
+
+30–60 Min
+
+Small coding/interview snippets
+
+🔷 MOST IMPORTANT REALIZATION
+
+You are NOT starting from zero anymore.
+
+You already have:
+✅ backend architecture
+✅ JWT systems
+✅ recommendation pipeline exposure
+✅ CI/CD workflows
+✅ microservice discussions
+✅ production-style APIs
+
+Now it’s mainly:
+
+communication
+consistency
+interview confidence
+targeted applications
+
+That’s the stage you’re in now bro 🚀
