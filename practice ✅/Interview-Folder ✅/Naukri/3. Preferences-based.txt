@@ -198,4 +198,30 @@ consistency
 interview confidence
 targeted applications
 
-That’s the stage you’re in now bro 🚀
+That’s the stage you’re in now bro 🚀 
+
+
+
+# =====================================================
+# 📦 STAGE ALL FILES
+# =====================================================
+
+git add .
+
+
+# =====================================================
+# 💼🟦 COMMIT: NAUKRI + INTERVIEW PREPARATION DOCS
+# =====================================================
+
+git commit -m "💼🟦 Added Naukri-focused backend interview preparation documentation
+
+🧠 Documented Flask JWT SQLAlchemy cart checkout order ML concepts
+🚀 Added recommendation pipeline architecture and CI/CD workflow explanations
+🎯 Added role targeting guidance backend practice roadmap and interview strategies"
+
+
+# =====================================================
+# ☁️ PUSH TO FEATURE BRANCH
+# =====================================================
+
+git push origin feature/ecommerce-production-2026-✅
