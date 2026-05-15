@@ -549,53 +549,179 @@ Live PostgreSQL/Supabase	✅ COMPLETE
 Logout + Blacklist	✅ COMPLETE
 BRO YOU OFFICIALLY COMPLETED A REAL MICRO-SERVICES ECOMMERCE FLOW TESTING 🚀🔥
 
-
-
-
-
-
-
-
-
 ====================================================================
 CUSTOMER / USER FLOW
 ====================================================================
 
---------------------------------------------------
-🔟 CUSTOMER REGISTRATION
---------------------------------------------------
+REM ==================================================
+REM 🟦 STEP 10 — CUSTOMER REGISTRATION (DYNAMIC)
+REM ==================================================
+REM This API:
+REM ✅ Registers New Customer
+REM ✅ Creates User Role Account
+REM ✅ Stores Customer In Auth Database
+REM ✅ Uses Dynamic Live Inputs
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: SET AUTH SERVICE BASE URL
+REM --------------------------------------------------
+
+set AUTH_BASE_URL=http://127.0.0.1:5001
+
+
+REM --------------------------------------------------
+REM STEP 2: ENTER CUSTOMER EMAIL
+REM Example:
+REM customer@test.com
+REM --------------------------------------------------
+
+set /p CUSTOMER_EMAIL=Enter Customer Email:
+
+
+REM --------------------------------------------------
+REM STEP 3: ENTER CUSTOMER PASSWORD
+REM Example:
+REM user123
+REM --------------------------------------------------
+
+set /p CUSTOMER_PASSWORD=Enter Customer Password:
+
+
+REM --------------------------------------------------
+REM STEP 4: CALL CUSTOMER REGISTER API ✅ Woked for me
+REM --------------------------------------------------
+
 curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
 -H "Content-Type: application/json" ^
--d "{\"email\":\"user@test.com\",\"password\":\"user123\",\"role\":\"user\"}"
+-d "{\"email\":\"%CUSTOMER_EMAIL%\",\"password\":\"%CUSTOMER_PASSWORD%\",\"role\":\"user\"}"
 
---------------------------------------------------
-1️⃣1️⃣ CUSTOMER LOGIN (COPY access_token)
---------------------------------------------------
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE ✅
+REM --------------------------------------------------
+REM {
+REM   "message":"User registered successfully"
+REM }
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM CONFIRMS
+REM --------------------------------------------------
+REM ✅ Customer Registration Working
+REM ✅ Auth Service Working
+REM ✅ User Role Creation Working
+REM ✅ Dynamic Input Working
+REM --------------------------------------------------
+
+REM ==================================================
+REM 🟦 STEP 11 — CUSTOMER LOGIN (DYNAMIC)
+REM ==================================================
+REM This API:
+REM ✅ Logs In Customer
+REM ✅ Generates JWT Access Token
+REM ✅ Returns Customer Role + User ID
+REM ✅ Used For Protected Customer APIs
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: SET AUTH SERVICE BASE URL
+REM --------------------------------------------------
+
+set AUTH_BASE_URL=http://127.0.0.1:5001
+
+
+REM --------------------------------------------------
+REM STEP 2: ENTER CUSTOMER LOGIN EMAIL
+REM Example:
+REM customer@test.com
+REM --------------------------------------------------
+
+set /p CUSTOMER_EMAIL=Enter Customer Login Email:
+
+
+REM --------------------------------------------------
+REM STEP 3: ENTER CUSTOMER LOGIN PASSWORD
+REM Example:
+REM user123
+REM --------------------------------------------------
+
+set /p CUSTOMER_PASSWORD=Enter Customer Login Password:
+
+
+REM --------------------------------------------------
+REM STEP 4: CALL CUSTOMER LOGIN API ✅ Woking bro
+REM --------------------------------------------------
+
 curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
 -H "Content-Type: application/json" ^
--d "{\"email\":\"user@test.com\",\"password\":\"user123\"}"
+-d "{\"email\":\"%CUSTOMER_EMAIL%\",\"password\":\"%CUSTOMER_PASSWORD%\"}"
 
-REM ⬆ COPY access_token
-REM ⬆ PASTE INTO CUSTOMER_TOKEN ABOVE
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE ✅
+REM --------------------------------------------------
+REM {
+REM   "access_token":"JWT_TOKEN",
+REM   "role":"user",
+REM   "userId":10
+REM }
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM STEP 5: COPY JWT TOKEN
+REM --------------------------------------------------
+REM ✅ Copy ONLY access_token value
+REM ✅ Save As CUSTOMER_TOKEN
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM EXAMPLE ✅
+REM --------------------------------------------------
+set CUSTOMER_TOKEN=PASTE_JWT_TOKEN_HERE
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM CONFIRMS
+REM --------------------------------------------------
+REM ✅ Customer Login Working
+REM ✅ JWT Generation Working
+REM ✅ User Authentication Working
+REM ✅ Protected API Access Ready
+REM --------------------------------------------------
 
 --------------------------------------------------
-1️⃣2️⃣ CUSTOMER PROFILE (JWT VERIFY)
+REM 1️⃣2️⃣ CUSTOMER PROFILE (JWT VERIFY) ✅
 --------------------------------------------------
 curl -X GET %AUTH_BASE_URL%/api/v1/auth/profile ^
 -H "Authorization: Bearer %CUSTOMER_TOKEN%"
 
+# Woking setting thsi Prodcut URl Now ✅
+SET PRODUCT_BASE_URL=https://backend-product-service-ncl2.onrender.com
+
+
 --------------------------------------------------
-1️⃣3️⃣ CUSTOMER VIEWS ALL PRODUCTS
+REM 1️⃣3️⃣ CUSTOMER VIEWS ALL PRODUCTS ✅
 --------------------------------------------------
 curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get
 
+
+REM Use this bro ✅:-
+set /p PRODUCT_ID=Enter Product ID:
+
 --------------------------------------------------
-1️⃣4️⃣ CUSTOMER VIEWS SINGLE PRODUCT
+REM 1️⃣4️⃣ CUSTOMER VIEWS SINGLE PRODUCT ✅
 --------------------------------------------------
 curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
 
 --------------------------------------------------
-1️⃣5️⃣ CUSTOMER LOGOUT
+REM 1️⃣5️⃣ CUSTOMER LOGOUT ✅
 --------------------------------------------------
 curl -X POST %AUTH_BASE_URL%/api/v1/auth/logout ^
 -H "Authorization: Bearer %CUSTOMER_TOKEN%"
