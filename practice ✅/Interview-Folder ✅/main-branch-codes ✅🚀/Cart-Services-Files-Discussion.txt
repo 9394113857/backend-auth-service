@@ -1,0 +1,379 @@
+These are VERY strong interview topics.
+
+🔷 CART / CHECKOUT / ORDER SERVICES – Interview Questions & Answers
+✅ Q1:
+“Why create separate service classes?”
+Answer
+
+Separates business logic from routes/controllers.
+
+Benefits:
+
+cleaner APIs
+reusable logic
+easier testing
+scalable architecture
+✅ Q2:
+“Why use @staticmethod?”
+Answer
+
+Method does not depend on object instance.
+
+Used when:
+
+no class state required
+utility/business methods only
+
+Example:
+
+CartService.add_to_cart()
+✅ Q3:
+“Why pass user_id into services?”
+Answer
+
+Links cart/orders to authenticated user.
+
+Important for:
+
+authorization
+user-specific data
+security
+✅ Q4:
+“Why use CartItem model?”
+Answer
+
+Stores temporary shopping cart data.
+
+Example:
+
+selected products
+quantity
+variants
+pricing
+✅ Q5:
+“Why store price in cart item?”
+Answer
+
+Captures price snapshot at add-to-cart time.
+
+Useful if product price changes later.
+
+✅ Q6:
+“Why variant_id stored in cart?”
+Answer
+
+Supports:
+
+color variants
+size variants
+inventory-specific ordering
+✅ Q7:
+“What does db.session.flush() do?”
+Answer
+
+Flush sends pending SQL changes to DB
+WITHOUT committing transaction.
+
+Used to generate:
+
+order.id
+
+before inserting order items.
+
+✅ Q8:
+“Difference between flush() and commit()?”
+Answer
+
+flush():
+
+temporary DB sync
+no permanent save
+
+commit():
+
+permanently saves transaction
+✅ Q9:
+“Why clear cart after checkout?”
+Answer
+
+Cart items become part of finalized order.
+
+Prevents:
+
+duplicate checkout
+stale cart state
+✅ Q10:
+“What happens during checkout flow?”
+Answer
+Get cart items
+Validate cart not empty
+Call product service
+Reduce stock
+Create order
+Create order items
+Clear cart
+Commit transaction
+✅ Q11:
+“Why call Product Service during checkout?”
+Answer
+
+Inventory belongs to Product Service.
+
+Checkout service should not directly manage stock database.
+
+Microservice separation principle.
+
+✅ Q12:
+“What is inter-service communication?”
+Answer
+
+One microservice communicating with another service.
+
+Example:
+
+requests.post(...)
+✅ Q13:
+“Why use requests.post()?”
+Answer
+
+Makes HTTP API call to another microservice.
+
+Used for:
+
+stock updates
+payment service
+notification service
+✅ Q14:
+“Why pass Authorization header to Product Service?”
+Answer
+
+Maintains authenticated user context across services.
+
+Important for:
+
+secure internal APIs
+token propagation
+✅ Q15:
+“Why timeout=5 important?”
+Answer
+
+Prevents infinite waiting for external service response.
+
+Improves:
+
+fault tolerance
+resilience
+API reliability
+✅ Q16:
+“Why check resp.status_code != 200?”
+Answer
+
+Validates external service success.
+
+Example:
+
+insufficient stock
+service failure
+invalid request
+✅ Q17:
+“What is distributed transaction challenge here?”
+Answer
+
+Multiple services involved:
+
+checkout service
+product service
+
+Partial failures can create inconsistent state.
+
+✅ Q18:
+“What is inventory synchronization?”
+Answer
+
+Keeping product stock consistent across:
+
+orders
+cancellations
+returns
+✅ Q19:
+“Why restore stock during cancel_order?”
+Answer
+
+Cancelled order inventory must return back.
+
+Maintains accurate stock count.
+
+✅ Q20:
+“Why validate order.status before cancel?”
+Answer
+
+Prevents invalid cancellations.
+
+Example:
+
+already cancelled
+shipped orders
+delivered orders
+✅ Q21:
+“Why use first_or_404()?”
+Answer
+
+Fetches object safely.
+
+Returns 404 automatically if not found.
+
+✅ Q22:
+“Why use environment variable PRODUCT_BASE_URL?”
+Answer
+
+Avoids hardcoded URLs.
+
+Supports:
+
+local
+staging
+production environments
+✅ Q23:
+“Why current_app.config used?”
+Answer
+
+Access Flask application configuration dynamically.
+
+Useful for:
+
+service URLs
+environment configs
+secrets
+✅ Q24:
+“Why use try-except in checkout?”
+Answer
+
+Prevents application crash.
+
+Handles:
+
+network failures
+DB errors
+service failures
+✅ Q25:
+“Why current_app.logger.error()?”
+Answer
+
+Logs production errors.
+
+Useful for:
+
+monitoring
+debugging
+observability
+✅ Q26:
+“What is OrderItem table used for?”
+Answer
+
+Stores individual products inside order.
+
+Supports:
+
+multi-product orders
+quantity tracking
+pricing history
+✅ Q27:
+“Difference between Order and OrderItem?”
+Answer
+
+Order:
+
+overall order info
+
+OrderItem:
+
+individual products within order
+✅ Q28:
+“Why calculate total_price during checkout?”
+Answer
+
+Captures final order pricing snapshot.
+
+Prevents future product price changes affecting past orders.
+
+✅ Q29:
+“What backend architecture concepts used here?”
+Answer
+Service Layer
+Microservices
+REST APIs
+JWT Authentication
+Inter-Service Communication
+Inventory Management
+Transaction Handling
+✅ Q30:
+“What production improvements possible?”
+Answer
+
+Possible improvements:
+
+Kafka/RabbitMQ events
+distributed transactions
+Saga pattern
+Redis cart caching
+async processing
+retries/circuit breakers
+payment integration
+inventory locks
+🔷 VERY IMPORTANT REAL INTERVIEW QUESTIONS
+✅ Q31:
+“What is Saga Pattern?”
+Answer
+
+Manages distributed transactions across microservices.
+
+If one service fails:
+compensating actions rollback previous steps.
+
+Example:
+
+checkout fails
+restore inventory automatically
+✅ Q32:
+“What is race condition in checkout?”
+Answer
+
+Multiple users buying same stock simultaneously.
+
+Can cause:
+
+negative inventory
+overselling
+
+Usually solved using:
+
+DB locks
+atomic updates
+transactions
+✅ Q33:
+“Why microservices instead of monolith?”
+Answer
+
+Benefits:
+
+independent scaling
+independent deployment
+better modularity
+team separation
+🔷 Real Production Concepts Covered
+
+✅ Cart Systems
+✅ Checkout Systems
+✅ Order Management
+✅ Inventory Management
+✅ JWT Authentication
+✅ Service Layer
+✅ Microservices
+✅ REST APIs
+✅ Inter-Service Communication
+✅ Distributed Systems
+✅ Transactions
+✅ Error Handling
+✅ Logging
+✅ Environment Configurations
+✅ E-commerce Backend Architecture

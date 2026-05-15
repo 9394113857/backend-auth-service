@@ -1,0 +1,318 @@
+Now COMMON Cart/Checkout/Orders interview QnA 👇
+
+🔷 COMMON CART / CHECKOUT / ORDERS – Interview Questions
+✅ Q1:
+“Why use Blueprint in Flask?”
+Answer
+
+Blueprint helps organize APIs into modules.
+
+Examples:
+
+cart routes
+checkout routes
+order routes
+
+Benefits:
+
+scalable architecture
+clean code
+modular APIs
+✅ Q2:
+“Why use @jwt_required()?”
+Answer
+
+Protects APIs using JWT authentication.
+
+Only logged-in users can:
+
+add cart items
+checkout
+view orders
+cancel orders
+✅ Q3:
+“What does get_jwt_identity() do?”
+Answer
+
+Extracts authenticated user identity from JWT token.
+
+Usually returns:
+
+user_id
+email
+custom identity
+
+Example:
+
+user_id = get_jwt_identity()
+✅ Q4:
+“Why user_id taken from JWT instead of frontend?”
+Answer
+
+Security improvement.
+
+Frontend should NOT directly send user_id.
+
+Backend trusts JWT token identity instead.
+
+Prevents:
+
+spoofing
+unauthorized access
+user impersonation
+✅ Q5:
+“Why use request.get_json()?”
+Answer
+
+Reads JSON request body from frontend.
+
+Used for:
+
+cart items
+checkout payload
+quantity updates
+✅ Q6:
+“Why use data = request.get_json() or {} ?”
+Answer
+
+Prevents NoneType errors.
+
+If request body empty:
+returns empty dictionary safely.
+
+✅ Q7:
+“Why service layer used here?”
+Answer
+
+Business logic separated from routes.
+
+Benefits:
+
+clean controllers
+reusable logic
+easier testing
+scalable architecture
+✅ Q8:
+“What does CartService.add_to_cart() represent?”
+Answer
+
+Handles cart business logic.
+
+Possible operations:
+
+validate product
+validate stock
+add cart item
+update quantity
+✅ Q9:
+“Why separate CartService, CheckoutService, OrderService?”
+Answer
+
+Separation of concerns.
+
+Each service handles independent domain logic:
+
+cart
+payment/checkout
+orders
+✅ Q10:
+“What is cart system?”
+Answer
+
+Temporary storage of selected products before checkout.
+
+Usually linked to authenticated user.
+
+✅ Q11:
+“What happens during checkout?”
+Answer
+
+Typical flow:
+
+Validate cart items
+Validate stock
+Create order
+Reduce inventory
+Save payment/order details
+Clear cart
+✅ Q12:
+“What is order management system?”
+Answer
+
+Tracks:
+
+placed orders
+cancellations
+statuses
+order history
+✅ Q13:
+“Why use PATCH for cancel order?”
+Answer
+
+PATCH partially updates resource state.
+
+Here:
+
+order status changes
+not full order replacement
+
+RESTful design principle.
+
+✅ Q14:
+“Difference between PUT and PATCH?”
+Answer
+
+PUT:
+
+replaces full resource
+
+PATCH:
+
+partial update only
+
+Example:
+
+cancel order → PATCH
+✅ Q15:
+“Why protect order APIs?”
+Answer
+
+Orders contain sensitive user data.
+
+Only authenticated users should:
+
+view orders
+cancel orders
+access details
+✅ Q16:
+“Why get_orders() and get_order_details() separated?”
+Answer
+
+Different API responsibilities:
+
+list all orders
+fetch single order details
+
+Improves API clarity.
+
+✅ Q17:
+“What security concepts used here?”
+Answer
+JWT Authentication
+Authorization
+Identity validation
+Protected APIs
+User-specific resource access
+✅ Q18:
+“Why CORS used?”
+Answer
+
+Allows frontend applications from different origins/domains to access APIs.
+
+Example:
+
+Angular frontend
+Flask backend
+✅ Q19:
+“What is stateless authentication?”
+Answer
+
+Server does NOT store session.
+
+JWT token carries authentication data.
+
+Benefits:
+
+scalable
+microservice friendly
+lightweight
+✅ Q20:
+“How cart linked to user?”
+Answer
+
+Using authenticated JWT identity.
+
+Example:
+
+user_id = get_jwt_identity()
+✅ Q21:
+“What backend concepts used here?”
+Answer
+REST APIs
+JWT Authentication
+Flask Blueprints
+Service Layer
+E-commerce workflow
+Protected Routes
+Cart Management
+Order Management
+✅ Q22:
+“What production improvements possible?”
+Answer
+
+Possible improvements:
+
+Redis cart caching
+payment integration
+async order events
+stock locking
+retry mechanisms
+order status workflows
+pagination
+validation schemas
+🔷 VERY IMPORTANT REAL INTERVIEW QUESTIONS
+✅ Q23:
+“Why JWT good for microservices?”
+Answer
+
+JWT is:
+
+stateless
+lightweight
+scalable
+easily shared across services
+
+Useful in:
+
+auth service
+cart service
+order service
+✅ Q24:
+“What happens if stock insufficient during checkout?”
+Answer
+
+Checkout should fail safely.
+
+Backend validates stock before order creation.
+
+Prevents overselling.
+
+✅ Q25:
+“What is race condition in checkout systems?”
+Answer
+
+Multiple users buying same stock simultaneously.
+
+Can cause:
+
+negative inventory
+duplicate orders
+
+Usually solved using:
+
+transactions
+locks
+atomic updates
+🔷 Real Production Concepts Covered
+
+✅ Cart Systems
+✅ Checkout Flow
+✅ Order Management
+✅ JWT Authentication
+✅ Authorization
+✅ REST APIs
+✅ Service Architecture
+✅ Stateless Authentication
+✅ Inventory Validation
+✅ Secure Backend Design
+✅ E-commerce Workflow
