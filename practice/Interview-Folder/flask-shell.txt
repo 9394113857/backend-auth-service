@@ -1,55 +1,200 @@
-🟦 PROJECT 1 — AUTH SERVICE (Users, Tokens, Auth DB)
 # =====================================================
-# AUTH SERVICE – DATABASE INSPECTION (FLASK SHELL)
+# 🟦 PROJECT 1 — AUTH SERVICE (Users, Tokens, Auth DB)
 # =====================================================
 
-# Step 1: Activate virtual environment
+# =====================================================
+# 🟦 AUTH SERVICE – DATABASE INSPECTION (FULL FLOW)
+# =====================================================
+
+
+# -----------------------------------------------------
+# STEP 1: ACTIVATE VIRTUAL ENVIRONMENT
+# -----------------------------------------------------
+
 .\venv\Scripts\activate
 
-# Step 2: Set DATABASE_URL (modify if needed)
-$env:DATABASE_URL="postgresql+psycopg://neondb_owner:npg_Z2AynLcN0eVH@ep-bitter-lab-a1o801hx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
+# -----------------------------------------------------
+# STEP 2: SET LIVE SUPABASE DATABASE URL
+# -----------------------------------------------------
+# LIVE PostgreSQL Connection
+# Used For:
+# ✅ Users
+# ✅ JWT Tokens
+# ✅ Token Blacklist
+# ✅ Auth Persistence
+# -----------------------------------------------------
+
+$env:DATABASE_URL="postgresql://postgres.ktwpojchloawedeiruvi:Raghunadh_1992@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
+
+
+# -----------------------------------------------------
+# STEP 3: VERIFY POSTGRESQL CONNECTION
+# -----------------------------------------------------
+# Expecting:
+#
+# INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+# INFO  [alembic.runtime.migration] Will assume transactional DDL.
+#
+# Confirms:
+# ✅ LIVE PostgreSQL Connected
+# ✅ Alembic Working
+# -----------------------------------------------------
 
 flask db current
 
 
-# Step 3: Open Flask shell
+# -----------------------------------------------------
+# STEP 4: OPEN FLASK SHELL
+# -----------------------------------------------------
+
 flask shell
 
-# -----------------------------
-# INSIDE FLASK SHELL
-# -----------------------------
+
+# =====================================================
+# 🟦 INSIDE FLASK SHELL
+# =====================================================
+
+
+# -----------------------------------------------------
+# Import Required Modules
+# -----------------------------------------------------
 
 from sqlalchemy import inspect
 from app.extensions import db
 from app.models.user import User
 
-# List all tables
-inspect(db.engine).get_table_names()
 
-# View users
-User.query.all()
+# -----------------------------------------------------
+# VERIFY ALL DATABASE TABLES
+# -----------------------------------------------------
+# Expecting:
+#
+# ['users', 'token_blocklist', 'alembic_version']
+#
+# Confirms:
+# ✅ LIVE PostgreSQL Connected
+# ✅ Flask SQLAlchemy Working
+# ✅ Alembic Migrations Applied
+# -----------------------------------------------------
 
-# Count users
-User.query.count()
+tables = inspect(db.engine).get_table_names()
 
-# Exit shell 
+tables_border = "+" + "-"*60 + "+"
+
+print("\n" + tables_border)
+print("| {:<58} |".format("DATABASE TABLES"))
+print(tables_border)
+
+for t in tables:
+    print("| {:<58} |".format(t))
+
+print(tables_border)
+
+
+# -----------------------------------------------------
+# FETCH FIRST 10 USERS
+# -----------------------------------------------------
+# Confirms:
+# ✅ ORM Query Working
+# ✅ Live Users Retrieved
+# -----------------------------------------------------
+
+users = User.query.limit(10).all()
+
+
+# -----------------------------------------------------
+# BEAUTIFUL USERS TABLE FORMAT
+# -----------------------------------------------------
+
+border = "+" + "-"*5 + "+" + "-"*40 + "+" + "-"*12 + "+"
+
+table = [
+    "",
+    "# -----------------------------------------------------",
+    "# FIRST 10 USERS (LIVE POSTGRESQL DATA)",
+    "# -----------------------------------------------------",
+    "",
+    border,
+    f"| {'ID':<3} | {'EMAIL':<38} | {'ROLE':<10} |",
+    border
+]
+
+for u in users:
+    table.append(
+        f"| {u.id:<3} | {u.email:<38} | {u.role:<10} |"
+    )
+
+table.append(border)
+
+
+# Print this fianl data shwoing now properly ✅:-
+print("\n".join(table))
+
+
+# -----------------------------------------------------
+# TOTAL USER COUNT
+# -----------------------------------------------------
+
+total_users = User.query.count()
+
+count_border = "+" + "-"*30 + "+" + "-"*10 + "+"
+
+print("\n" + count_border)
+print(f"| {'TOTAL USERS':<28} | {total_users:<8} |")
+print(count_border)
+
+
+# -----------------------------------------------------
+# VIEW LATEST REGISTERED USER
+# -----------------------------------------------------
+
+latest = User.query.order_by(User.id.desc()).first()
+
+latest_border = "+" + "-"*15 + "+" + "-"*40 + "+" + "-"*12 + "+"
+
+print("\n" + latest_border)
+print(f"| {'LATEST USER':<15}| {'EMAIL':<39}| {'ROLE':<10}|")
+print(latest_border)
+
+print(
+    f"| {'':<15}| {latest.email:<39}| {latest.role:<10}|"
+)
+
+print(latest_border)
+
+
+# -----------------------------------------------------
+# FINAL DATABASE STATUS
+# -----------------------------------------------------
+
+status_border = "+" + "-"*60 + "+"
+
+print("\n" + status_border)
+print("| {:<58} |".format("✅ LIVE SUPABASE POSTGRESQL CONNECTION ACTIVE"))
+print("| {:<58} |".format("✅ FLASK SQLALCHEMY ORM WORKING"))
+print("| {:<58} |".format("✅ USERS TABLE ACCESS VERIFIED"))
+print("| {:<58} |".format("✅ JWT AUTH DATABASE READY"))
+print(status_border)
+
+
+# -----------------------------------------------------
+# EXIT FLASK SHELL
+# -----------------------------------------------------
+
 exit()
 
----------------------------------------------------------
-Step : REMOVE DATABASE_URL (CLEAN & SAFE)
----------------------------------------------------------
+
+# =====================================================
+# 🟦 REMOVE DATABASE_URL (CLEAN & SAFE)
+# =====================================================
+# Removes DATABASE_URL From Current PowerShell Session
+# Good Security Practice
+# -----------------------------------------------------
+
 if (Test-Path Env:DATABASE_URL) {
     Remove-Item Env:DATABASE_URL
     Write-Host "DATABASE_URL removed" -ForegroundColor Green
 } else {
     Write-Host "DATABASE_URL not set" -ForegroundColor Yellow
 }
-
-----------------------------------------------------
-STEP : (OPTIONAL) CLEAR DATABASE_URL
-----------------------------------------------------
-# Removes Neon URL from terminal session
-# Good practice but not mandatory
-
-Remove-Item Env:DATABASE_URL

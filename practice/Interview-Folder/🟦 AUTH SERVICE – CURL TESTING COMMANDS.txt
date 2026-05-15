@@ -4,13 +4,21 @@
 
 curl -X GET http://127.0.0.1:5000/
 
+Expected: 
+auth-service UP
 
 # =====================================================
 # 🔹 2. SENTRY TEST (INTENTIONAL ERROR)
 # =====================================================
 
 curl -X GET http://127.0.0.1:5000/sentry-test
+curl -X GET http://127.0.0.1:5000/api/v1/auth/sentry-test
 
+Expected: 
+{
+  "error":"Something went wrong",
+  "success":false
+}
 
 # =====================================================
 # 🔹 3. REGISTER USER
