@@ -114,20 +114,27 @@ ________________________________________
 ________________________________________
 🔷 Interviewer Question 8:
 “What HTTP status codes are used here?”
+
 ✅ Expected Answer
+
 •	201 → Resource created successfully 
 •	400 → Bad request / duplicate user ***
 ________________________________________
 🔷 Interviewer Question 9:
+
 “What design pattern is used here?”
+
 ✅ Expected Answer
+
 This follows:
-•	Service Layer Pattern 
-•	Repository-like DB handling 
-•	MVC architecture concepts 
-•	Separation of Concerns principle 
+
+1.	Service Layer Pattern 
+2.	Repository-like DB handling 
+3.	MVC architecture concepts 
+4.	Separation of Concerns principle
 ________________________________________
-🔷 If Interviewer Says:
+🔷 If Interviewer Says: ****
+
 “Write small snippet for duplicate handling”
 from sqlalchemy.exc import IntegrityError
 
@@ -139,11 +146,57 @@ except IntegrityError:
     db.session.rollback()
     return {"message": "Duplicate entry"}, 400
 ________________________________________
-🔷 If Interviewer Says:
+------------------------------------------------------------------------------------
+practice ✅\Interview-Folder ✅\main-branch-codes ✅🚀\password_hashing_example.py
+------------------------------------------------------------------------------------
+🔷 If Interviewer Says: **** 
+
 “Write password hashing example”
 from werkzeug.security import generate_password_hash
 
 hashed_password = generate_password_hash(password)
+
+--------------------------------------------------------------
+------------- Explanation of above py file -------------------
+--------------------------------------------------------------
+🔷 Code Explanation (Interview Style)
+✅ Import
+from werkzeug.security import generate_password_hash
+
+Imports password hashing utility from Werkzeug.
+
+✅ Input Password
+password = input("Enter Password: ")
+
+Simulates user signup password entry.
+
+✅ Generate Hash
+hashed_password = generate_password_hash(password)
+
+Converts plain password into secure hashed value.
+
+✅ Why Important?
+
+Instead of storing:
+
+mysecret123
+
+we store:
+
+pbkdf2:sha256:.....
+
+Improves security.
+
+🔷 Real Interview Answer
+“Write password hashing example”
+from werkzeug.security import generate_password_hash
+
+hashed_password = generate_password_hash(password)
+✅ Explanation
+Converts plain password into secure hash.
+Used during user registration.
+Prevents storing plain passwords.
+Improves backend authentication security.
 ________________________________________
 🔷 If Interviewer Says:
 “Write logging example”
@@ -152,6 +205,7 @@ current_app.logger.info(
 )
 ________________________________________
 🔷 Python Concepts Used Here
+________________________________________
 •	Functions 
 •	Exception Handling 
 •	OOP 

@@ -94,8 +94,10 @@ Used for:
 1.	authentication security
 2.	password protection
 
+-------------------------------------------
+practice ✅\Interview-Folder ✅\main-branch-codes ✅🚀\check_password_hash_demo.py
 ✅ Q9:
-“Why check_password_hash()?” ****
+“Why check_password_hash()?” **** 
 
 Answer
 
@@ -110,10 +112,15 @@ Answer
 Answer
 
 1.	Encapsulates password hashing logic.
-2.	Benefits:
-3.	reusable
-4.	clean code
-5.	centralized security handling
+
+Benefits:
+
+1.	Improves reusability. 
+2.	Keeps code clean. 
+3.	Centralizes security handling. 
+4.	Avoids repeated hashing code across application.
+
+
 
 ✅ Q11:
 “Why create check_password() method?”
@@ -215,12 +222,15 @@ Used to:
 1.	invalidate tokens
 2.	track revoked tokens
 
+------------------------------------------------------------------------------
+practice ✅\Interview-Folder ✅\main-branch-codes ✅🚀\jwt_blocklist_demo.py
+------------------------------------------------------------------------------
 ✅ Q19:
 “Why store tokens in blocklist?”
 
 Answer
 
-JWT is stateless. **** ???
+JWT is stateless. **** 
 
 After logout:
 
@@ -295,6 +305,9 @@ Authorization:
 1.	checks permissions
 2.	role-based access
 
+--------------------------------------------------------------------------------------
+practice ✅\Interview-Folder ✅\main-branch-codes ✅🚀\hashing_vs_encryption_demo.py
+--------------------------------------------------------------------------------------
 ✅ Q25:
 “Why hash passwords instead of encrypting?” ****
 

@@ -164,3 +164,44 @@ print("CURRENT DATABASE USERS")
 print("==============================")
 
 print(existing_emails)
+
+
+
+# =====================================================
+# QUICK REVISION NOTES
+# =====================================================
+#
+# FILE PURPOSE:
+# Demonstrates IntegrityError handling.
+#
+# HOW TO RUN:
+# python interview_integrity_error_demo.py
+#
+# INPUT NEEDED:
+# Enter email at runtime.
+#
+# EXISTING EMAILS:
+# raghu@gmail.com
+# admin@gmail.com
+#
+# NEW EMAIL EXAMPLE:
+# newuser@gmail.com
+#
+# WHAT THIS FILE TEACHES:
+# ✅ try-except
+# ✅ IntegrityError
+# ✅ UNIQUE constraints
+# ✅ Duplicate handling
+# ✅ Rollback concepts
+#
+# IMPORTANT INTERVIEW POINT:
+#
+# Duplicate email causes:
+# IntegrityError
+#
+# rollback() required after failed commit.
+#
+# REAL USE CASE:
+# User registration APIs
+#
+# =====================================================
