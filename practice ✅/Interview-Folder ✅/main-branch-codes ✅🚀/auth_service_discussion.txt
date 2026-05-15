@@ -3,9 +3,9 @@
 ✅ Expected Answer (Points Format)
 1.	This function handles business logic for user registration. 
 2.	It separates controller/routes from database operations. 
-3.	Creates a new User object using SQLAlchemy ORM. 
+3.	Creates a new User object using SQLAlchemy ORM. ***
 4.	Password is hashed using set_password() before storing. 
-5.	User data is added using db.session.add(). 
+5.	User data is added using db.session.add(). ***
 6.	Changes are permanently stored using db.session.commit(). 
 7.	Logging is added for request tracing using request_id. 
 8.	Duplicate email handling is managed using IntegrityError. 
@@ -116,7 +116,7 @@ ________________________________________
 “What HTTP status codes are used here?”
 ✅ Expected Answer
 •	201 → Resource created successfully 
-•	400 → Bad request / duplicate user 
+•	400 → Bad request / duplicate user ***
 ________________________________________
 🔷 Interviewer Question 9:
 “What design pattern is used here?”

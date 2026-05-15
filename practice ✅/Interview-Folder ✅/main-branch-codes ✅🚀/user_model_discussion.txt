@@ -1,0 +1,345 @@
+model exports in __init__.py
+🔷 USER MODEL – Interview Questions & Answers
+
+✅ Q1:
+“What is this User model?”
+
+Answer
+1.	User model represents the users table in database.
+2.	SQLAlchemy ORM maps this Python class into database table.
+
+✅ Q2:
+“Why inherit from db.Model?”
+
+Answer
+
+1.  db.Model is base class provided by SQLAlchemy ORM.
+
+It enables:
+
+1.	table mapping ???
+2.	ORM features
+3.	database operations
+4.	querying support
+
+✅ Q3:
+“What does tablename do?”
+
+nswer
+Defines actual database table name.
+
+Example:
+
+__tablename__ = "users" ***
+
+means table name will be:
+users
+
+✅ Q4:
+“What is primary_key=True?”
+
+Answer
+1.  Primary key uniquely identifies each row. ***
+
+Example:
+id = db.Column(db.Integer, primary_key=True) ***
+
+Benefits:
+
+1.	uniqueness          ***
+2.	indexing            ***
+3.	faster lookups      ***
+
+✅ Q5:
+“Why unique=True on email?”
+
+Answer
+1.	Prevents duplicate email registration.
+2.	Database automatically creates UNIQUE constraint.
+
+Useful for:
+1.	login systems
+2.	account uniqueness
+3.	authentication
+
+✅ Q6:
+“Why nullable=False?”
+
+Answer
+1.	Field cannot store NULL values.
+2.	Ensures mandatory data validation.
+
+Example:
+1.	email must exist
+2.	password_hash must exist
+
+✅ Q7:
+“Why store password_hash instead of password?”
+
+Answer
+1.	Plain passwords are insecure.
+2.	Hashing protects credentials.
+3.	Even if database leaks:
+4.	actual passwords remain hidden.
+
+✅ Q8:
+“What does generate_password_hash() do?”
+
+Answer
+
+1.	Converts plain password into secure hashed value.
+
+Used for:
+
+1.	authentication security
+2.	password protection
+
+✅ Q9:
+“Why check_password_hash()?” ****
+
+Answer
+
+1.	Safely compares:
+2.	entered password
+3.	stored hashed password
+4.	Used during login authentication.
+
+✅ Q10:
+“Why create set_password() method?”
+
+Answer
+
+1.	Encapsulates password hashing logic.
+2.	Benefits:
+3.	reusable
+4.	clean code
+5.	centralized security handling
+
+✅ Q11:
+“Why create check_password() method?”
+
+Answer
+
+1.	Encapsulates password verification logic.
+2.	Improves:
+3.	readability
+4.	maintainability
+5.	authentication flow
+
+✅ Q12:
+“What is role column used for?”
+
+Answer
+
+1.	Implements Role-Based Access Control (RBAC).
+2.	Example roles:
+3.	user
+4.	seller
+5.	admin
+6.	Used for:
+7.	authorization
+8.	access control
+9.	feature restrictions
+
+✅ Q13:
+“Why default='user'?”
+
+Answer
+
+1.	If role not provided during registration,
+2.	default role becomes:
+3.	user
+4.	Prevents NULL role values.
+
+✅ Q14:
+“What is repr used for?”
+
+Answer
+
+1.	Provides readable object representation.
+2.	Useful for:
+3.	debugging
+4.	logging
+5.	development
+
+Example output:
+
+<User raghu@gmail.com (seller)>
+
+✅ Q15:
+“Why use ORM instead of raw SQL?”
+
+Answer
+
+1.	ORM provides:
+2.	cleaner code
+3.	object-oriented design
+4.	database abstraction
+5.	security improvements
+6.	easier maintenance
+
+✅ Q16:
+“What database concepts are used here?”
+
+Answer
+
+1.	Primary Key
+2.	Unique Constraint
+3.	NOT NULL Constraint
+4.	Table Mapping
+5.	ORM
+6.	Authentication
+7.	Role-Based Access
+
+=========================================================
+🔷 TOKEN BLOCKLIST MODEL – Interview Questions & Answers
+=========================================================
+✅ Q17:
+“What is TokenBlocklist model?”
+
+Answer
+
+1.	Stores blacklisted JWT tokens.
+2.	Used during logout/authentication security.
+
+✅ Q18:
+“What is jti?”
+
+Answer
+
+1.	jti means JWT ID.
+2.	Every JWT token contains unique identifier.
+
+Used to:
+
+1.	invalidate tokens
+2.	track revoked tokens
+
+✅ Q19:
+“Why store tokens in blocklist?”
+
+Answer
+
+JWT is stateless. **** ???
+
+After logout:
+
+1.	token still remains valid until expiry.
+2.	Blocklist helps invalidate tokens before expiration.
+
+
+✅ Q20:
+“Why index=True on jti?”
+
+Answer
+
+1.	Creates database index.
+2.	Improves token lookup performance.
+
+Important because:
+
+1.	every request may check blacklist.
+
+✅ Q21:
+“How logout works with JWT blocklist?”
+
+Answer
+
+1.	User logs out.
+2.	Token jti stored in blocklist table.
+3.	Future requests check blocklist.
+4.	If jti exists → token rejected.
+============================================
+🔷 INIT FILE – Interview Questions
+============================================
+✅ Q22:
+“Why import models inside init.py?” **** ???
+
+Answer
+
+1.	Helps Flask-Migrate/Alembic discover models automatically.
+
+Useful for:
+
+1.	migrations
+2.	ORM registration
+3.	centralized imports
+
+✅ Q23:
+“Why use all?”
+
+Answer
+
+1.	Controls exported modules.
+
+Improves:
+
+1.	clean imports
+2.	maintainability
+3.	module organization
+====================================
+🔷 REAL BACKEND INTERVIEW QUESTIONS
+====================================
+✅ Q24:
+“Difference between Authentication and Authorization?” ****
+
+Answer
+
+Authentication:
+
+1.	verifies identity
+2.	login/password validation
+
+Authorization:
+
+1.	checks permissions
+2.	role-based access
+
+✅ Q25:
+“Why hash passwords instead of encrypting?” ****
+
+Answer
+
+1.	Hashing is one-way.
+2.	Passwords should never be reversible.
+3.	Encryption can be decrypted;
+4.	hashing cannot.
+
+✅ Q26:
+“Why JWT commonly used in microservices?” ****
+
+Answer
+
+1.	Stateless authentication
+2.	Scalable
+3.	Lightweight
+4.	No server-side sessions
+5.	Easy frontend/backend integration
+
+✅ Q27:
+“Why SQLAlchemy popular in Flask?” ****
+
+Answer
+
+1.	ORM support
+2.	Cleaner code
+3.	Relationship handling
+4.	Query abstraction
+5.	Migration support
+===============================
+🔷 Production Concepts Covered
+===============================
+✅ Flask ORM
+✅ SQLAlchemy
+✅ Authentication
+✅ Authorization
+✅ JWT
+✅ Token Revocation
+✅ Password Security
+✅ Database Constraints
+✅ RBAC
+✅ Sessionless Authentication
+✅ Logging/Debugging
+✅ Backend Architecture
+
+This is VERY strong backend interview preparation based on your actual project structure.
