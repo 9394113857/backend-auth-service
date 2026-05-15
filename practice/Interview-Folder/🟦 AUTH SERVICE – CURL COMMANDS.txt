@@ -28,6 +28,8 @@ REM 👉 LIVE ENVIRONMENT (RENDER) ✅ ACTIVE
 REM ==================================================
 SET AUTH_BASE_URL=https://backend-auth-service-dkn7.onrender.com
 SET PRODUCT_BASE_URL=https://backend-product-service-ncl2.onrender.com
+SET CART_BASE_URL=https://backend-cart-order-service-q6qh.onrender.com
+
 
 ====================================================================
 COMMON VARIABLES (SET MANUALLY AFTER LOGIN / CREATE)
@@ -719,6 +721,280 @@ set /p PRODUCT_ID=Enter Product ID:
 REM 1️⃣4️⃣ CUSTOMER VIEWS SINGLE PRODUCT ✅
 --------------------------------------------------
 curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+
+REM ==================================================
+REM 🟦 STEP 14 — CUSTOMER ADD TO CART
+REM ==================================================
+REM This API:
+REM ✅ Adds Product To Customer Cart
+REM ✅ Uses CUSTOMER JWT Token
+REM ✅ Links Product To Logged-in Customer
+REM ✅ Tests Protected Cart API
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: SET CART SERVICE BASE URL
+REM --------------------------------------------------
+
+set CART_BASE_URL=http://127.0.0.1:5002
+
+
+REM --------------------------------------------------
+REM STEP 2: ENTER PRODUCT ID
+REM Example:
+REM 1
+REM 2
+REM --------------------------------------------------
+
+set /p PRODUCT_ID=Enter Product ID:
+
+
+REM --------------------------------------------------
+REM STEP 3: ENTER QUANTITY
+REM Example:
+REM 1
+REM 2
+REM --------------------------------------------------
+
+set /p QUANTITY=Enter Quantity:
+
+EM --------------------------------------------------
+REM STEP 4: ENTER VARIANT ID
+REM Example:
+REM 1
+REM --------------------------------------------------
+
+set /p VARIANT_ID=Enter Variant ID:
+
+
+REM --------------------------------------------------
+REM STEP 5: ENTER PRODUCT NAME
+REM Example:
+REM Gaming Laptop Pro
+REM Laptop
+REM --------------------------------------------------
+
+set /p PRODUCT_NAME=Enter Product Name:
+
+
+REM --------------------------------------------------
+REM STEP 6: ENTER PRODUCT COLOR
+REM Example:
+REM Silver
+REM Black
+REM Blue
+REM --------------------------------------------------
+
+set /p COLOR=Enter Product Color:
+
+REM --------------------------------------------------
+REM STEP 7: ENTER PRODUCT PRICE
+REM Example:
+REM 75000
+REM 55000
+REM --------------------------------------------------
+
+set /p PRICE=Enter Product Price:
+
+
+set CART_BASE_URL=https://backend-cart-order-service-q6qh.onrender.com
+
+REM --------------------------------------------------
+REM STEP 5: CALL ADD TO CART API ✅ Dam Added to CArt FINALLY ✅🖐🤣👉
+REM --------------------------------------------------
+
+curl -X POST %CART_BASE_URL%/api/cart/ ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"product_id\":%PRODUCT_ID%,\"variant_id\":%VARIANT_ID%,\"name\":\"%PRODUCT_NAME%\",\"color\":\"%COLOR%\",\"price\":%PRICE%,\"quantity\":%QUANTITY%}"
+
+
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE ✅
+REM --------------------------------------------------
+REM {
+REM   "message":"Product added to cart"
+REM }
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM CONFIRMS
+REM --------------------------------------------------
+REM ✅ Customer JWT Working
+REM ✅ Variant Mapping Working
+REM ✅ Cart Service Working
+REM ✅ Product Linked To Customer
+REM ✅ Live Cart Integration Working
+REM --------------------------------------------------
+
+
+REM ==================================================
+REM 🟦 STEP 15 — CUSTOMER VIEW CART (PREVIEW)
+REM ==================================================
+REM This API:
+REM ✅ Shows Current Customer Cart
+REM ✅ Preview Before Checkout
+REM ✅ Verifies Cart Persistence
+REM ✅ Verifies JWT Protected Cart Fetch
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: VIEW CUSTOMER CART ✅ Yes, SHowing broo FINALLY
+REM --------------------------------------------------
+
+curl -X GET %CART_BASE_URL%/api/cart/ ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+
+REM --------------------------------------------------
+REM EXPECTED RESPONSE
+REM --------------------------------------------------
+REM [
+REM   {
+REM     "product_id":1,
+REM     "name":"Gaming Laptop Pro",
+REM     "color":"Silver",
+REM     "price":75000,
+REM     "quantity":10
+REM   }
+REM ]
+REM --------------------------------------------------
+
+
+REM ==================================================
+REM 🟦 STEP 16 — CUSTOMER CHECKOUT ✅ contact and address issue fix it now
+REM ==================================================
+REM This API:
+REM ✅ Converts Cart → Order
+REM ✅ Processes Checkout
+REM ✅ Tests Order Creation Flow
+REM ✅ Uses JWT Protected Checkout
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: CALL CHECKOUT API ✅ 
+REM --------------------------------------------------
+
+curl -X POST %CART_BASE_URL%/api/checkout/ ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"contact\":\"9394113857\",\"address\":\"Hyderabad\"}"
+
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE ✅ 
+REM --------------------------------------------------
+REM {
+REM   "message":"Checkout successful"
+REM }
+REM --------------------------------------------------
+
+
+REM ==================================================
+REM 🟦 STEP 17 — CUSTOMER VIEW ALL ORDERS
+REM ==================================================
+REM This API:
+REM ✅ Fetches Customer Orders
+REM ✅ JWT Protected
+REM ✅ Verifies Order History
+REM ==================================================
+
+curl -X GET %CART_BASE_URL%/api/orders/ ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+
+REM --------------------------------------------------
+REM EXPECTED RESPONSE
+REM --------------------------------------------------
+REM [
+REM   {
+REM     "id": 1,
+REM     "status": "placed",
+REM     "total_price": 750000
+REM   }
+REM ]
+REM --------------------------------------------------
+
+
+REM ==================================================
+REM 🟦 STEP 18 — CUSTOMER VIEW SINGLE ORDER
+REM ==================================================
+REM This API:
+REM ✅ Fetches One Order Details
+REM ✅ JWT Protected
+REM ✅ Verifies Order Retrieval
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: ENTER ORDER ID
+REM Example:
+REM 1
+REM --------------------------------------------------
+
+set /p ORDER_ID=Enter Order ID:
+
+
+REM --------------------------------------------------
+REM STEP 2: GET SINGLE ORDER
+REM --------------------------------------------------
+
+curl -X GET %CART_BASE_URL%/api/orders/%ORDER_ID% ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+
+REM --------------------------------------------------
+REM EXPECTED RESPONSE
+REM --------------------------------------------------
+REM {
+REM   "id":1,
+REM   "status":"placed",
+REM   "items":[]
+REM }
+REM --------------------------------------------------
+
+
+
+REM ==================================================
+REM 🟦 STEP 19 — CUSTOMER CANCEL ORDER
+REM ==================================================
+REM This API:
+REM ✅ Cancels Customer Order
+REM ✅ JWT Protected
+REM ✅ Tests Order Update Flow
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: ENTER ORDER ID
+REM --------------------------------------------------
+
+set /p ORDER_ID=Enter Order ID:
+
+
+REM --------------------------------------------------
+REM STEP 2: CALL CANCEL ORDER API
+REM --------------------------------------------------
+
+curl -X PATCH %CART_BASE_URL%/api/orders/%ORDER_ID%/cancel ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+
+REM --------------------------------------------------
+REM EXPECTED RESPONSE
+REM --------------------------------------------------
+REM {
+REM   "message":"Order cancelled successfully"
+REM }
+REM --------------------------------------------------
+
+
 
 --------------------------------------------------
 REM 1️⃣5️⃣ CUSTOMER LOGOUT ✅
