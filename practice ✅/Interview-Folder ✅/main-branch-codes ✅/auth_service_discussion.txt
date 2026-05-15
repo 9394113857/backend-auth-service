@@ -33,16 +33,20 @@ ________________________________________
 5.	Cleaner Pythonic syntax. 
 6.	Supports migrations and session management. 
 ________________________________________
+
+
+==================================================================================
+
+
 🔷 Interviewer Question 4:
 “Why use try-except with IntegrityError?”
 ✅ Expected Answer
 1.	Handles duplicate entries safely. 
 2.	Prevents application crash. 
 3.	Gives user-friendly API response. 
-4.	Helps maintain DB consistency. 
+4.	Maintains database consistency. 
 5.	Used for unique constraint violations like duplicate email. 
 ________________________________________
-🔷 Interviewer Question 5:
 “Why rollback after exception?”
 ✅ Expected Answer
 1.	SQLAlchemy session enters failed state after exception. 
@@ -50,6 +54,48 @@ ________________________________________
 3.	Prevents partial/inconsistent DB commits. 
 4.	Ensures atomic transaction handling. 
 ________________________________________
+
+🔷 “Why rollback important?”
+✅ Answer
+
+After failed database commit:
+
+db.session.commit()
+
+session becomes invalid.
+
+So:
+
+db.session.rollback()
+
+resets transaction safely.
+
+🔷 Real Backend Production Use Cases
+User Registration
+Seller Signup
+Customer Signup
+Product SKU uniqueness
+Order ID uniqueness
+Email uniqueness
+🔷 Core Concepts Covered
+
+✅ try-except
+✅ IntegrityError
+✅ Functions
+✅ Runtime Input
+✅ Lists
+✅ Condition Checking
+✅ Exception Handling
+✅ Database Concepts
+✅ UNIQUE Constraints
+✅ Rollback Concepts
+✅ Backend API Logic
+
+This is actually VERY good practice before Flask backend interviews.
+
+
+==================================================================================
+
 🔷 Interviewer Question 6:
 “What is g.request_id used for?”
 ✅ Expected Answer
