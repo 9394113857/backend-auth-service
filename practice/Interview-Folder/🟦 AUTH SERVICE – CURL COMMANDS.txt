@@ -1,0 +1,605 @@
+====================================================================
+FULL E-COMMERCE BACKEND – INTEGRATION TESTS
+SELLER + CUSTOMER FLOW
+(Auth Service + Product Service)
+LOCAL + LIVE (RENDER)
+====================================================================
+
+USAGE INSTRUCTIONS (IMPORTANT):
+1) Choose ENVIRONMENT (LOCAL or LIVE)
+2) Set BASE URLs (ONLY ONCE)
+3) Run commands TOP → BOTTOM
+4) After LOGIN, copy access_token
+5) Paste token into variables section
+6) Do NOT modify payloads
+
+====================================================================
+🔁 ENVIRONMENT SWITCH (CHOOSE ONE)
+====================================================================
+
+REM ==================================================
+REM 👉 LOCAL ENVIRONMENT (WHEN RUNNING LOCALLY)
+REM ==================================================
+REM SET AUTH_BASE_URL=http://127.0.0.1:5001
+REM SET PRODUCT_BASE_URL=http://127.0.0.1:5002
+
+REM ==================================================
+REM 👉 LIVE ENVIRONMENT (RENDER) ✅ ACTIVE
+REM ==================================================
+SET AUTH_BASE_URL=https://backend-auth-service-dkn7.onrender.com
+SET PRODUCT_BASE_URL=https://backend-product-service-ncl2.onrender.com
+
+====================================================================
+COMMON VARIABLES (SET MANUALLY AFTER LOGIN / CREATE)
+====================================================================
+
+REM 🔑 Paste SELLER JWT token here after seller login
+SET SELLER_TOKEN=PASTE_SELLER_ACCESS_TOKEN_HERE
+
+REM 🔑 Paste CUSTOMER JWT token here after customer login
+SET CUSTOMER_TOKEN=PASTE_CUSTOMER_ACCESS_TOKEN_HERE
+
+REM 🆔 Paste product ID here after product creation
+SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
+
+====================================================================
+AUTH SERVICE MAIN FLOW WORKING COMMANDS TIMELY EDITING FROM NOW
+====================================================================
+
+# Run the flask app service:-
+flask run --port 5001
+
+--------------------------------------------------
+# 1️⃣ AUTH SERVICE – HEALTH CHECK
+--------------------------------------------------
+curl http://127.0.0.1:5001/api/v1/auth/
+
+REM ==================================================
+REM  2️⃣ AUTH SERVICE - DYNAMIC SELLER REGISTRATION
+REM ==================================================
+REM This script:
+REM ✅ Takes live user input
+REM ✅ Builds dynamic JSON request
+REM ✅ Calls Flask Auth API
+REM ✅ Registers seller/user dynamically
+REM ==================================================
+
+REM --------------------------------------------------
+REM STEP 1: ENTER EMAIL
+REM Example:
+REM seller@test.com
+REM --------------------------------------------------
+
+# Enter here real value:-
+set /p EMAIL=Enter Email:
+
+REM --------------------------------------------------
+REM STEP 2: ENTER PASSWORD
+REM Example:
+REM seller123
+REM --------------------------------------------------
+
+# Enter here real value:-
+set /p PASSWORD=Enter Password:
+
+REM --------------------------------------------------
+REM STEP 3: ENTER ROLE
+REM Allowed:
+REM user
+REM seller
+REM --------------------------------------------------
+
+# Enter here real value:-
+set /p ROLE=Enter Role (user/seller):
+
+REM --------------------------------------------------
+REM STEP : CALL AUTH REGISTER API FINALLY NOW ✅
+REM --------------------------------------------------
+
+# Curl Command:-
+curl -X POST http://127.0.0.1:5001/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"%EMAIL%\",\"password\":\"%PASSWORD%\",\"role\":\"%ROLE%\"}"
+
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE ✅ Yes CONFIRM REGISTERED IN SUPERBASE USERS TABLE NOW ✅
+REM --------------------------------------------------
+REM {
+REM   "message":"User registered successfully"
+REM }
+REM --------------------------------------------------
+
+
+
+REM ==================================================
+REM 3️⃣ AUTH SERVICE - DYNAMIC SELLER LOGIN (COPY access_token)
+REM ==================================================
+REM This script:
+REM ✅ Takes live login input
+REM ✅ Calls Login API dynamically
+REM ✅ Returns JWT access_token
+REM ✅ Can be reused for seller/user login
+REM ==================================================
+
+REM --------------------------------------------------
+REM STEP 1: ENTER LOGIN EMAIL
+REM Example:
+REM seller@test.com
+REM --------------------------------------------------
+
+set /p EMAIL=Enter Login Email:
+
+
+REM --------------------------------------------------
+REM STEP 2: ENTER LOGIN PASSWORD
+REM Example:
+REM seller123
+REM --------------------------------------------------
+
+set /p PASSWORD=Enter Login Password:
+
+
+REM --------------------------------------------------
+REM STEP : CALL LOGIN API ✅ Yes CONFIRM Its Retuned Selelr Token Now From the API ✅
+REM --------------------------------------------------
+
+curl -X POST http://127.0.0.1:5001/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"%EMAIL%\",\"password\":\"%PASSWORD%\"}"
+
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE ✅ Yes, bro its woking now confimed oaky
+REM --------------------------------------------------
+REM {
+REM   "access_token":"JWT_TOKEN",
+REM   "userId":1,
+REM   "role":"seller"
+REM }
+REM --------------------------------------------------
+
+
+
+REM --------------------------------------------------
+REM NEXT STEP
+REM --------------------------------------------------
+REM ✅ Copy access_token
+REM ✅ Use it in Authorization Header
+REM ✅ Example:
+REM Authorization: Bearer JWT_TOKEN
+REM --------------------------------------------------
+
+# copy ONLY Seller Token and Set Now (Like: JWT_TOKEN):
+# Then set it dynamically in CMD:
+set SELLER_TOKEN=PASTE_JWT_TOKEN_HERE
+
+REM ==================================================
+REM 🟦 STEP 4 — SELLER PROFILE (JWT VERIFY)
+REM ==================================================
+REM This API:
+REM ✅ Verifies JWT Token
+REM ✅ Checks Protected Route Access
+REM ✅ Returns Logged-in Seller User ID
+REM ✅ Confirms Authorization Header Working
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM CALL PROFILE API USING SELLER JWT TOKEN ✅ woking ofcosue confimed again ✅
+REM --------------------------------------------------
+
+REM Commmand:-
+curl -X GET http://127.0.0.1:5001/api/v1/auth/profile ^
+-H "Authorization: Bearer %SELLER_TOKEN%"
+
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE
+REM --------------------------------------------------
+REM {
+REM   "user_id":"9"
+REM }
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM CONFIRMS
+REM --------------------------------------------------
+REM ✅ JWT Token Valid
+REM ✅ Seller Authenticated
+REM ✅ Protected API Working
+REM ✅ Flask JWT Authentication Working
+REM --------------------------------------------------
+
+
+
+====================================================================
+PRODUCT SERVICE
+====================================================================
+
+REM ✅ VERIFY FIRST
+echo %PRODUCT_BASE_URL%
+
+====================================================================
+REM 5️⃣ PRODUCT SERVICE – HEALTH CHECK ✅ is fully working now.
+====================================================================
+curl %PRODUCT_BASE_URL%/
+
+REM ==================================================
+REM 🟦 STEP 6 — SELLER ADDS PRODUCT (DYNAMIC INPUT)
+REM ==================================================
+REM This API:
+REM ✅ Takes Dynamic Product Input
+REM ✅ Uses Seller JWT Token
+REM ✅ Creates Product
+REM ✅ Stores Product in Product Service DB
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: ENTER PRODUCT NAME
+REM Example:
+REM Laptop
+REM --------------------------------------------------
+
+# Enter here real value:-
+set /p PRODUCT_NAME=Enter Product Name:
+
+
+REM --------------------------------------------------
+REM STEP 2: ENTER PRODUCT PRICE
+REM Example:
+REM 55000
+REM --------------------------------------------------
+
+# Enter here real value:-
+set /p PRODUCT_PRICE=Enter Product Price:
+
+
+REM --------------------------------------------------
+REM STEP 3: ENTER PRODUCT DESCRIPTION
+REM Example:
+REM Gaming laptop
+REM --------------------------------------------------
+
+# Enter here real value:-
+set /p PRODUCT_DESCRIPTION=Enter Product Description:
+
+
+REM --------------------------------------------------
+REM STEP 4: CALL PRODUCT CREATE API ✅ live microservice architecture is now working end-to-end:
+REM --------------------------------------------------
+
+curl -X POST %PRODUCT_BASE_URL%/api/v1/products/add ^
+-H "Authorization: Bearer %SELLER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{\"name\":\"%PRODUCT_NAME%\",\"price\":%PRODUCT_PRICE%,\"description\":\"%PRODUCT_DESCRIPTION%\"}"
+
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE ✅ Showing live products in home page now ✅ live site 🖐🤣👉💃
+REM --------------------------------------------------
+REM {
+REM   "id": 1,
+REM   "name": "Laptop",
+REM   "price": 55000,
+REM   "description": "Gaming laptop"
+REM }
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM NEXT STEP
+REM --------------------------------------------------
+REM ✅ Copy Product ID
+REM ✅ Save as PRODUCT_ID
+REM --------------------------------------------------
+
+REM ==================================================
+REM 🟦 STEP 7 — VIEW ALL PRODUCTS
+REM ==================================================
+REM This API:
+REM ✅ Fetches All Products
+REM ✅ Reads Live Product Database
+REM ✅ Returns JSON Product List
+REM ✅ Used By Angular Frontend Homepage
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM CALL GET ALL PRODUCTS API ✅ Working woking woking 🖐🤣
+REM --------------------------------------------------
+
+REM Command:-
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get
+
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE
+REM --------------------------------------------------
+REM [
+REM   {
+REM     "id": 1,
+REM     "name": "Gaming Laptop Pro",
+REM     "price": 75000
+REM   },
+REM   {
+REM     "id": 2,
+REM     "name": "Laptop",
+REM     "price": 55000
+REM   }
+REM ]
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM CONFIRMS
+REM --------------------------------------------------
+REM ✅ Product Service Working
+REM ✅ Products Stored Successfully
+REM ✅ Angular Frontend Fetch Working
+REM ✅ Live Render Product API Working
+REM --------------------------------------------------
+
+REM ==================================================
+REM 🟦 STEP 8 — VIEW SINGLE PRODUCT
+REM ==================================================
+REM This API:
+REM ✅ Fetches One Product By ID
+REM ✅ Returns Product Details
+REM ✅ Returns Variants + Stock
+REM ✅ Verifies Product Exists
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: ENTER PRODUCT ID
+REM Example:
+REM 1
+REM 2
+REM --------------------------------------------------
+
+# Enter real value:-
+set /p PRODUCT_ID=Enter Product ID:
+
+
+REM --------------------------------------------------
+REM STEP 2: CALL SINGLE PRODUCT API ✅ Woking bro haha 🤣🤣🤣
+REM --------------------------------------------------
+
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+
+REM --------------------------------------------------
+REM EXPECTED SUCCESS RESPONSE
+REM --------------------------------------------------
+REM {
+REM   "id": 2,
+REM   "name": "Laptop",
+REM   "price": 55000.0,
+REM   "category": null,
+REM   "variants": []
+REM }
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM CONFIRMS
+REM --------------------------------------------------
+REM ✅ Product Exists
+REM ✅ Product Service Working
+REM ✅ Dynamic Product Fetch Working
+REM ✅ Product ID Routing Working
+REM --------------------------------------------------
+
+
+REM ==================================================
+REM 🟦 STEP 9 — SELLER LOGOUT + VERIFY TOKEN REVOKED
+REM ==================================================
+REM This flow:
+REM ✅ Logs Out Seller
+REM ✅ Blacklists JWT Token
+REM ✅ Verifies Token Invalidated
+REM ✅ Blocks Protected APIs After Logout
+REM ==================================================
+
+
+REM --------------------------------------------------
+REM STEP 1: SET AUTH SERVICE BASE URL
+REM --------------------------------------------------
+
+set AUTH_BASE_URL=http://127.0.0.1:5001
+
+
+REM --------------------------------------------------
+REM STEP 2: CALL LOGOUT API
+REM --------------------------------------------------
+
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/logout ^
+-H "Authorization: Bearer %SELLER_TOKEN%"
+
+
+REM --------------------------------------------------
+REM EXPECTED LOGOUT RESPONSE
+REM --------------------------------------------------
+REM {
+REM   "message":"Logged out successfully"
+REM }
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM STEP 3: VERIFY TOKEN INVALIDATED
+REM --------------------------------------------------
+REM Same token should now FAIL
+REM --------------------------------------------------
+
+curl -X GET %AUTH_BASE_URL%/api/v1/auth/profile ^
+-H "Authorization: Bearer %SELLER_TOKEN%"
+
+
+REM --------------------------------------------------
+REM EXPECTED FAILURE RESPONSE
+REM --------------------------------------------------
+REM {
+REM   "msg":"Token has been revoked"
+REM }
+REM
+REM OR
+REM
+REM {
+REM   "msg":"Token has expired"
+REM }
+REM --------------------------------------------------
+
+
+REM --------------------------------------------------
+REM CONFIRMS
+REM --------------------------------------------------
+REM ✅ JWT Logout Working
+REM ✅ Token Blacklist Working
+REM ✅ Protected APIs Blocked
+REM ✅ Seller Session Terminated
+REM --------------------------------------------------
+
+You are DONE with the complete seller authentication + product flow testing.
+
+Your final successful flow proves ALL of this worked:
+Seller Login
+↓
+JWT Token Generated
+↓
+Protected Product Create API
+↓
+Product Stored
+↓
+Fetch All Products
+↓
+Fetch Single Product
+↓
+Logout
+↓
+JWT Token Revoked
+↓
+Protected Route Blocked
+
+And THIS is the biggest proof:
+{"message":"Logged out successfully"}
+
+followed by:
+{"msg":"Token has been revoked"}
+
+That means:
+✅ JWT blacklist working
+✅ Logout security working
+✅ Revoked token blocked correctly
+✅ Auth middleware working
+✅ Product APIs secured
+✅ End-to-end microservice communication working
+✅ Live frontend integration working
+✅ Render deployments working
+✅ PostgreSQL persistence working
+________________________________________
+🟦 WHAT TYPE OF TESTING IS THIS?
+You performed mainly:
+✅ API Testing
+Testing backend APIs directly using curl/Postman.
+
+Example:
+Login API
+Product Create API
+Profile API
+Logout API
+________________________________________
+✅ Authentication Testing
+Testing:
+JWT generation
+JWT validation
+Protected routes
+Logout blacklist
+Expired tokens
+________________________________________
+✅ Integration Testing
+Testing communication between:
+Component	Connected
+Angular Frontend	Product Service
+Product Service	Database
+Auth Service	JWT
+Product Service	Auth Token
+Render	Flask APIs
+________________________________________
+✅ End-to-End (E2E) Testing
+Because you tested FULL real user journey:
+Seller Login
+→ Add Product
+→ View Product
+→ Logout
+through LIVE deployed services.
+________________________________________
+🟦 FINAL STATUS
+Area	Status
+Auth Service	✅ COMPLETE
+JWT Security	✅ COMPLETE
+Product Service	✅ COMPLETE
+Seller Flow	✅ COMPLETE
+Angular Integration	✅ COMPLETE
+Render Deployment	✅ COMPLETE
+Live PostgreSQL/Supabase	✅ COMPLETE
+Logout + Blacklist	✅ COMPLETE
+BRO YOU OFFICIALLY COMPLETED A REAL MICRO-SERVICES ECOMMERCE FLOW TESTING 🚀🔥
+
+
+
+
+
+
+
+
+
+====================================================================
+CUSTOMER / USER FLOW
+====================================================================
+
+--------------------------------------------------
+🔟 CUSTOMER REGISTRATION
+--------------------------------------------------
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user@test.com\",\"password\":\"user123\",\"role\":\"user\"}"
+
+--------------------------------------------------
+1️⃣1️⃣ CUSTOMER LOGIN (COPY access_token)
+--------------------------------------------------
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"user@test.com\",\"password\":\"user123\"}"
+
+REM ⬆ COPY access_token
+REM ⬆ PASTE INTO CUSTOMER_TOKEN ABOVE
+
+--------------------------------------------------
+1️⃣2️⃣ CUSTOMER PROFILE (JWT VERIFY)
+--------------------------------------------------
+curl -X GET %AUTH_BASE_URL%/api/v1/auth/profile ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+--------------------------------------------------
+1️⃣3️⃣ CUSTOMER VIEWS ALL PRODUCTS
+--------------------------------------------------
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get
+
+--------------------------------------------------
+1️⃣4️⃣ CUSTOMER VIEWS SINGLE PRODUCT
+--------------------------------------------------
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+--------------------------------------------------
+1️⃣5️⃣ CUSTOMER LOGOUT
+--------------------------------------------------
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/logout ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%"
+
+====================================================================
+END OF INTEGRATION TEST FILE
+====================================================================
