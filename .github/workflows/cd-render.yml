@@ -1,13 +1,16 @@
 name: 🚀 CD - Render Deploy
 
 on:
+
   workflow_dispatch:
 
   schedule:
     - cron: "30 20 * * *"
 
 jobs:
+
   deploy:
+
     runs-on: ubuntu-latest
 
     steps:
@@ -19,26 +22,41 @@ jobs:
         uses: actions/checkout@v4
 
       # ==========================================
-      # WAIT FOR IMAGE
+      # SET DEPLOYMENT METADATA
+      # ==========================================
+      - name: Set Deployment Metadata
+        run: |
+
+          echo "DEPLOY_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+
+          echo "DEPLOY_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
+
+      # ==========================================
+      # WAIT FOR IMAGE AVAILABILITY
       # ==========================================
       - name: Wait for Docker Image
         run: |
-          echo "⏳ Waiting for image availability..."
+
+          echo "⏳ Waiting for Docker image availability..."
+
           sleep 30
 
       # ==========================================
-      # TRIGGER RENDER
+      # TRIGGER RENDER DEPLOYMENT
       # ==========================================
       - name: Trigger Render Deployment
         run: |
+
           echo "🚀 Triggering Render deployment..."
+
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
       # ==========================================
-      # WAIT FOR STARTUP
+      # WAIT FOR SERVICE STARTUP
       # ==========================================
       - name: Wait for Startup
         run: |
+
           sleep 50
 
       # ==========================================
@@ -62,6 +80,7 @@ jobs:
               echo "🟢 Service is healthy"
 
               exit 0
+
             fi
 
             sleep 10
@@ -69,6 +88,7 @@ jobs:
           done
 
           echo "🔴 Deployment failed"
+
           exit 1
 
       # ==========================================
@@ -76,7 +96,9 @@ jobs:
       # ==========================================
       - name: Email Success
         if: success()
+
         uses: dawidd6/action-send-mail@v3
+
         with:
           server_address: smtp.gmail.com
           server_port: 587
@@ -98,6 +120,12 @@ jobs:
             🌐 URL:
             https://backend-auth-service-ks6f.onrender.com
 
+            🕒 UTC:
+            ${{ env.DEPLOY_TIME_UTC }}
+
+            🇮🇳 IST:
+            ${{ env.DEPLOY_TIME_IST }}
+
             🟢 Service is healthy and responding.
 
             ✅ Latest Docker image deployed successfully.
@@ -107,7 +135,9 @@ jobs:
       # ==========================================
       - name: Email Failure
         if: failure()
+
         uses: dawidd6/action-send-mail@v3
+
         with:
           server_address: smtp.gmail.com
           server_port: 587
@@ -126,10 +156,16 @@ jobs:
 
             ❌ Render Deployment FAILED
 
-            Service:
-            backend-auth-service
+            🌐 URL:
+            https://backend-auth-service-ks6f.onrender.com
+
+            🕒 UTC:
+            ${{ env.DEPLOY_TIME_UTC }}
+
+            🇮🇳 IST:
+            ${{ env.DEPLOY_TIME_IST }}
 
             Please check:
             - GitHub Actions logs
             - Render logs
-            - Health check endpoint
+            - Health checks
