@@ -2,8 +2,9 @@ name: 🚀 CD - Render Deploy
 
 on:
   workflow_dispatch:
+
   schedule:
-    - cron: "30 20 * * *"   # 2:00 AM IST
+    - cron: "30 20 * * *"
 
 jobs:
   deploy:
@@ -11,42 +12,124 @@ jobs:
 
     steps:
 
+      # ==========================================
+      # CHECKOUT
+      # ==========================================
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 🔥 WAIT FOR DOCKER IMAGE TO BE READY
-      - name: Wait for Image Push
+      # ==========================================
+      # WAIT FOR IMAGE
+      # ==========================================
+      - name: Wait for Docker Image
         run: |
-          echo "⏳ Waiting for image to be available..."
+          echo "⏳ Waiting for image availability..."
           sleep 30
 
-      # 🚀 Trigger Render Deploy
-      - name: Trigger Render Deploy
+      # ==========================================
+      # TRIGGER RENDER
+      # ==========================================
+      - name: Trigger Render Deployment
         run: |
-          echo "🚀 Triggering Render..."
+          echo "🚀 Triggering Render deployment..."
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
-      # ⏳ Wait for startup
-      - name: Wait
-        run: sleep 50
+      # ==========================================
+      # WAIT FOR STARTUP
+      # ==========================================
+      - name: Wait for Startup
+        run: |
+          sleep 50
 
-      # 🧪 Health Check
+      # ==========================================
+      # HEALTH CHECK
+      # ==========================================
       - name: Health Check
         run: |
+
           URL="https://backend-auth-service-ks6f.onrender.com"
-          echo "🔍 Checking service..."
+
+          echo "🔍 Checking deployment health..."
 
           for i in {1..10}; do
+
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+
             echo "Attempt $i → HTTP $STATUS"
 
             if [ "$STATUS" = "200" ]; then
-              echo "🟢 Service is UP"
+
+              echo "🟢 Service is healthy"
+
               exit 0
             fi
 
             sleep 10
+
           done
 
           echo "🔴 Deployment failed"
           exit 1
+
+      # ==========================================
+      # EMAIL SUCCESS
+      # ==========================================
+      - name: Email Success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+
+          subject: "🚀 Render CD SUCCESS - Backend Auth Service"
+
+          to: ${{ secrets.MAIL_TO }}
+          cc: ${{ secrets.MAIL_CC }}
+
+          from: ${{ secrets.MAIL_USERNAME }}
+
+          body: |
+
+            🚀 Render Deployment SUCCESS
+
+            🌐 URL:
+            https://backend-auth-service-ks6f.onrender.com
+
+            🟢 Service is healthy and responding.
+
+            ✅ Latest Docker image deployed successfully.
+
+      # ==========================================
+      # EMAIL FAILURE
+      # ==========================================
+      - name: Email Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+
+          subject: "❌ Render CD FAILURE - Backend Auth Service"
+
+          to: ${{ secrets.MAIL_TO }}
+          cc: ${{ secrets.MAIL_CC }}
+
+          from: ${{ secrets.MAIL_USERNAME }}
+
+          body: |
+
+            ❌ Render Deployment FAILED
+
+            Service:
+            backend-auth-service
+
+            Please check:
+            - GitHub Actions logs
+            - Render logs
+            - Health check endpoint
