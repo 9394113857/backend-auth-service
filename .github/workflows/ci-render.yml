@@ -24,38 +24,45 @@ jobs:
 
     steps:
 
-      # ==========================================
-      # CHECKOUT
-      # ==========================================
+      # =====================================================
+      # 📦 CHECKOUT
+      # =====================================================
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ==========================================
-      # PYTHON SETUP
-      # ==========================================
+      # =====================================================
+      # 🐍 PYTHON
+      # =====================================================
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # ==========================================
-      # INSTALL DEPENDENCIES
-      # ==========================================
+      # =====================================================
+      # 📚 INSTALL DEPENDENCIES
+      # =====================================================
       - name: Install Dependencies
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
 
-      # ==========================================
-      # RUN TESTS
-      # ==========================================
+      # =====================================================
+      # 🧪 RUN TESTS
+      # =====================================================
       - name: Run Tests
+        env:
+          DATABASE_URL: sqlite:///test.db
+          JWT_SECRET_KEY: testing-secret
+          SECRET_KEY: testing-secret
+          FLASK_ENV: testing
+
         run: |
           PYTHONPATH=. pytest -v
 
-      # ==========================================
-      # SET BUILD METADATA
-      # ==========================================
+      # =====================================================
+      # 🔧 BUILD METADATA
+      # =====================================================
       - name: Set Metadata
         run: |
 
@@ -94,79 +101,62 @@ jobs:
 
           fi
 
-      # ==========================================
-      # SHOW EXECUTION INFO
-      # ==========================================
-      - name: Show Execution Info
-        run: |
-
-          echo "🚀 CI TRIGGERED"
-
-          echo "Type: $TYPE"
-          echo "Name: $NAME"
-
-          echo "Commit: $COMMIT"
-
-          echo "Branch: $BRANCH"
-
-          echo "Docker Image: $IMAGE"
-
-          echo "UTC Time: $BUILD_TIME_UTC"
-          echo "IST Time: $BUILD_TIME_IST"
-
-      # ==========================================
-      # GENERATE BUILD INFO
-      # ==========================================
+      # =====================================================
+      # 📄 GENERATE BUILD INFO JSON
+      # =====================================================
       - name: Generate Build Info
         run: |
 
           echo "{
-            \"type\": \"${TYPE}\",
-            \"name\": \"${NAME}\",
+            \"version\": \"${NAME}\",
             \"commit\": \"${COMMIT}\",
             \"branch\": \"${BRANCH}\",
-            \"image\": \"${IMAGE}\",
             \"build_time_utc\": \"${BUILD_TIME_UTC}\",
             \"build_time_ist\": \"${BUILD_TIME_IST}\"
           }" > build_info.json
 
-      # ==========================================
-      # DOCKER LOGIN
-      # ==========================================
+          cat build_info.json
+
+      # =====================================================
+      # 🐳 DOCKER LOGIN
+      # =====================================================
       - name: Docker Login
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
           -u "${{ secrets.DOCKERHUB_USERNAME }}" \
           --password-stdin
 
-      # ==========================================
-      # BUILD DOCKER IMAGE
-      # ==========================================
+      # =====================================================
+      # 🐳 BUILD DOCKER IMAGE
+      # =====================================================
       - name: Build Docker Image
         run: |
+
           docker build -t $IMAGE .
 
-      # ==========================================
-      # PUSH VERSION/SHA IMAGE
-      # ==========================================
+      # =====================================================
+      # 📤 PUSH SHA / VERSION IMAGE
+      # =====================================================
       - name: Push Docker Image
         run: |
+
           docker push $IMAGE
 
-      # ==========================================
-      # PUSH LATEST IMAGE FOR BRANCH BUILDS
-      # ==========================================
+      # =====================================================
+      # 🏷️ PUSH LATEST IMAGE (ONLY BRANCH)
+      # =====================================================
       - name: Push Latest Image
         if: env.IS_TAG == 'false'
+
         run: |
 
           docker tag $IMAGE pythoncodelife/backend-auth-service:latest
 
           docker push pythoncodelife/backend-auth-service:latest
 
-      # ==========================================
-      # EMAIL SUCCESS
-      # ==========================================
+      # =====================================================
+      # 📧 EMAIL SUCCESS
+      # =====================================================
       - name: Email Success
         if: success()
 
@@ -193,7 +183,7 @@ jobs:
             📌 Type:
             ${{ env.TYPE }}
 
-            🏷️ Name:
+            🏷️ Version/Branch:
             ${{ env.NAME }}
 
             🔑 Commit:
@@ -214,12 +204,13 @@ jobs:
             🔗 Repo:
             ${{ env.REPO_URL }}
 
-            ✅ Tests passed successfully.
-            ✅ Docker image pushed successfully.
+            ✅ Tests passed successfully
+            ✅ build_info.json generated
+            ✅ Docker image pushed successfully
 
-      # ==========================================
-      # EMAIL FAILURE
-      # ==========================================
+      # =====================================================
+      # ❌ EMAIL FAILURE
+      # =====================================================
       - name: Email Failure
         if: failure()
 
@@ -255,4 +246,7 @@ jobs:
             🇮🇳 IST:
             ${{ env.BUILD_TIME_IST }}
 
-            Please check GitHub Actions logs.
+            Please check:
+            - GitHub Actions logs
+            - Pytest failures
+            - Docker build logs
