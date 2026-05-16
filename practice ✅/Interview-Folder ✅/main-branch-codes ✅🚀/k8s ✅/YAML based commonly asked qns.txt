@@ -1,0 +1,344 @@
+YESSS exactly right:
+
+GitHub workflows → YAML files
+Kubernetes configs → YAML files
+
+But BOTH use YAML for DIFFERENT purposes.
+
+This is actually a VERY GOOD interview discussion topic 🚀
+
+🔷 YAML QUESTIONS (VERY IMPORTANT)
+✅ Q1:
+“What is YAML?”
+Answer
+
+YAML is human-readable configuration language.
+
+Used heavily in:
+
+DevOps
+CI/CD
+Kubernetes
+Docker Compose
+cloud configurations
+✅ Q2:
+“What is full form of YAML?”
+Answer
+
+Originally:
+Yet Another Markup Language
+
+Now officially:
+YAML Ain’t Markup Language
+
+✅ Q3:
+“Why YAML popular in DevOps?”
+Answer
+
+Because YAML is:
+
+simple
+readable
+structured
+easy for configuration management
+✅ Q4:
+“Is YAML programming language?”
+Answer
+
+No.
+
+YAML is configuration/data serialization language.
+
+Used for defining:
+
+workflows
+deployments
+infrastructure configs
+✅ Q5:
+“Why indentation important in YAML?”
+Answer
+
+YAML uses indentation to define hierarchy.
+
+Wrong indentation causes parsing errors.
+
+✅ Q6:
+“Difference between YAML and JSON?”
+Answer
+
+YAML:
+
+more readable
+supports comments
+DevOps-friendly
+
+JSON:
+
+stricter syntax
+commonly used in APIs
+✅ Q7:
+“What is YAML syntax mainly used for?”
+Answer
+
+Defining structured configurations.
+
+Examples:
+
+CI/CD pipelines
+Kubernetes deployments
+cloud infrastructure
+🔷 GITHUB WORKFLOW YAML QUESTIONS
+✅ Q8:
+“Why GitHub workflows use YAML?”
+Answer
+
+Defines CI/CD automation steps declaratively.
+
+Example:
+
+build
+test
+deploy
+✅ Q9:
+“What type of YAML is GitHub Actions YAML?”
+Answer
+
+CI/CD pipeline configuration YAML.
+
+✅ Q10:
+“What do GitHub workflow YAML files control?”
+Answer
+
+Automates:
+
+builds
+testing
+deployments
+scheduled jobs
+✅ Q11:
+“Where GitHub workflow YAML files stored?”
+Answer
+
+Inside:
+
+.github/workflows/
+✅ Q12:
+“What are common GitHub Actions YAML sections?”
+Answer
+name
+on
+jobs
+steps
+uses
+run
+env
+✅ Q13:
+“What does on: mean in workflow YAML?”
+Answer
+
+Defines workflow trigger.
+
+Examples:
+
+push
+pull_request
+workflow_dispatch
+schedule
+✅ Q14:
+“What is jobs: section?”
+Answer
+
+Defines CI/CD tasks to execute.
+
+✅ Q15:
+“What is steps: section?”
+Answer
+
+Defines ordered execution steps.
+
+Example:
+
+checkout code
+install dependencies
+deploy app
+🔷 KUBERNETES YAML QUESTIONS
+✅ Q16:
+“Why Kubernetes uses YAML?”
+Answer
+
+Defines infrastructure resources declaratively.
+
+Examples:
+
+deployments
+services
+ingress
+pods
+✅ Q17:
+“What type of YAML is Kubernetes YAML?”
+Answer
+
+Infrastructure-as-Code (IaC) configuration YAML.
+
+✅ Q18:
+“What do Kubernetes YAML files control?”
+Answer
+
+Defines:
+
+containers
+networking
+scaling
+deployments
+infrastructure behavior
+✅ Q19:
+“Where Kubernetes YAML files usually stored?”
+Answer
+
+Commonly inside folders like:
+
+k8s/
+manifests/
+deployments/
+✅ Q20:
+“What are common Kubernetes YAML sections?”
+Answer
+apiVersion
+kind
+metadata
+spec
+✅ Q21:
+“What does kind: mean in K8s YAML?”
+Answer
+
+Defines Kubernetes resource type.
+
+Examples:
+
+Deployment
+Service
+Ingress
+Pod
+✅ Q22:
+“What does spec: mean?”
+Answer
+
+Defines desired resource configuration.
+
+Example:
+
+replicas
+containers
+ports
+🔷 VERY IMPORTANT DIFFERENCE QUESTIONS
+✅ Q23:
+“Difference between GitHub Actions YAML and Kubernetes YAML?”
+Answer
+
+GitHub Actions YAML:
+
+automates CI/CD workflows
+
+Kubernetes YAML:
+
+defines infrastructure/resources
+✅ Q24:
+“GitHub workflow YAML controls what?”
+Answer
+
+Pipeline automation.
+
+Example:
+
+build
+test
+deploy
+✅ Q25:
+“Kubernetes YAML controls what?”
+Answer
+
+Container orchestration infrastructure.
+
+Example:
+
+pods
+services
+deployments
+✅ Q26:
+“Are both YAML syntaxes same?”
+Answer
+
+Base YAML syntax same.
+
+But fields/keywords differ based on tool.
+
+Example:
+
+GitHub Actions keywords
+Kubernetes keywords
+✅ Q27:
+“What is declarative configuration?”
+Answer
+
+You define desired final state.
+
+System automatically manages implementation.
+
+Very common in Kubernetes.
+
+✅ Q28:
+“Why YAML important for DevOps engineers?”
+Answer
+
+Most DevOps tools use YAML:
+
+GitHub Actions
+Kubernetes
+Docker Compose
+Ansible
+CI/CD systems
+🔷 VERY STRONG INTERVIEW QUESTION
+✅ Q29:
+“Difference between CI/CD YAML and Infrastructure YAML?”
+Answer
+
+CI/CD YAML:
+automates software delivery pipeline
+
+Infrastructure YAML:
+defines deployment/runtime infrastructure
+
+🔷 REAL UNDERSTANDING SUMMARY
+✅ GitHub Workflow YAML
+
+Purpose:
+🚀 automation pipeline
+
+Controls:
+
+builds
+testing
+deployment automation
+✅ Kubernetes YAML
+
+Purpose:
+☸️ infrastructure deployment
+
+Controls:
+
+containers
+scaling
+networking
+orchestration
+🔷 Real Production Concepts Covered
+
+✅ YAML Syntax
+✅ CI/CD Pipelines
+✅ GitHub Actions
+✅ Kubernetes Configurations
+✅ Infrastructure as Code
+✅ Declarative Configurations
+✅ DevOps Automation
+✅ Deployment Systems
+✅ Cloud Infrastructure
+✅ Container Orchestration

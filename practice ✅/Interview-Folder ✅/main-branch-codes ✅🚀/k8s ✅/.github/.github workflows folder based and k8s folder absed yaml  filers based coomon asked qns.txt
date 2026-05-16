@@ -1,0 +1,212 @@
+Those PATHS themselves are ALSO important interview discussion points.
+
+Because interviewers may ask:
+
+why this folder structure?
+why workflows inside .github/workflows?
+why Kubernetes YAMLs inside k8s/?
+why separate deployment configs from application code?
+
+VERY valid DevOps/backend architecture questions.
+
+🔷 .github/workflows QUESTIONS
+✅ Q1:
+“What is .github/workflows folder?”
+Answer
+
+Special GitHub directory containing GitHub Actions workflow YAML files.
+
+Used for:
+
+CI/CD automation
+builds
+testing
+deployments
+✅ Q2:
+“Why workflows stored inside .github/workflows?”
+Answer
+
+GitHub Actions automatically scans this path for workflow definitions.
+
+Required default GitHub convention.
+
+✅ Q3:
+“What happens when YAML added inside .github/workflows?”
+Answer
+
+GitHub automatically registers workflow pipeline.
+
+Can trigger on:
+
+push
+pull request
+schedule
+manual run
+✅ Q4:
+“What type of files stored in .github/workflows?”
+Answer
+
+CI/CD workflow YAML files.
+
+Examples:
+
+deploy.yml
+test.yml
+build.yml
+✅ Q5:
+“Why keep workflows inside repository?”
+Answer
+
+Pipeline becomes version-controlled.
+
+Benefits:
+
+reproducibility
+team collaboration
+auditability
+🔷 k8s/ QUESTIONS
+✅ Q6:
+“What is k8s folder?”
+Answer
+
+Contains Kubernetes deployment configuration files.
+
+Used for:
+
+container deployment
+scaling
+networking
+orchestration
+✅ Q7:
+“Why folder named k8s?”
+Answer
+
+Short form for Kubernetes.
+
+Because:
+“K” + 8 letters + “s”
+
+✅ Q8:
+“Why keep Kubernetes YAMLs inside k8s folder?”
+Answer
+
+Organizes infrastructure configuration separately from application code.
+
+Improves:
+
+maintainability
+deployment management
+DevOps structure
+✅ Q9:
+“What files usually exist inside k8s folder?”
+Answer
+
+Examples:
+
+deployment.yaml
+service.yaml
+ingress.yaml
+configmap.yaml
+secret.yaml
+✅ Q10:
+“Why separate k8s configs from Flask code?”
+Answer
+
+Application logic and infrastructure configs are separate concerns.
+
+Helps:
+
+DevOps collaboration
+environment management
+scalable deployments
+🔷 DIFFERENCE QUESTIONS
+✅ Q11:
+“Difference between .github/workflows and k8s folder?”
+Answer
+
+.github/workflows:
+
+CI/CD automation
+
+k8s:
+
+Kubernetes infrastructure deployment
+✅ Q12:
+“What does .github/workflows control?”
+Answer
+
+Automation pipeline.
+
+Examples:
+
+build
+test
+deploy
+✅ Q13:
+“What does k8s folder control?”
+Answer
+
+Runtime infrastructure.
+
+Examples:
+
+pods
+services
+ingress
+scaling
+✅ Q14:
+“How both folders work together?”
+Answer
+
+GitHub Actions workflow can automatically deploy Kubernetes YAMLs from k8s folder.
+
+Flow:
+
+push code
+workflow triggers
+Docker image builds
+Kubernetes deployment updates
+🔷 VERY STRONG REAL INTERVIEW QUESTION
+✅ Q15:
+“Explain end-to-end deployment flow using .github/workflows and k8s folder.”
+Answer
+Developer pushes code
+GitHub workflow triggers
+CI/CD pipeline builds Docker image
+Image pushed to container registry
+Kubernetes YAMLs deploy/update containers
+Service/Ingress expose application
+🔷 REAL PRODUCTION UNDERSTANDING
+✅ .github/workflows
+
+Purpose:
+🚀 CI/CD automation
+
+Controls:
+
+builds
+tests
+deployments
+✅ k8s/
+
+Purpose:
+☸️ Kubernetes infrastructure deployment
+
+Controls:
+
+pods
+services
+ingress
+scaling
+networking
+🔷 WHY THIS IS GOOD FOR YOUR PROFILE
+
+Because now you can discuss:
+✅ backend
+✅ CI/CD
+✅ cloud deployments
+✅ Docker
+✅ Kubernetes basics
+✅ infrastructure separation
+
+That combination is VERY strong for backend/software engineer interviews now 🚀
