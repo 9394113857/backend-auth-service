@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - "**"
+
+    tags:
+      - "v*"
+
+  create:
     tags:
       - "v*"
 
@@ -14,6 +19,7 @@ on:
 jobs:
   build:
     name: CI Build - ${{ github.ref_name }}
+
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
 
       # ==========================================
-      # PYTHON
+      # PYTHON SETUP
       # ==========================================
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -44,16 +50,23 @@ jobs:
       # RUN TESTS
       # ==========================================
       - name: Run Tests
-        run: PYTHONPATH=. pytest -v
+        run: |
+          PYTHONPATH=. pytest -v
 
       # ==========================================
-      # SET BUILD VARIABLES
+      # SET BUILD METADATA
       # ==========================================
       - name: Set Metadata
         run: |
 
           echo "REF=${GITHUB_REF}" >> $GITHUB_ENV
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+
+          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+
+          echo "BUILD_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
+
+          echo "REPO_URL=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
 
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
 
@@ -65,6 +78,8 @@ jobs:
 
             echo "IMAGE=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_ENV
 
+            echo "IS_TAG=true" >> $GITHUB_ENV
+
           else
 
             BRANCH=${GITHUB_REF#refs/heads/}
@@ -75,18 +90,44 @@ jobs:
 
             echo "IMAGE=pythoncodelife/backend-auth-service:dev-${GITHUB_SHA}" >> $GITHUB_ENV
 
+            echo "IS_TAG=false" >> $GITHUB_ENV
+
           fi
 
       # ==========================================
-      # BUILD INFO
+      # SHOW EXECUTION INFO
+      # ==========================================
+      - name: Show Execution Info
+        run: |
+
+          echo "🚀 CI TRIGGERED"
+
+          echo "Type: $TYPE"
+          echo "Name: $NAME"
+
+          echo "Commit: $COMMIT"
+
+          echo "Branch: $BRANCH"
+
+          echo "Docker Image: $IMAGE"
+
+          echo "UTC Time: $BUILD_TIME_UTC"
+          echo "IST Time: $BUILD_TIME_IST"
+
+      # ==========================================
+      # GENERATE BUILD INFO
       # ==========================================
       - name: Generate Build Info
         run: |
+
           echo "{
+            \"type\": \"${TYPE}\",
+            \"name\": \"${NAME}\",
             \"commit\": \"${COMMIT}\",
             \"branch\": \"${BRANCH}\",
             \"image\": \"${IMAGE}\",
-            \"build_time_utc\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"
+            \"build_time_utc\": \"${BUILD_TIME_UTC}\",
+            \"build_time_ist\": \"${BUILD_TIME_IST}\"
           }" > build_info.json
 
       # ==========================================
@@ -99,26 +140,28 @@ jobs:
           --password-stdin
 
       # ==========================================
-      # BUILD IMAGE
+      # BUILD DOCKER IMAGE
       # ==========================================
       - name: Build Docker Image
         run: |
           docker build -t $IMAGE .
 
       # ==========================================
-      # PUSH IMAGE
+      # PUSH VERSION/SHA IMAGE
       # ==========================================
       - name: Push Docker Image
         run: |
           docker push $IMAGE
 
       # ==========================================
-      # PUSH LATEST FOR BRANCH BUILDS
+      # PUSH LATEST IMAGE FOR BRANCH BUILDS
       # ==========================================
-      - name: Push Latest
-        if: env.TYPE == 'BRANCH'
+      - name: Push Latest Image
+        if: env.IS_TAG == 'false'
         run: |
+
           docker tag $IMAGE pythoncodelife/backend-auth-service:latest
+
           docker push pythoncodelife/backend-auth-service:latest
 
       # ==========================================
@@ -126,7 +169,9 @@ jobs:
       # ==========================================
       - name: Email Success
         if: success()
+
         uses: dawidd6/action-send-mail@v3
+
         with:
           server_address: smtp.gmail.com
           server_port: 587
@@ -145,8 +190,11 @@ jobs:
 
             🚀 CI BUILD SUCCESS on Auth Service
 
-            📌 Type: ${{ env.TYPE }}
-            🏷️ Name: ${{ env.NAME }}
+            📌 Type:
+            ${{ env.TYPE }}
+
+            🏷️ Name:
+            ${{ env.NAME }}
 
             🔑 Commit:
             ${{ env.COMMIT }}
@@ -157,9 +205,16 @@ jobs:
             🐳 Docker Image:
             ${{ env.IMAGE }}
 
-            🔗 Repo:
-            https://github.com/9394113857/backend-auth-service
+            🕒 UTC:
+            ${{ env.BUILD_TIME_UTC }}
 
+            🇮🇳 IST:
+            ${{ env.BUILD_TIME_IST }}
+
+            🔗 Repo:
+            ${{ env.REPO_URL }}
+
+            ✅ Tests passed successfully.
             ✅ Docker image pushed successfully.
 
       # ==========================================
@@ -167,7 +222,9 @@ jobs:
       # ==========================================
       - name: Email Failure
         if: failure()
+
         uses: dawidd6/action-send-mail@v3
+
         with:
           server_address: smtp.gmail.com
           server_port: 587
@@ -186,13 +243,16 @@ jobs:
 
             ❌ CI BUILD FAILED
 
-            Repository:
-            backend-auth-service
-
-            Ref:
+            📌 Ref:
             ${{ github.ref }}
 
-            Commit:
+            🔑 Commit:
             ${{ github.sha }}
+
+            🕒 UTC:
+            ${{ env.BUILD_TIME_UTC }}
+
+            🇮🇳 IST:
+            ${{ env.BUILD_TIME_IST }}
 
             Please check GitHub Actions logs.
