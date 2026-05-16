@@ -1,0 +1,308 @@
+🔷 DEVOPS / RELEASE AUTOMATION – Interview Questions & Answers
+✅ Q1:
+“What is this script used for?”
+Answer
+
+Automates release/tagging workflow for GitHub repository.
+
+Used for:
+
+versioning
+release automation
+triggering CI/CD deployments
+✅ Q2:
+“What DevOps concept does this script represent?”
+Answer
+
+Release automation + Continuous Deployment (CD).
+
+✅ Q3:
+“Why automate Git tagging?”
+Answer
+
+Benefits:
+
+consistent releases
+reduced manual work
+faster deployments
+version tracking
+✅ Q4:
+“What is Git tag?”
+Answer
+
+Marks specific repository version/release point.
+
+Example:
+
+v1.0.1
+✅ Q5:
+“Why semantic versioning used?”
+Answer
+
+Provides structured release versions.
+
+Format:
+
+MAJOR.MINOR.PATCH
+
+Example:
+
+v1.0.0
+v1.0.1
+✅ Q6:
+“What is PATCH version increment?”
+Answer
+
+Small bug fix/update release.
+
+Example:
+
+v1.0.0 → v1.0.1
+✅ Q7:
+“Why clone repository in script?”
+Answer
+
+Downloads latest source code locally for automation workflow.
+
+✅ Q8:
+“Why check .git folder exists?”
+Answer
+
+Validates successful repository cloning.
+
+Ensures working directory is valid Git repository.
+
+✅ Q9:
+“Why git pull origin main?”
+Answer
+
+Synchronizes latest repository changes before release.
+
+✅ Q10:
+“Why fetch tags?”
+Answer
+
+Downloads latest release tags from remote repository.
+
+Needed for next version calculation.
+
+✅ Q11:
+“Why use subprocess.getoutput()?”
+Answer
+
+Executes shell/git commands from Python script.
+
+✅ Q12:
+“Why authenticated remote URL used?”
+Answer
+
+Allows secure Git push operations using PAT token.
+
+✅ Q13:
+“What is GitHub PAT token?”
+Answer
+
+Personal Access Token.
+
+Used for:
+
+authenticated Git operations
+API access
+CI/CD automation
+✅ Q14:
+“Why PAT used instead of password?”
+Answer
+
+GitHub deprecated password-based Git authentication.
+
+PAT is more secure.
+
+✅ Q15:
+“Why hardcoding PAT risky?”
+Answer
+
+Security risk.
+
+Tokens should ideally use:
+
+environment variables
+GitHub Secrets
+Secret Managers
+✅ Q16:
+“What happens if no tags exist?”
+Answer
+
+Script initializes default version:
+
+v1.0.0
+✅ Q17:
+“Why validation around tag parsing?”
+Answer
+
+Prevents script crashes from invalid tag formats.
+
+Improves automation reliability.
+
+✅ Q18:
+“Why confirmation step added?”
+Answer
+
+Prevents accidental production releases.
+
+Adds manual safety checkpoint.
+
+✅ Q19:
+“What happens after tag push?”
+Answer
+
+GitHub Actions workflow may trigger automatically.
+
+Can start:
+
+build
+Docker image creation
+deployment pipeline
+✅ Q20:
+“How CI/CD integrates with Git tags?”
+Answer
+
+Tag push can trigger:
+
+release workflows
+Docker builds
+Kubernetes deployments
+🔷 CI/CD QUESTIONS
+✅ Q21:
+“Difference between CI and CD?”
+Answer
+
+CI:
+Continuous Integration
+(build/test automation)
+
+CD:
+Continuous Deployment/Delivery
+(release automation)
+
+✅ Q22:
+“What part here is CD?”
+Answer
+
+Automated tagging + deployment triggering.
+
+✅ Q23:
+“What is release automation?”
+Answer
+
+Automating software release/versioning process.
+
+✅ Q24:
+“What is deployment pipeline?”
+Answer
+
+Automated workflow from:
+code → build → test → deploy
+
+✅ Q25:
+“How does this script support DevOps?”
+Answer
+
+Automates:
+
+release process
+version management
+deployment triggers
+🔷 PLATFORM / CLOUD QUESTIONS
+✅ Q26:
+“Can same tagging flow work across platforms?”
+Answer
+
+Yes.
+
+Can trigger deployments for:
+
+Kubernetes
+Docker
+GCP
+AWS
+Azure
+Render
+Netlify
+✅ Q27:
+“How deployment triggered after tag?”
+Answer
+
+GitHub Actions workflow detects tag push event.
+
+✅ Q28:
+“What is event-driven CI/CD?”
+Answer
+
+Pipeline triggers automatically on repository events.
+
+Examples:
+
+push
+tag
+pull request
+🔷 VERY IMPORTANT REAL INTERVIEW QUESTIONS
+✅ Q29:
+“Explain complete deployment flow using this script.”
+Answer
+Clone repo
+Pull latest code
+Fetch tags
+Generate next version
+Create Git tag
+Push tag
+GitHub Actions triggers
+Deployment pipeline executes
+✅ Q30:
+“What production improvements possible?”
+Answer
+
+Possible improvements:
+
+GitHub Secrets
+automated changelog
+rollback strategy
+release approvals
+Slack notifications
+Docker image tagging
+Kubernetes auto deployment
+✅ Q31:
+“Why automation important in DevOps?”
+Answer
+
+Improves:
+
+consistency
+speed
+reliability
+scalability
+
+Reduces manual errors.
+
+🔷 VERY STRONG REAL DEVOPS QUESTION
+✅ Q32:
+“How Git tags help deployment systems?”
+Answer
+
+Tags uniquely identify release versions.
+
+Deployment pipelines can deploy specific stable versions.
+
+🔷 REAL PRODUCTION CONCEPTS COVERED
+
+✅ CI/CD
+✅ Release Automation
+✅ Git Tags
+✅ Semantic Versioning
+✅ GitHub Actions
+✅ Deployment Pipelines
+✅ DevOps Automation
+✅ PAT Authentication
+✅ Release Management
+✅ Event-Driven Deployments
+✅ Cloud Deployment Flow
+✅ Infrastructure Automation
