@@ -1,1 +1,369 @@
-WIll timelyy adding hee wait now
+Resume Topics:-
+1.	Anguar
+2.	Typescript
+3.	HTML5
+4.	CSS3
+5.	Bootstrap
+6.	Anguar servicesInterceptors
+7.	Guards
+8.	Routing
+
+🔷 ANGULAR INTERVIEW QUESTIONS & ANSWERS
+✅ 1. Angular
+Q1:
+“What is Angular?”
+Answer
+
+Angular is TypeScript-based frontend framework developed by Google.
+
+Used for:
+
+Single Page Applications (SPA)
+dynamic frontend applications
+component-based architecture
+Q2:
+“Why Angular used?”
+Answer
+
+Benefits:
+
+reusable components
+routing
+dependency injection
+modular architecture
+strong TypeScript support
+Q3:
+“What is SPA?”
+Answer
+
+Single Page Application.
+
+Page reload not required for every request.
+
+Angular dynamically updates UI.
+
+Q4:
+“What is component in Angular?”
+Answer
+
+Reusable UI building block.
+
+Contains:
+
+HTML
+CSS
+TypeScript logic
+Q5:
+“What is module in Angular?”
+Answer
+
+Groups related Angular functionality.
+
+Example:
+
+AppModule
+feature modules
+🔷 2. TypeScript
+Q6:
+“What is TypeScript?”
+Answer
+
+Superset of JavaScript with:
+
+static typing
+classes
+interfaces
+OOP features
+Q7:
+“Why Angular uses TypeScript?”
+Answer
+
+Benefits:
+
+better maintainability
+type safety
+IDE support
+scalable frontend architecture
+Q8:
+“Difference between JavaScript and TypeScript?”
+Answer
+
+JavaScript:
+
+dynamically typed
+
+TypeScript:
+
+statically typed
+compile-time checking
+Q9:
+“What is interface in TypeScript?”
+Answer
+
+Defines object structure/type contract.
+
+Used for:
+
+API models
+type safety
+🔷 3. HTML5
+Q10:
+“What is HTML5?”
+Answer
+
+Latest HTML standard used for webpage structure.
+
+Supports:
+
+semantic tags
+multimedia
+responsive applications
+Q11:
+“What are semantic tags?”
+Answer
+
+Meaningful HTML tags.
+
+Examples:
+
+header
+footer
+section
+article
+Q12:
+“Why semantic HTML important?”
+Answer
+
+Improves:
+
+SEO
+accessibility
+maintainability
+🔷 4. CSS3
+Q13:
+“What is CSS3?”
+Answer
+
+Used for webpage styling and responsive UI design.
+
+Q14:
+“What is responsive design?”
+Answer
+
+UI adapts to:
+
+mobile
+tablet
+desktop screens
+Q15:
+“What is Flexbox?”
+Answer
+
+CSS layout system for aligning items dynamically.
+
+Q16:
+“What is Grid in CSS?”
+Answer
+
+2D layout system for rows and columns.
+
+🔷 5. Bootstrap
+Q17:
+“What is Bootstrap?”
+Answer
+
+Frontend CSS framework for responsive UI development.
+
+Q18:
+“Why Bootstrap used?”
+Answer
+
+Benefits:
+
+faster UI development
+responsive layouts
+prebuilt components
+Q19:
+“What is Bootstrap Grid System?”
+Answer
+
+12-column responsive layout system.
+
+🔷 6. Angular Services
+Q20:
+“What is Angular Service?”
+Answer
+
+Reusable business logic class.
+
+Used for:
+
+API calls
+shared logic
+state handling
+Q21:
+“Why services used?”
+Answer
+
+Separates business logic from components.
+
+Improves:
+
+reusability
+clean architecture
+Q22:
+“What is dependency injection?”
+Answer
+
+Angular automatically provides service instances to components.
+
+Q23:
+“Why HttpClient used?”
+Answer
+
+Makes HTTP API calls to backend services.
+
+🔷 7. Interceptors
+Q24:
+“What is Angular Interceptor?”
+Answer
+
+Intercepts HTTP requests/responses globally.
+
+Q25:
+“Why Interceptors used?”
+Answer
+
+Used for:
+
+JWT token attachment
+logging
+error handling
+request modification
+Q26:
+“How JWT token added in Angular?”
+Answer
+
+Using HTTP Interceptor.
+
+Interceptor adds:
+Authorization header automatically.
+
+Q27:
+“What are benefits of Interceptors?”
+Answer
+centralized request handling
+reusable auth logic
+cleaner components
+🔷 8. Guards
+Q28:
+“What is Angular Guard?”
+Answer
+
+Protects routes/pages based on conditions.
+
+Q29:
+“Why Guards used?”
+Answer
+
+Used for:
+
+authentication
+authorization
+route protection
+Q30:
+“What is Auth Guard?”
+Answer
+
+Allows only authenticated users to access routes.
+
+Q31:
+“What happens if token missing in Guard?”
+Answer
+
+User redirected to:
+
+login page
+unauthorized page
+🔷 9. Routing
+Q32:
+“What is Angular Routing?”
+Answer
+
+Handles frontend navigation between pages/components.
+
+Q33:
+“Why Routing used?”
+Answer
+
+Supports SPA navigation without full page reload.
+
+Q34:
+“What is RouterModule?”
+Answer
+
+Angular module managing application routes.
+
+Q35:
+“What is lazy loading?”
+Answer
+
+Loads modules only when needed.
+
+Improves:
+
+performance
+initial load speed
+Q36:
+“Difference between routerLink and href?”
+Answer
+
+routerLink:
+Angular SPA navigation
+
+href:
+full page reload
+
+🔷 VERY IMPORTANT FULL-STACK QUESTIONS
+Q37:
+“How Angular communicates with Flask backend?”
+Answer
+
+Using HTTP APIs via:
+
+HttpClient
+REST APIs
+JSON requests/responses
+Q38:
+“How JWT flow works in Angular + Flask?”
+Answer
+User login
+Flask returns JWT token
+Angular stores token
+Interceptor attaches token
+Backend validates token
+Q39:
+“What frontend concepts used in your project?”
+Answer
+Angular Components
+Services
+Routing
+Guards
+Interceptors
+API Integration
+JWT Authentication
+🔷 REAL PRODUCTION CONCEPTS COVERED
+
+✅ Angular
+✅ TypeScript
+✅ HTML5
+✅ CSS3
+✅ Bootstrap
+✅ Services
+✅ Dependency Injection
+✅ Interceptors
+✅ Guards
+✅ Routing
+✅ JWT Frontend Flow
+✅ SPA Architecture
+✅ Full-Stack API Integration
