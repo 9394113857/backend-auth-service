@@ -1,0 +1,322 @@
+Based on your app/api/product_routes.py file
+here are REAL backend interview questions + answers first 🔥
+
+🔷 PRODUCT ROUTES – Interview Questions & Answers
+✅ Q1:
+“What is Blueprint in Flask?”
+Answer
+
+Blueprint helps organize routes into modular components.
+
+Example:
+
+product_bp = Blueprint("products", __name__)
+
+Benefits:
+
+clean architecture
+modular code
+scalable APIs
+microservice organization
+✅ Q2:
+“Why create separate Blueprint for Angular compatibility?”
+Answer
+
+Helps maintain backward/frontend compatibility.
+
+Example:
+
+angular_product_bp
+
+Used when:
+
+Angular frontend expects specific routes
+old frontend APIs must still work
+✅ Q3:
+“Why use jsonify()?”
+Answer
+
+Converts Python dictionary/list into JSON response.
+
+Used for REST APIs.
+
+Example:
+
+return jsonify({"status": "UP"})
+✅ Q4:
+“Why return HTTP status codes?”
+Answer
+
+Helps frontend understand API result.
+
+Examples:
+
+200 → Success
+201 → Created
+400 → Bad Request
+404 → Not Found
+✅ Q5:
+“What does @jwt_required() do?”
+Answer
+
+Protects route using JWT authentication.
+
+Only authenticated users can access endpoint.
+
+Used for:
+
+seller actions
+order operations
+protected APIs
+✅ Q6:
+“Why protect add_product route?”
+Answer
+
+Only authorized users/sellers should create products.
+
+Prevents unauthorized product creation.
+
+✅ Q7:
+“Why use request.get_json()?”
+Answer
+
+Reads JSON request body from frontend/client.
+
+Used in POST/PUT APIs.
+
+Example:
+
+data = request.get_json()
+✅ Q8:
+“What is ORM object creation here?”
+Answer
+
+SQLAlchemy ORM converts Python objects into database rows.
+
+Example:
+
+product = Product(...)
+✅ Q9:
+“Why use db.session.add()?”
+Answer
+
+Adds ORM object into SQLAlchemy session.
+
+Prepares object for database insertion.
+
+✅ Q10:
+“Why use db.session.commit()?”
+Answer
+
+Permanently saves transaction into database.
+
+Without commit:
+changes are not stored.
+
+✅ Q11:
+“What is Product.query.all()?”
+Answer
+
+Fetches all rows from Product table.
+
+Returns list of ORM objects.
+
+✅ Q12:
+“Why use list comprehension in JSON response?”
+Answer
+
+Converts ORM objects into serializable JSON format efficiently.
+
+Example:
+
+[p.name for p in products]
+✅ Q13:
+“Why nested variants inside product response?”
+Answer
+
+Represents Product → Variants relationship.
+
+Useful for:
+
+frontend rendering
+e-commerce product details
+stock management
+✅ Q14:
+“What does get_or_404() do?”
+Answer
+
+Fetches object by ID.
+
+Automatically returns 404 if object not found.
+
+Example:
+
+Product.query.get_or_404(product_id)
+✅ Q15:
+“Why use separate ProductVariant model?”
+Answer
+
+Supports:
+
+multiple colors
+multiple sizes
+stock per variant
+
+Common e-commerce architecture.
+
+✅ Q16:
+“Why validate stock before decrease?”
+Answer
+
+Prevents negative inventory.
+
+Important for:
+
+order consistency
+inventory management
+overselling prevention
+✅ Q17:
+“What happens in decrease_stock()?”
+Answer
+Receives ordered items.
+Finds matching product variant.
+Checks available stock.
+Reduces stock quantity.
+Commits transaction.
+✅ Q18:
+“Why restore stock?”
+Answer
+
+Used for:
+
+order cancellation
+refunds
+product returns
+
+Maintains inventory consistency.
+
+✅ Q19:
+“Why use filter_by().first()?”
+Answer
+
+Filters database rows using conditions.
+
+Returns first matching row.
+
+Example:
+
+ProductVariant.query.filter_by(...)
+✅ Q20:
+“What is inventory management?”
+Answer
+
+Tracks product stock availability.
+
+Ensures:
+
+accurate stock
+order consistency
+seller inventory updates
+✅ Q21:
+“What REST APIs are used here?”
+Answer
+GET → fetch data
+POST → create/update operations
+✅ Q22:
+“Why separate read-only Angular routes?”
+Answer
+
+Frontend compatibility layer.
+
+Allows Angular frontend integration without changing existing APIs.
+
+✅ Q23:
+“What security concepts used here?”
+Answer
+JWT authentication
+Protected routes
+Authorization
+Inventory validation
+Input validation
+✅ Q24:
+“What backend concepts used here?”
+Answer
+Flask Blueprints
+REST APIs
+SQLAlchemy ORM
+JWT Authentication
+Inventory Management
+Nested JSON responses
+Transactions
+Route protection
+✅ Q25:
+“Real production challenges in stock management?”
+Answer
+Race conditions
+Concurrent orders
+Negative stock prevention
+Transaction consistency
+Database locking
+✅ Q26:
+“How would you improve this API in production?”
+Answer
+
+Possible improvements:
+
+role-based seller validation
+pagination
+input schema validation
+transaction rollback handling
+optimistic locking
+Redis caching
+async inventory events
+🔷 Very Important Real Interview Questions
+✅ Q27:
+“Difference between Authentication and Authorization?”
+Answer
+
+Authentication:
+
+verifies user identity
+
+Authorization:
+
+checks user permissions
+
+Example:
+
+login = authentication
+seller-only add product = authorization
+✅ Q28:
+“Why JWT commonly used in microservices?”
+Answer
+Stateless
+Scalable
+Lightweight
+Easy frontend integration
+No server-side session storage
+✅ Q29:
+“Why ORM instead of raw SQL?”
+Answer
+
+ORM provides:
+
+cleaner code
+object-oriented access
+abstraction
+security improvements
+easier maintenance
+✅ Q30:
+“What is REST API?”
+Answer
+
+REST API uses HTTP methods for communication.
+
+Common methods:
+
+GET
+POST
+PUT
+DELETE
+
+Used for frontend-backend communication.
