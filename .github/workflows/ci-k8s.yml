@@ -1,8 +1,8 @@
 # =====================================================
-# 🚀 CI - K8S AUTH SERVICE (FINAL WORKING) ----
+# 🚀 CI - K8S AUTH SERVICE (FINAL IMPROVED VERSION)
 # =====================================================
 
-name: 🚀 CI - K8S Auth Service   # Workflow name
+name: 🚀 CI - K8S Auth Service
 
 # -----------------------------------------------------
 # 🔁 Trigger: Runs on push to this branch
@@ -17,7 +17,7 @@ on:
 # -----------------------------------------------------
 jobs:
   build:
-    runs-on: ubuntu-latest   # GitHub runner (Linux machine)
+    runs-on: ubuntu-latest
 
     steps:
 
@@ -28,11 +28,12 @@ jobs:
         uses: actions/checkout@v4
 
       # -----------------------------------
-      # 🏷️ STEP 2: Set version + metadata
+      # 🏷️ STEP 2: Set version variables
       # -----------------------------------
       - name: Set Version Variables
         run: |
           VERSION=${GITHUB_SHA}
+
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
           echo "APP_COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
           echo "APP_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
@@ -52,7 +53,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       # -----------------------------------
-      # 🐳 STEP 5: Configure Docker for Artifact Registry
+      # 🐳 STEP 5: Configure Docker
       # -----------------------------------
       - name: Configure Docker
         run: |
@@ -70,8 +71,18 @@ jobs:
             -t asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service:${APP_VERSION} .
 
       # -----------------------------------
-      # 📦 STEP 7: Push Image to GCP
+      # 📦 STEP 7: Push Docker Image
       # -----------------------------------
       - name: Push Docker Image
         run: |
           docker push asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service:${APP_VERSION}
+
+      # -----------------------------------
+      # ✅ STEP 8: Verify pushed image
+      # -----------------------------------
+      - name: Verify Image
+        run: |
+          gcloud artifacts docker images list \
+          asia-south1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/auth-repo/auth-service \
+          --include-tags \
+          --limit=5
