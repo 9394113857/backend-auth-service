@@ -1,0 +1,339 @@
+NOW this is PURE DevOps + Kubernetes + Deployment interview territory.
+
+This k8s/ folder is VERY important because it shows:
+
+production deployment awareness
+container orchestration
+cloud deployment exposure
+Kubernetes basics
+
+These three files together deploy your Flask auth service into Kubernetes.
+
+🔷 OVERALL FOLDER QUESTIONS
+✅ Q1:
+“What is k8s folder?”
+Answer
+
+Contains Kubernetes deployment configuration files.
+
+Used to deploy application into Kubernetes cluster.
+
+✅ Q2:
+“Why separate Kubernetes YAML files?”
+Answer
+
+Each file manages separate Kubernetes resource.
+
+Benefits:
+
+modular configuration
+easier maintenance
+scalable deployments
+✅ Q3:
+“What are these three files?”
+Answer
+deployment.yaml
+→ deploys application containers
+service.yaml
+→ exposes application networking
+ingress.yaml
+→ external routing/load balancing
+✅ Q4:
+“What is Kubernetes?”
+Answer
+
+Container orchestration platform.
+
+Used for:
+
+deployment
+scaling
+management
+high availability
+
+of containerized applications.
+
+✅ Q5:
+“Why Kubernetes instead of Docker alone?”
+Answer
+
+Docker:
+
+runs containers
+
+Kubernetes:
+
+manages containers at scale
+
+Features:
+
+scaling
+self-healing
+load balancing
+orchestration
+🔷 deployment.yaml QUESTIONS
+✅ Q6:
+“What is Deployment in Kubernetes?”
+Answer
+
+Deployment manages application pods.
+
+Handles:
+
+pod creation
+scaling
+rolling updates
+self-healing
+✅ Q7:
+“Why kind: Deployment?”
+Answer
+
+Creates managed application deployment resource.
+
+Ensures desired number of pods always running.
+
+✅ Q8:
+“What are replicas?”
+Answer
+
+Number of pod copies running.
+
+Example:
+
+replicas: 1
+
+means:
+1 pod instance running.
+
+✅ Q9:
+“Why increase replicas?”
+Answer
+
+Benefits:
+
+high availability
+load balancing
+zero downtime
+scalability
+✅ Q10:
+“What is selector.matchLabels?”
+Answer
+
+Links deployment to matching pods using labels.
+
+Kubernetes uses labels to identify resources.
+
+✅ Q11:
+“What is template section?”
+Answer
+
+Defines pod configuration template.
+
+Used for creating pods automatically.
+
+✅ Q12:
+“What is container image?”
+Answer
+
+Docker image containing Flask application.
+
+Example:
+
+image: auth-service:tag
+✅ Q13:
+“Why imagePullPolicy: Always?”
+Answer
+
+Always pulls latest image version.
+
+Useful during:
+
+CI/CD deployments
+frequent updates
+✅ Q14:
+“What is containerPort?”
+Answer
+
+Port application listens on inside container.
+
+Example:
+
+containerPort: 5000
+✅ Q15:
+“Why environment variables used?”
+Answer
+
+Externalizes configuration.
+
+Used for:
+
+DB URLs
+secrets
+ports
+runtime configs
+✅ Q16:
+“Why DATABASE_URL environment variable?”
+Answer
+
+Connects Flask app to PostgreSQL database.
+
+Avoids hardcoding DB configs inside application code.
+
+✅ Q17:
+“Why JWT_SECRET_KEY important?”
+Answer
+
+Used for JWT token signing/verification.
+
+Critical for authentication security.
+
+✅ Q18:
+“Why FLASK_ENV=production?”
+Answer
+
+Runs Flask in production mode.
+
+Disables:
+
+debug mode
+unsafe development features
+🔷 service.yaml QUESTIONS
+✅ Q19:
+“What is Kubernetes Service?”
+Answer
+
+Exposes pods internally or externally.
+
+Provides stable networking endpoint.
+
+✅ Q20:
+“Why Service needed?”
+Answer
+
+Pods are temporary/dynamic.
+
+Service provides stable access point.
+
+✅ Q21:
+“What is type: LoadBalancer?”
+Answer
+
+Creates external cloud load balancer.
+
+Allows public internet access.
+
+✅ Q22:
+“What does selector do in Service?”
+Answer
+
+Connects service to matching pods using labels.
+
+✅ Q23:
+“Difference between port and targetPort?”
+Answer
+
+port:
+external service port
+
+targetPort:
+container application port
+
+Example:
+80 → forwards to → 5000
+
+🔷 ingress.yaml QUESTIONS
+✅ Q24:
+“What is Ingress in Kubernetes?”
+Answer
+
+Manages external HTTP/HTTPS routing.
+
+Acts like smart reverse proxy.
+
+✅ Q25:
+“Why Ingress used?”
+Answer
+
+Provides:
+
+routing
+domain mapping
+HTTPS handling
+centralized traffic management
+✅ Q26:
+“What is defaultBackend?”
+Answer
+
+Fallback service handling incoming traffic.
+
+✅ Q27:
+“Difference between Service and Ingress?”
+Answer
+
+Service:
+connects traffic to pods
+
+Ingress:
+manages external routing rules
+
+🔷 VERY IMPORTANT REAL INTERVIEW QUESTIONS
+✅ Q28:
+“What happens during Kubernetes deployment?”
+Answer
+Deployment creates pods
+Pods run containers
+Service exposes pods
+Ingress routes external traffic
+✅ Q29:
+“What is Pod?”
+Answer
+
+Smallest deployable Kubernetes unit.
+
+Contains:
+
+one or more containers
+✅ Q30:
+“What is rolling update?”
+Answer
+
+Kubernetes updates pods gradually without downtime.
+
+Used during deployments.
+
+✅ Q31:
+“What is self-healing in Kubernetes?”
+Answer
+
+If pod crashes,
+Kubernetes automatically recreates it.
+
+✅ Q32:
+“What production improvements possible?”
+Answer
+
+Possible improvements:
+
+Secrets Manager
+ConfigMaps
+HPA autoscaling
+readiness/liveness probes
+HTTPS ingress
+rolling deployments
+monitoring
+🔷 Real Production Concepts Covered
+
+✅ Kubernetes
+✅ Deployments
+✅ Pods
+✅ Services
+✅ Ingress
+✅ Load Balancing
+✅ Container Orchestration
+✅ Docker Images
+✅ Environment Variables
+✅ CI/CD Deployments
+✅ Cloud Infrastructure
+✅ High Availability
+✅ Scaling
+✅ Production Deployments

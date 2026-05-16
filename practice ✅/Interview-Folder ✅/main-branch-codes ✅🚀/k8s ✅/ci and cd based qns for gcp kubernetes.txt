@@ -1,0 +1,159 @@
+They may ask more DevOps / Deployment / Docker / Kubernetes / CI-CD style questions instead of pure backend logic.
+
+And actually this is GOOD for your profile because your resume already mentions:
+
+GitHub Actions
+Docker
+GCP
+deployments
+CI/CD
+cloud infrastructure
+
+So now your preparation should shift slightly into:
+
+🔷 DEVOPS / K8S QUESTIONS THEY MAY ASK
+✅ Docker Questions
+
+They may ask:
+
+What is Docker?
+Difference between image and container?
+Why Docker for Flask apps?
+What is Dockerfile?
+What is port mapping?
+Why containerization useful?
+What is docker build?
+What is docker run?
+What is COPY in Dockerfile?
+What is WORKDIR?
+Difference between CMD and ENTRYPOINT?
+✅ Kubernetes Questions
+
+VERY likely if branch name has:
+
+k8s-auth-deploy
+Common Questions
+What is Kubernetes?
+What is Pod?
+What is Deployment?
+What is Service in Kubernetes?
+Why replicas?
+What is scaling?
+Difference between ClusterIP and LoadBalancer?
+What is Ingress?
+Why Kubernetes over Docker alone?
+How Flask app deployed in K8s?
+What is kubectl?
+What is YAML manifest?
+✅ CI/CD Questions
+
+Because you already worked with GitHub Actions.
+
+Expect:
+
+What is CI/CD?
+Difference CI vs CD?
+Why GitHub Actions?
+What are workflows?
+What are secrets?
+Why environment variables?
+What happens after git push?
+Explain deployment pipeline.
+What is automated deployment?
+Why branch strategy?
+✅ Cloud / Deployment Questions
+
+Since resume has GCP exposure.
+
+Possible:
+
+Why deploy on cloud?
+Why GCP?
+What is scalability?
+What is uptime?
+What is load balancing?
+What is HTTPS?
+Difference local vs production?
+What are environment configs?
+🔷 WHAT YOU SHOULD PRACTICE FIRST NOW
+✅ PRIORITY 1
+Docker Basics
+
+MOST IMPORTANT.
+
+You should confidently explain:
+
+image
+container
+Dockerfile
+ports
+build/run
+containerization benefits
+✅ PRIORITY 2
+Kubernetes Basics
+
+Enough initially:
+
+Pod
+Deployment
+Service
+replicas
+scaling
+YAML
+
+No need advanced K8s internals yet.
+
+✅ PRIORITY 3
+GitHub Actions Workflow
+
+You already have GOOD practical exposure.
+
+Practice explaining:
+
+trigger
+build
+test
+deploy
+secrets
+environments
+🔷 WHAT THEY ACTUALLY WANT TO SEE
+
+Not:
+
+“Kubernetes expert”
+
+Mostly they want:
+✅ deployment understanding
+✅ CI/CD understanding
+✅ container awareness
+✅ production thinking
+✅ cloud exposure
+
+You already have decent exposure there.
+
+🔷 BIGGEST ADVANTAGE FOR YOU
+
+You can combine:
+
+backend APIs
+JWT auth
+Docker deployment
+GitHub Actions
+cloud deployment
+ML pipeline automation
+
+That combination is VERY attractive for startup/backend/full-stack roles.
+
+🔷 BEST NEXT STEP
+
+Tomorrow/next sessions:
+
+Docker interview QnA
+Kubernetes interview QnA
+GitHub Actions explanation
+End-to-end deployment flow
+Flask app deployment architecture
+YAML explanations
+CI/CD practical flow
+
+THAT will make your profile much stronger overall 🚀
