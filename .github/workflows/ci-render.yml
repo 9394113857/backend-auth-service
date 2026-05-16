@@ -1,98 +1,244 @@
+# =========================================================
+# 🚀 CI PIPELINE - BACKEND AUTH SERVICE
+# =========================================================
+#
+# PURPOSE:
+# - Run automated tests
+# - Build Docker image
+# - Push Docker image to DockerHub
+# - Generate build metadata
+# - Send email notifications
+#
+# TRIGGERS:
+# - branch push
+# - tag push
+# - pull request
+# - manual trigger
+#
+# =========================================================
+
 name: 🚀 CI - Backend Auth Service
 
+
+# =========================================================
+# 🔥 WORKFLOW TRIGGERS
+# =========================================================
 on:
+
+  # -------------------------------------------------------
+  # 🚀 RUN ON ANY BRANCH PUSH
+  # -------------------------------------------------------
   push:
+
     branches:
       - "**"
 
+    # -----------------------------------------------------
+    # 🏷️ RUN ON VERSION TAGS
+    # Example:
+    # v1.0.0
+    # v1.0.1
+    # -----------------------------------------------------
     tags:
       - "v*"
 
+
+  # -------------------------------------------------------
+  # 🏷️ ALSO RUN WHEN TAG CREATED
+  # -------------------------------------------------------
   create:
+
     tags:
       - "v*"
 
+
+  # -------------------------------------------------------
+  # 🔍 RUN FOR PULL REQUESTS
+  # -------------------------------------------------------
   pull_request:
 
+
+  # -------------------------------------------------------
+  # 👨‍💻 MANUAL EXECUTION
+  # -------------------------------------------------------
   workflow_dispatch:
 
+
+
+# =========================================================
+# 🏗️ JOBS
+# =========================================================
 jobs:
+
   build:
+
+    # -----------------------------------------------------
+    # 📌 JOB NAME
+    # -----------------------------------------------------
     name: CI Build - ${{ github.ref_name }}
 
+    # -----------------------------------------------------
+    # 🐧 GITHUB HOSTED RUNNER
+    # -----------------------------------------------------
     runs-on: ubuntu-latest
 
+
+    # =====================================================
+    # 🚀 STEPS
+    # =====================================================
     steps:
 
-      # =====================================================
-      # 📦 CHECKOUT
-      # =====================================================
+
+      # ===================================================
+      # 📦 STEP 1 - CHECKOUT SOURCE CODE
+      # ===================================================
       - name: Checkout Code
+
         uses: actions/checkout@v4
 
-      # =====================================================
-      # 🐍 PYTHON
-      # =====================================================
+
+
+      # ===================================================
+      # 🐍 STEP 2 - SETUP PYTHON
+      # ===================================================
       - name: Setup Python
+
         uses: actions/setup-python@v5
+
         with:
           python-version: "3.11"
 
-      # =====================================================
-      # 📚 INSTALL DEPENDENCIES
-      # =====================================================
+
+
+      # ===================================================
+      # 📚 STEP 3 - INSTALL DEPENDENCIES
+      # ===================================================
       - name: Install Dependencies
+
         run: |
+
+          # Upgrade pip
           pip install --upgrade pip
+
+          # Install project requirements
           pip install -r requirements.txt
+
+          # Install pytest separately
           pip install pytest
 
-      # =====================================================
-      # 🧪 RUN TESTS
-      # =====================================================
+
+
+      # ===================================================
+      # 🧪 STEP 4 - RUN TESTS
+      # ===================================================
+      #
+      # WHY IMPORTANT?
+      # Prevents broken code from deployment.
+      #
+      # IF TESTS FAIL:
+      # - Docker build stops
+      # - Docker push stops
+      # - Deployment stops
+      #
+      # ===================================================
       - name: Run Tests
+
         env:
+
+          # -----------------------------------------------
+          # 🧪 TEST DATABASE
+          # -----------------------------------------------
           DATABASE_URL: sqlite:///test.db
+
+          # -----------------------------------------------
+          # 🔐 TEST JWT SECRET
+          # -----------------------------------------------
           JWT_SECRET_KEY: testing-secret
+
+          # -----------------------------------------------
+          # 🔐 FLASK SECRET
+          # -----------------------------------------------
           SECRET_KEY: testing-secret
+
+          # -----------------------------------------------
+          # ⚙️ TEST ENVIRONMENT
+          # -----------------------------------------------
           FLASK_ENV: testing
 
         run: |
+
           PYTHONPATH=. pytest -v
 
-      # =====================================================
-      # 🔧 BUILD METADATA
-      # =====================================================
+
+
+      # ===================================================
+      # 🔧 STEP 5 - SET BUILD METADATA
+      # ===================================================
+      #
+      # Used for:
+      # - build_info.json
+      # - health endpoint
+      # - deployment visibility
+      # - Docker image tagging
+      #
+      # ===================================================
       - name: Set Metadata
+
         run: |
 
+          # -----------------------------------------------
+          # 🔑 GIT REFERENCES
+          # -----------------------------------------------
           echo "REF=${GITHUB_REF}" >> $GITHUB_ENV
+
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
+
+          # -----------------------------------------------
+          # 🕒 BUILD TIMES
+          # -----------------------------------------------
           echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
 
           echo "BUILD_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
 
+
+          # -----------------------------------------------
+          # 🔗 REPOSITORY URL
+          # -----------------------------------------------
           echo "REPO_URL=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
 
+
+          # ===============================================
+          # 🏷️ TAG BUILDS
+          # Example:
+          # refs/tags/v1.0.0
+          # ===============================================
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
 
             VERSION=${GITHUB_REF#refs/tags/}
 
             echo "TYPE=TAG" >> $GITHUB_ENV
+
             echo "NAME=${VERSION}" >> $GITHUB_ENV
+
             echo "BRANCH=release" >> $GITHUB_ENV
 
             echo "IMAGE=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_ENV
 
             echo "IS_TAG=true" >> $GITHUB_ENV
 
+
+          # ===============================================
+          # 🌿 BRANCH BUILDS
+          # ===============================================
           else
 
             BRANCH=${GITHUB_REF#refs/heads/}
 
             echo "TYPE=BRANCH" >> $GITHUB_ENV
-            echo "NAME=${BRANCH}" >> $GITHUB_ENV
+
+            echo "NAME=dev-${GITHUB_SHA}" >> $GITHUB_ENV
+
             echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
 
             echo "IMAGE=pythoncodelife/backend-auth-service:dev-${GITHUB_SHA}" >> $GITHUB_ENV
@@ -101,10 +247,25 @@ jobs:
 
           fi
 
-      # =====================================================
-      # 📄 GENERATE BUILD INFO JSON
-      # =====================================================
+
+
+      # ===================================================
+      # 📄 STEP 6 - GENERATE BUILD INFO JSON
+      # ===================================================
+      #
+      # This file is used by:
+      # Flask health endpoint
+      #
+      # Displays:
+      # - version
+      # - commit
+      # - branch
+      # - UTC time
+      # - IST time
+      #
+      # ===================================================
       - name: Generate Build Info
+
         run: |
 
           echo "{
@@ -117,35 +278,58 @@ jobs:
 
           cat build_info.json
 
-      # =====================================================
-      # 🐳 DOCKER LOGIN
-      # =====================================================
+
+
+      # ===================================================
+      # 🐳 STEP 7 - DOCKER LOGIN
+      # ===================================================
       - name: Docker Login
+
         run: |
+
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
           -u "${{ secrets.DOCKERHUB_USERNAME }}" \
           --password-stdin
 
-      # =====================================================
-      # 🐳 BUILD DOCKER IMAGE
-      # =====================================================
+
+
+      # ===================================================
+      # 🐳 STEP 8 - BUILD DOCKER IMAGE
+      # ===================================================
       - name: Build Docker Image
+
         run: |
 
           docker build -t $IMAGE .
 
-      # =====================================================
-      # 📤 PUSH SHA / VERSION IMAGE
-      # =====================================================
+
+
+      # ===================================================
+      # 📤 STEP 9 - PUSH DOCKER IMAGE
+      # ===================================================
       - name: Push Docker Image
+
         run: |
 
           docker push $IMAGE
 
-      # =====================================================
-      # 🏷️ PUSH LATEST IMAGE (ONLY BRANCH)
-      # =====================================================
+
+
+      # ===================================================
+      # 🏷️ STEP 10 - PUSH LATEST IMAGE
+      # ===================================================
+      #
+      # ONLY FOR BRANCH BUILDS
+      #
+      # TAG BUILDS:
+      # use stable semantic versions
+      #
+      # BRANCH BUILDS:
+      # use latest tag
+      #
+      # ===================================================
       - name: Push Latest Image
+
         if: env.IS_TAG == 'false'
 
         run: |
@@ -154,24 +338,31 @@ jobs:
 
           docker push pythoncodelife/backend-auth-service:latest
 
-      # =====================================================
-      # 📧 EMAIL SUCCESS
-      # =====================================================
+
+
+      # ===================================================
+      # 📧 STEP 11 - EMAIL SUCCESS
+      # ===================================================
       - name: Email Success
+
         if: success()
 
         uses: dawidd6/action-send-mail@v3
 
         with:
+
           server_address: smtp.gmail.com
+
           server_port: 587
 
           username: ${{ secrets.MAIL_USERNAME }}
+
           password: ${{ secrets.MAIL_PASSWORD }}
 
           subject: "🚀 CI SUCCESS on Auth Service - ${{ env.NAME }}"
 
           to: ${{ secrets.MAIL_TO }}
+
           cc: ${{ secrets.MAIL_CC }}
 
           from: ${{ secrets.MAIL_USERNAME }}
@@ -183,7 +374,7 @@ jobs:
             📌 Type:
             ${{ env.TYPE }}
 
-            🏷️ Version/Branch:
+            🏷️ Version:
             ${{ env.NAME }}
 
             🔑 Commit:
@@ -208,24 +399,31 @@ jobs:
             ✅ build_info.json generated
             ✅ Docker image pushed successfully
 
-      # =====================================================
-      # ❌ EMAIL FAILURE
-      # =====================================================
+
+
+      # ===================================================
+      # ❌ STEP 12 - EMAIL FAILURE
+      # ===================================================
       - name: Email Failure
+
         if: failure()
 
         uses: dawidd6/action-send-mail@v3
 
         with:
+
           server_address: smtp.gmail.com
+
           server_port: 587
 
           username: ${{ secrets.MAIL_USERNAME }}
+
           password: ${{ secrets.MAIL_PASSWORD }}
 
           subject: "❌ CI FAILURE on Auth Service - ${{ github.ref_name }}"
 
           to: ${{ secrets.MAIL_TO }}
+
           cc: ${{ secrets.MAIL_CC }}
 
           from: ${{ secrets.MAIL_USERNAME }}
