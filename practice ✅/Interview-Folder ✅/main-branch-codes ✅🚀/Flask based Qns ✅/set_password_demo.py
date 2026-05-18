@@ -140,7 +140,6 @@ print(user1.password_hash)
 #
 # user.set_password(password)
 #
-# centralized reusable logic
 #
 # =====================================================
 
