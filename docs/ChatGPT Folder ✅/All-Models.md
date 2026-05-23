@@ -2,7 +2,7 @@ Project Name:- "feature/ecommerce-production-2026-✅"
 This is the project name in ChatGPT Account okay.
 =================================================================================
 Chat Name:- "All  Common Models ✅" 
-This is like All 👉 7 reapos all mdoels discusision done already 👈 bro 🖐 oaky.
+This is like All 👉 7 repos all mdoels discusision done already 👈 bro 🖐 oaky.
 ==============================================================================================
 So, below are coomon fututure paln changes wise schemwsie first and later apsiwsie 
 and anguarwsie think okay so just make surely im logging same fianl initially first bro oaky:-
