@@ -53,7 +53,7 @@ jobs:
 
 
       # ===================================================
-      # 🚀 DEPLOY
+      # 🚀 TRIGGER DEPLOY
       # ===================================================
       - name: Trigger Render Deployment
 
@@ -63,11 +63,13 @@ jobs:
 
 
       # ===================================================
-      # ⏳ WAIT
+      # ⏳ WAIT STARTUP
       # ===================================================
       - name: Wait Startup
 
-        run: sleep 60
+        run: |
+
+          sleep 70
 
 
       # ===================================================
@@ -75,20 +77,31 @@ jobs:
       # ===================================================
       - name: Health Check
 
-        id: healthcheck
-
         run: |
 
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-          https://backend-auth-service-ks6f.onrender.com)
+          URL="https://backend-auth-service-ks6f.onrender.com"
 
-          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          for i in {1..10}; do
 
-          if [ "$STATUS" != "200" ]; then
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
 
-            exit 1
+            echo "Attempt $i → HTTP $STATUS"
 
-          fi
+            if [ "$STATUS" = "200" ]; then
+
+              echo "🟢 Deployment successful"
+
+              exit 0
+
+            fi
+
+            sleep 10
+
+          done
+
+          echo "🔴 Deployment failed"
+
+          exit 1
 
 
       # ===================================================
@@ -141,25 +154,9 @@ jobs:
 
 
       # ===================================================
-      # 🔁 ROLLBACK
+      # ❌ FAILURE EMAIL
       # ===================================================
-      - name: Rollback Deployment
-
-        if: failure()
-
-        run: |
-
-          echo "⚠️ Latest deployment failed"
-
-          PREVIOUS_TAG=$(git tag --sort=-creatordate | sed -n '2p')
-
-          echo "Rolling back to ${PREVIOUS_TAG}"
-
-
-      # ===================================================
-      # 📧 ROLLBACK EMAIL
-      # ===================================================
-      - name: Send Rollback Email
+      - name: Send Deployment Failure Email
 
         if: failure()
 
@@ -175,7 +172,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
 
           subject: |
-            ⚠️ DEPLOYMENT FAILED | Rollback Triggered
+            ❌ DEPLOYMENT FAILED | ${{ env.VERSION }}
 
           to: ${{ secrets.MAIL_TO }}
           cc: ${{ secrets.MAIL_CC }}
@@ -184,16 +181,15 @@ jobs:
 
           body: |
 
-            ❌ Latest deployment failed.
+            ❌ Render deployment failed.
 
-            Rollback mechanism activated.
-
-            Failed Version:
+            Version:
             ${{ env.VERSION }}
 
             Commit:
             ${{ env.COMMIT }}
 
-            Previous stable tag detected automatically.
+            Branch:
+            ${{ env.BRANCH }}
 
-            Check Render logs immediately.
+            Check Render + GitHub Actions logs immediately.
