@@ -1,5 +1,27 @@
-**GCP Link
-8.228.229.55
+# Backend Auth Service
 
-# feature/Render-deploy deployed thsi barch timely cahnegs from render now:-
-https://backend-auth-service-dgfi.onrender.com/
+## Live Links
+
+- Production URL: https://backend-auth-service-dgfi.onrender.com/
+- Server IP: http://8.228.229.55
+
+## Deployment
+
+- Branch: `feature/Render-deploy`
+- Platform: Render
+- Status: ✅ Live
+
+## Run Project
+
+```bash
+npm install
+npm start
+```
+
+## Environment Variables
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection
+JWT_SECRET=your_secret_key
+```
