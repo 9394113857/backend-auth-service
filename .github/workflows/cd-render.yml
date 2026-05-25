@@ -1,72 +1,39 @@
 # =========================================================
 # 🚀 CD PIPELINE - RENDER DEPLOYMENT
 # =========================================================
-#
-# PURPOSE:
-# - Trigger Render deployment
-# - Wait for deployment startup
-# - Run health checks
-# - Send deployment email notifications
-#
-# =========================================================
 
 name: 🚀 CD - Render Deploy
 
-
-# =========================================================
-# 🔥 WORKFLOW TRIGGERS
-# =========================================================
 on:
 
-  # -------------------------------------------------------
-  # 👨‍💻 MANUAL TRIGGER
-  # -------------------------------------------------------
   workflow_dispatch:
 
-
-  # -------------------------------------------------------
-  # ⏰ CRON SCHEDULE
-  #
-  # 30 20 * * *
-  #
-  # UTC  : 08:30 PM
-  # IST  : 02:00 AM
-  # -------------------------------------------------------
   schedule:
     - cron: "30 20 * * *"
 
 
-
-# =========================================================
-# 🚀 JOBS
-# =========================================================
 jobs:
 
   deploy:
 
-    # -----------------------------------------------------
-    # 🐧 RUNNER
-    # -----------------------------------------------------
     runs-on: ubuntu-latest
 
-
-    # =====================================================
-    # 🚀 STEPS
-    # =====================================================
     steps:
 
-
       # ===================================================
-      # 📦 STEP 1 - CHECKOUT CODE
+      # 📦 CHECKOUT
       # ===================================================
       - name: Checkout
 
         uses: actions/checkout@v4
 
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
 
       # ===================================================
-      # 🕒 STEP 2 - DEPLOYMENT METADATA
+      # 🕒 DEPLOYMENT TIME
       # ===================================================
       - name: Set Deployment Metadata
 
@@ -77,16 +44,8 @@ jobs:
           echo "DEPLOY_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
 
 
-
       # ===================================================
-      # ⏳ STEP 3 - WAIT FOR IMAGE SYNC
-      # ===================================================
-      #
-      # WHY?
-      #
-      # DockerHub may take few seconds
-      # before image becomes globally available.
-      #
+      # ⏳ WAIT FOR DOCKER SYNC
       # ===================================================
       - name: Wait for Docker Image
 
@@ -97,9 +56,8 @@ jobs:
           sleep 30
 
 
-
       # ===================================================
-      # 🚀 STEP 4 - TRIGGER RENDER DEPLOYMENT
+      # 🚀 TRIGGER RENDER DEPLOY
       # ===================================================
       - name: Trigger Render Deployment
 
@@ -110,9 +68,8 @@ jobs:
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
 
-
       # ===================================================
-      # ⏳ STEP 5 - WAIT FOR SERVICE STARTUP
+      # ⏳ WAIT FOR STARTUP
       # ===================================================
       - name: Wait for Startup
 
@@ -121,18 +78,8 @@ jobs:
           sleep 50
 
 
-
       # ===================================================
-      # ❤️ STEP 6 - HEALTH CHECK
-      # ===================================================
-      #
-      # WHY IMPORTANT?
-      #
-      # Ensures deployed service:
-      # - started correctly
-      # - responds properly
-      # - production is healthy
-      #
+      # ❤️ HEALTH CHECK
       # ===================================================
       - name: Health Check
 
@@ -163,95 +110,3 @@ jobs:
           echo "🔴 Deployment failed"
 
           exit 1
-
-
-
-      # ===================================================
-      # 📧 STEP 7 - EMAIL SUCCESS
-      # ===================================================
-      - name: Email Success
-
-        if: success()
-
-        uses: dawidd6/action-send-mail@v3
-
-        with:
-
-          server_address: smtp.gmail.com
-
-          server_port: 587
-
-          username: ${{ secrets.MAIL_USERNAME }}
-
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-          subject: "🚀 Render CD SUCCESS - Backend Auth Service"
-
-          to: ${{ secrets.MAIL_TO }}
-
-          cc: ${{ secrets.MAIL_CC }}
-
-          from: ${{ secrets.MAIL_USERNAME }}
-
-          body: |
-
-            🚀 Render Deployment SUCCESS
-
-            🌐 URL:
-            https://backend-auth-service-ks6f.onrender.com
-
-            🕒 UTC:
-            ${{ env.DEPLOY_TIME_UTC }}
-
-            🇮🇳 IST:
-            ${{ env.DEPLOY_TIME_IST }}
-
-            🟢 Health check passed
-            ✅ Latest Docker image deployed successfully
-
-
-
-      # ===================================================
-      # ❌ STEP 8 - EMAIL FAILURE
-      # ===================================================
-      - name: Email Failure
-
-        if: failure()
-
-        uses: dawidd6/action-send-mail@v3
-
-        with:
-
-          server_address: smtp.gmail.com
-
-          server_port: 587
-
-          username: ${{ secrets.MAIL_USERNAME }}
-
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-          subject: "❌ Render CD FAILURE - Backend Auth Service"
-
-          to: ${{ secrets.MAIL_TO }}
-
-          cc: ${{ secrets.MAIL_CC }}
-
-          from: ${{ secrets.MAIL_USERNAME }}
-
-          body: |
-
-            ❌ Render Deployment FAILED
-
-            🌐 URL:
-            https://backend-auth-service-ks6f.onrender.com
-
-            🕒 UTC:
-            ${{ env.DEPLOY_TIME_UTC }}
-
-            🇮🇳 IST:
-            ${{ env.DEPLOY_TIME_IST }}
-
-            Please check:
-            - GitHub Actions logs
-            - Render logs
-            - Health checks
