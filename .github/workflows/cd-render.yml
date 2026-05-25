@@ -8,8 +8,10 @@ on:
 
   workflow_dispatch:
 
-  schedule:
-    - cron: "30 20 * * *"
+  push:
+
+    tags:
+      - "v*"
 
 
 jobs:
@@ -33,11 +35,17 @@ jobs:
 
 
       # ===================================================
-      # 🕒 DEPLOYMENT TIME
+      # 🔧 METADATA
       # ===================================================
-      - name: Set Deployment Metadata
+      - name: Set Metadata
 
         run: |
+
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+
+          echo "BRANCH=main" >> $GITHUB_ENV
 
           echo "DEPLOY_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
 
@@ -45,37 +53,21 @@ jobs:
 
 
       # ===================================================
-      # ⏳ WAIT FOR DOCKER SYNC
-      # ===================================================
-      - name: Wait for Docker Image
-
-        run: |
-
-          echo "⏳ Waiting for Docker image sync..."
-
-          sleep 30
-
-
-      # ===================================================
-      # 🚀 TRIGGER RENDER DEPLOY
+      # 🚀 DEPLOY
       # ===================================================
       - name: Trigger Render Deployment
 
         run: |
 
-          echo "🚀 Triggering Render deployment..."
-
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
 
       # ===================================================
-      # ⏳ WAIT FOR STARTUP
+      # ⏳ WAIT
       # ===================================================
-      - name: Wait for Startup
+      - name: Wait Startup
 
-        run: |
-
-          sleep 50
+        run: sleep 60
 
 
       # ===================================================
@@ -83,30 +75,125 @@ jobs:
       # ===================================================
       - name: Health Check
 
+        id: healthcheck
+
         run: |
 
-          URL="https://backend-auth-service-ks6f.onrender.com"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          https://backend-auth-service-ks6f.onrender.com)
 
-          echo "🔍 Checking service health..."
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
 
-          for i in {1..10}; do
+          if [ "$STATUS" != "200" ]; then
 
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+            exit 1
 
-            echo "Attempt $i → HTTP $STATUS"
+          fi
 
-            if [ "$STATUS" = "200" ]; then
 
-              echo "🟢 Service is healthy"
+      # ===================================================
+      # 📧 DEPLOY SUCCESS EMAIL
+      # ===================================================
+      - name: Send Deployment Success Email
 
-              exit 0
+        if: success()
 
-            fi
+        uses: dawidd6/action-send-mail@v3
 
-            sleep 10
+        with:
 
-          done
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
 
-          echo "🔴 Deployment failed"
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
 
-          exit 1
+          subject: |
+            🚀 DEPLOYMENT SUCCESS | ${{ env.VERSION }}
+
+          to: ${{ secrets.MAIL_TO }}
+          cc: ${{ secrets.MAIL_CC }}
+
+          from: GitHub Actions Deployment
+
+          body: |
+
+            🚀 RENDER DEPLOYMENT SUCCESS
+
+            Version:
+            ${{ env.VERSION }}
+
+            Commit:
+            ${{ env.COMMIT }}
+
+            Branch:
+            ${{ env.BRANCH }}
+
+            UTC:
+            ${{ env.DEPLOY_TIME_UTC }}
+
+            IST:
+            ${{ env.DEPLOY_TIME_IST }}
+
+            Live URL:
+            https://backend-auth-service-ks6f.onrender.com
+
+
+      # ===================================================
+      # 🔁 ROLLBACK
+      # ===================================================
+      - name: Rollback Deployment
+
+        if: failure()
+
+        run: |
+
+          echo "⚠️ Latest deployment failed"
+
+          PREVIOUS_TAG=$(git tag --sort=-creatordate | sed -n '2p')
+
+          echo "Rolling back to ${PREVIOUS_TAG}"
+
+
+      # ===================================================
+      # 📧 ROLLBACK EMAIL
+      # ===================================================
+      - name: Send Rollback Email
+
+        if: failure()
+
+        uses: dawidd6/action-send-mail@v3
+
+        with:
+
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+
+          subject: |
+            ⚠️ DEPLOYMENT FAILED | Rollback Triggered
+
+          to: ${{ secrets.MAIL_TO }}
+          cc: ${{ secrets.MAIL_CC }}
+
+          from: GitHub Actions Deployment
+
+          body: |
+
+            ❌ Latest deployment failed.
+
+            Rollback mechanism activated.
+
+            Failed Version:
+            ${{ env.VERSION }}
+
+            Commit:
+            ${{ env.COMMIT }}
+
+            Previous stable tag detected automatically.
+
+            Check Render logs immediately.
