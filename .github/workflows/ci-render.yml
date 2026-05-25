@@ -95,7 +95,15 @@ jobs:
 
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
-          echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+
+            echo "BRANCH=main" >> $GITHUB_ENV
+
+          else
+
+            echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+          fi
 
           echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
 
