@@ -122,6 +122,24 @@ jobs:
 
 
       # ===================================================
+      # 📄 BUILD INFO
+      # ===================================================
+      - name: Generate Build Info
+
+        run: |
+
+          echo "{
+            \"version\": \"${VERSION}\",
+            \"commit\": \"${COMMIT}\",
+            \"branch\": \"${BRANCH}\",
+            \"build_time_utc\": \"${BUILD_TIME_UTC}\",
+            \"build_time_ist\": \"${BUILD_TIME_IST}\"
+          }" > build_info.json
+
+          cat build_info.json
+
+
+      # ===================================================
       # 🐳 DOCKER LOGIN
       # ===================================================
       - name: Docker Login
@@ -140,17 +158,34 @@ jobs:
 
         run: |
 
-          docker build -t pythoncodelife/backend-auth-service:${VERSION} .
+          docker build \
+          -t pythoncodelife/backend-auth-service:${VERSION} .
 
 
       # ===================================================
-      # 📤 PUSH IMAGE
+      # 📤 PUSH VERSION IMAGE
       # ===================================================
-      - name: Push Docker Image
+      - name: Push Version Image
 
         run: |
 
-          docker push pythoncodelife/backend-auth-service:${VERSION}
+          docker push \
+          pythoncodelife/backend-auth-service:${VERSION}
+
+
+      # ===================================================
+      # 🏷️ UPDATE LATEST
+      # ===================================================
+      - name: Push Latest Image
+
+        run: |
+
+          docker tag \
+          pythoncodelife/backend-auth-service:${VERSION} \
+          pythoncodelife/backend-auth-service:latest
+
+          docker push \
+          pythoncodelife/backend-auth-service:latest
 
 
       # ===================================================
@@ -172,7 +207,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
 
           subject: |
-            ✅ CI SUCCESS | Backend Auth Service | ${{ env.VERSION }}
+            ✅ CI SUCCESS | ${{ env.VERSION }}
 
           to: ${{ secrets.MAIL_TO }}
           cc: ${{ secrets.MAIL_CC }}
@@ -203,9 +238,6 @@ jobs:
 
             Docker Image:
             pythoncodelife/backend-auth-service:${{ env.VERSION }}
-
-            Repository:
-            https://github.com/9394113857/backend-auth-service
 
 
       # ===================================================
@@ -243,8 +275,5 @@ jobs:
 
             Commit:
             ${{ github.sha }}
-
-            Repository:
-            https://github.com/9394113857/backend-auth-service
 
             Check GitHub Actions logs immediately.
