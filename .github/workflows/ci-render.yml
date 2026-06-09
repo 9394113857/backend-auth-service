@@ -1,126 +1,89 @@
-# =========================================================
-# 🚀 CI PIPELINE - BACKEND AUTH SERVICE 
-# =========================================================
-
 name: 🚀 CI - Backend Auth Service
 
 on:
-
+  # Run CI for all branch pushes
   push:
-
     branches:
       - "**"
 
+    # Release tags
     tags:
       - "v*"
 
-  create:
-
-    tags:
-      - "v*"
-
+  # Validate pull requests
   pull_request:
 
+  # Manual trigger
   workflow_dispatch:
 
-
 jobs:
-
   build:
-
     name: CI Build - ${{ github.ref_name }}
-
     runs-on: ubuntu-latest
 
     steps:
-
       # ===================================================
-      # 📦 CHECKOUT
+      # 📦 CHECKOUT SOURCE CODE
       # ===================================================
       - name: Checkout Code
-
         uses: actions/checkout@v4
-
         with:
           fetch-depth: 0
           fetch-tags: true
 
-
       # ===================================================
-      # 🐍 PYTHON
+      # 🐍 SETUP PYTHON
       # ===================================================
       - name: Setup Python
-
         uses: actions/setup-python@v5
-
         with:
           python-version: "3.11"
 
-
       # ===================================================
-      # 📚 INSTALL
+      # 📚 INSTALL DEPENDENCIES
       # ===================================================
       - name: Install Dependencies
-
         run: |
-
           pip install --upgrade pip
-
           pip install -r requirements.txt
-
           pip install pytest
 
-
       # ===================================================
-      # 🧪 TESTS
+      # 🧪 RUN TESTS
       # ===================================================
       - name: Run Tests
-
         env:
-
           DATABASE_URL: sqlite:///test.db
-
           JWT_SECRET_KEY: testing-secret
-
           SECRET_KEY: testing-secret
-
           FLASK_ENV: testing
-
         run: |
-
           PYTHONPATH=. pytest -v
-
 
       # ===================================================
       # 🔧 BUILD METADATA
       # ===================================================
       - name: Set Metadata
-
         run: |
-
           echo "REF=${GITHUB_REF}" >> $GITHUB_ENV
-
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
           echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-
           echo "BUILD_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
 
           echo "REPO_URL=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
 
-
+          # =================================================
+          # TAG RELEASE
+          # =================================================
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
 
             VERSION=${GITHUB_REF#refs/tags/}
 
             echo "TYPE=TAG" >> $GITHUB_ENV
-
             echo "NAME=${VERSION}" >> $GITHUB_ENV
-
             echo "BRANCH=release" >> $GITHUB_ENV
-
             echo "IMAGE=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_ENV
-
             echo "IS_TAG=true" >> $GITHUB_ENV
 
           else
@@ -128,79 +91,155 @@ jobs:
             BRANCH=${GITHUB_REF#refs/heads/}
 
             echo "TYPE=BRANCH" >> $GITHUB_ENV
-
-            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-
-            echo "NAME=${LATEST_TAG}" >> $GITHUB_ENV
-
+            echo "NAME=development" >> $GITHUB_ENV
             echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
-
-            echo "IMAGE=pythoncodelife/backend-auth-service:dev-${GITHUB_SHA}" >> $GITHUB_ENV
-
+            echo "IMAGE=not-applicable" >> $GITHUB_ENV
             echo "IS_TAG=false" >> $GITHUB_ENV
 
           fi
 
-
       # ===================================================
-      # 📄 BUILD INFO JSON
+      # 📄 GENERATE BUILD INFO
       # ===================================================
       - name: Generate Build Info
-
         run: |
-
-          echo "{
-            \"version\": \"${NAME}\",
-            \"commit\": \"${COMMIT}\",
-            \"branch\": \"${BRANCH}\",
-            \"build_time_utc\": \"${BUILD_TIME_UTC}\",
-            \"build_time_ist\": \"${BUILD_TIME_IST}\"
-          }" > build_info.json
+          cat > build_info.json << EOF
+          {
+            "version": "${NAME}",
+            "commit": "${COMMIT}",
+            "branch": "${BRANCH}",
+            "build_time_utc": "${BUILD_TIME_UTC}",
+            "build_time_ist": "${BUILD_TIME_IST}"
+          }
+          EOF
 
           cat build_info.json
 
-
       # ===================================================
       # 🐳 DOCKER LOGIN
+      # ONLY FOR RELEASE TAGS
       # ===================================================
       - name: Docker Login
-
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
-
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
-          -u "${{ secrets.DOCKERHUB_USERNAME }}" \
-          --password-stdin
-
+            -u "${{ secrets.DOCKERHUB_USERNAME }}" \
+            --password-stdin
 
       # ===================================================
       # 🐳 BUILD IMAGE
+      # ONLY FOR RELEASE TAGS
       # ===================================================
       - name: Build Docker Image
-
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
-
           docker build -t $IMAGE .
-
 
       # ===================================================
       # 📤 PUSH IMAGE
+      # ONLY FOR RELEASE TAGS
       # ===================================================
       - name: Push Docker Image
-
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
-
           docker push $IMAGE
 
+      # ===================================================
+      # 📧 SUCCESS EMAIL
+      # ===================================================
+      - name: Send Success Email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+
+          subject: |
+            ✅ CI SUCCESS | Backend Auth Service
+
+          to: ${{ secrets.MAIL_TO }}
+          cc: ${{ secrets.MAIL_CC }}
+
+          from: GitHub Actions CI/CD
+
+          body: |
+            🚀 CI PIPELINE SUCCESS
+
+            ==================================================
+
+            Build Type:
+            ${{ env.TYPE }}
+
+            Version:
+            ${{ env.NAME }}
+
+            Branch:
+            ${{ env.BRANCH }}
+
+            Commit:
+            ${{ env.COMMIT }}
+
+            Docker Image:
+            ${{ env.IMAGE }}
+
+            Repository:
+            ${{ env.REPO_URL }}
+
+            Triggered By:
+            ${{ github.actor }}
+
+            Event:
+            ${{ github.event_name }}
+
+            UTC Time:
+            ${{ env.BUILD_TIME_UTC }}
+
+            IST Time:
+            ${{ env.BUILD_TIME_IST }}
+
+            ==================================================
+
+            ✅ Tests Passed
+
+            ${{ env.IS_TAG == 'true' && '✅ Docker Build Successful' || '' }}
+
+            ${{ env.IS_TAG == 'true' && '✅ Docker Push Successful' || '' }}
 
       # ===================================================
-      # 🏷️ PUSH LATEST
+      # ❌ FAILURE EMAIL
       # ===================================================
-      - name: Push Latest Image
+      - name: Send Failure Email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
 
-        if: env.IS_TAG == 'false'
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
 
-        run: |
+          subject: |
+            ❌ CI FAILED | Backend Auth Service
 
-          docker tag $IMAGE pythoncodelife/backend-auth-service:latest
+          to: ${{ secrets.MAIL_TO }}
+          cc: ${{ secrets.MAIL_CC }}
 
-          docker push pythoncodelife/backend-auth-service:latest
+          from: GitHub Actions CI/CD
+
+          body: |
+            ❌ CI PIPELINE FAILED
+
+            Branch: ${{ github.ref_name }}
+
+            Commit: ${{ github.sha }}
+
+            Triggered By: ${{ github.actor }}
+
+            Event: ${{ github.event_name }}
+
+            Check GitHub Actions logs.
