@@ -1,5 +1,5 @@
 # =========================================================
-# 🚀 CI PIPELINE - BACKEND AUTH SERVICE
+# 🚀 CI PIPELINE - BACKEND AUTH SERVICE 
 # =========================================================
 
 name: 🚀 CI - Backend Auth Service
@@ -10,6 +10,11 @@ on:
 
     branches:
       - "**"
+
+    tags:
+      - "v*"
+
+  create:
 
     tags:
       - "v*"
@@ -93,51 +98,59 @@ jobs:
 
         run: |
 
+          echo "REF=${GITHUB_REF}" >> $GITHUB_ENV
+
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-
-            echo "BRANCH=main" >> $GITHUB_ENV
-
-          else
-
-            echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
-          fi
 
           echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
 
           echo "BUILD_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
+
+          echo "REPO_URL=https://github.com/9394113857/backend-auth-service" >> $GITHUB_ENV
 
 
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
 
             VERSION=${GITHUB_REF#refs/tags/}
 
-            echo "VERSION=${VERSION}" >> $GITHUB_ENV
+            echo "TYPE=TAG" >> $GITHUB_ENV
 
-            echo "PIPELINE_TYPE=TAG RELEASE" >> $GITHUB_ENV
+            echo "NAME=${VERSION}" >> $GITHUB_ENV
+
+            echo "BRANCH=release" >> $GITHUB_ENV
+
+            echo "IMAGE=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_ENV
+
+            echo "IS_TAG=true" >> $GITHUB_ENV
 
           else
 
+            BRANCH=${GITHUB_REF#refs/heads/}
+
+            echo "TYPE=BRANCH" >> $GITHUB_ENV
+
             LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
 
-            echo "VERSION=${LATEST_TAG}" >> $GITHUB_ENV
+            echo "NAME=${LATEST_TAG}" >> $GITHUB_ENV
 
-            echo "PIPELINE_TYPE=FEATURE/BRANCH BUILD" >> $GITHUB_ENV
+            echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
+
+            echo "IMAGE=pythoncodelife/backend-auth-service:dev-${GITHUB_SHA}" >> $GITHUB_ENV
+
+            echo "IS_TAG=false" >> $GITHUB_ENV
 
           fi
 
 
       # ===================================================
-      # 📄 BUILD INFO
+      # 📄 BUILD INFO JSON
       # ===================================================
       - name: Generate Build Info
 
         run: |
 
           echo "{
-            \"version\": \"${VERSION}\",
+            \"version\": \"${NAME}\",
             \"commit\": \"${COMMIT}\",
             \"branch\": \"${BRANCH}\",
             \"build_time_utc\": \"${BUILD_TIME_UTC}\",
@@ -166,122 +179,28 @@ jobs:
 
         run: |
 
-          docker build \
-          -t pythoncodelife/backend-auth-service:${VERSION} .
+          docker build -t $IMAGE .
 
 
       # ===================================================
-      # 📤 PUSH VERSION IMAGE
+      # 📤 PUSH IMAGE
       # ===================================================
-      - name: Push Version Image
+      - name: Push Docker Image
 
         run: |
 
-          docker push \
-          pythoncodelife/backend-auth-service:${VERSION}
+          docker push $IMAGE
 
 
       # ===================================================
-      # 🏷️ UPDATE LATEST
+      # 🏷️ PUSH LATEST
       # ===================================================
       - name: Push Latest Image
 
+        if: env.IS_TAG == 'false'
+
         run: |
 
-          docker tag \
-          pythoncodelife/backend-auth-service:${VERSION} \
-          pythoncodelife/backend-auth-service:latest
+          docker tag $IMAGE pythoncodelife/backend-auth-service:latest
 
-          docker push \
-          pythoncodelife/backend-auth-service:latest
-
-
-      # ===================================================
-      # 📧 SUCCESS EMAIL
-      # ===================================================
-      - name: Send CI Success Email
-
-        if: success()
-
-        uses: dawidd6/action-send-mail@v3
-
-        with:
-
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-          subject: |
-            ✅ CI SUCCESS | ${{ env.VERSION }}
-
-          to: ${{ secrets.MAIL_TO }}
-          cc: ${{ secrets.MAIL_CC }}
-
-          from: GitHub Actions CI/CD
-
-          body: |
-
-            🚀 CI PIPELINE SUCCESS
-
-            Pipeline Type:
-            ${{ env.PIPELINE_TYPE }}
-
-            Version:
-            ${{ env.VERSION }}
-
-            Commit:
-            ${{ env.COMMIT }}
-
-            Branch:
-            ${{ env.BRANCH }}
-
-            UTC:
-            ${{ env.BUILD_TIME_UTC }}
-
-            IST:
-            ${{ env.BUILD_TIME_IST }}
-
-            Docker Image:
-            pythoncodelife/backend-auth-service:${{ env.VERSION }}
-
-
-      # ===================================================
-      # ❌ FAILURE EMAIL
-      # ===================================================
-      - name: Send CI Failure Email
-
-        if: failure()
-
-        uses: dawidd6/action-send-mail@v3
-
-        with:
-
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-          subject: |
-            ❌ CI FAILED | Backend Auth Service
-
-          to: ${{ secrets.MAIL_TO }}
-          cc: ${{ secrets.MAIL_CC }}
-
-          from: GitHub Actions CI/CD
-
-          body: |
-
-            ❌ CI PIPELINE FAILED
-
-            Branch:
-            ${{ github.ref_name }}
-
-            Commit:
-            ${{ github.sha }}
-
-            Check GitHub Actions logs immediately.
+          docker push pythoncodelife/backend-auth-service:latest
