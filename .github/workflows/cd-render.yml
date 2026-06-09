@@ -1,128 +1,85 @@
-# =========================================================
-# 🚀 CD PIPELINE - RENDER DEPLOYMENT
-# =========================================================
-
 name: 🚀 CD - Render Deploy
 
 on:
-
   workflow_dispatch:
-
   push:
-
     tags:
       - "v*"
 
-
 jobs:
-
   deploy:
-
     runs-on: ubuntu-latest
 
     steps:
-
       # ===================================================
       # 📦 CHECKOUT
       # ===================================================
-      - name: Checkout
-
+      - name: Checkout Code
         uses: actions/checkout@v4
-
         with:
           fetch-depth: 0
           fetch-tags: true
-
 
       # ===================================================
       # 🔧 METADATA
       # ===================================================
       - name: Set Metadata
-
         run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          IMAGE="pythoncodelife/backend-auth-service:${VERSION}"
 
-          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-
-            echo "BRANCH=main" >> $GITHUB_ENV
-
-          else
-
-            echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
-          fi
+          echo "BRANCH=release" >> $GITHUB_ENV
 
           echo "DEPLOY_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-
           echo "DEPLOY_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
 
+          echo "RENDER_URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
+          echo "DOCKERHUB_URL=https://hub.docker.com/r/pythoncodelife/backend-auth-service/tags" >> $GITHUB_ENV
 
       # ===================================================
-      # 🚀 TRIGGER DEPLOY
+      # 🚀 TRIGGER RENDER DEPLOY
       # ===================================================
       - name: Trigger Render Deployment
-
         run: |
-
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
-
       # ===================================================
-      # ⏳ WAIT STARTUP
+      # ⏳ WAIT FOR STARTUP
       # ===================================================
       - name: Wait Startup
-
         run: |
-
           sleep 70
-
 
       # ===================================================
       # ❤️ HEALTH CHECK
       # ===================================================
       - name: Health Check
-
         run: |
-
-          URL="https://backend-auth-service-ks6f.onrender.com"
-
           for i in {1..10}; do
-
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
-
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $RENDER_URL)
             echo "Attempt $i → HTTP $STATUS"
 
             if [ "$STATUS" = "200" ]; then
-
-              echo "🟢 Deployment successful"
-
+              echo "DEPLOY_OK=true" >> $GITHUB_ENV
               exit 0
-
             fi
 
             sleep 10
-
           done
 
-          echo "🔴 Deployment failed"
-
+          echo "DEPLOY_OK=false" >> $GITHUB_ENV
           exit 1
 
-
       # ===================================================
-      # 📧 DEPLOY SUCCESS EMAIL
+      # 📧 SUCCESS EMAIL (FULL CONTEXT)
       # ===================================================
       - name: Send Deployment Success Email
-
         if: success()
-
         uses: dawidd6/action-send-mail@v3
-
         with:
-
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
@@ -130,48 +87,66 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
 
-          subject: |
-            🚀 DEPLOYMENT SUCCESS | ${{ env.VERSION }}
+          subject: "🚀 DEPLOY SUCCESS | Backend Auth Service v${{ env.VERSION }}"
 
           to: ${{ secrets.MAIL_TO }}
           cc: ${{ secrets.MAIL_CC }}
 
-          from: GitHub Actions Deployment
+          from: GitHub Actions CD
 
           body: |
+            🚀 DEPLOYMENT SUCCESS
 
-            🚀 RENDER DEPLOYMENT SUCCESS
+            ==================================================
 
-            Version:
+            🌐 LIVE SERVICE
+            ${{ env.RENDER_URL }}
+
+            🐳 DOCKER IMAGE
+            ${{ env.IMAGE }}
+
+            🐳 DOCKER HUB TAGS
+            ${{ env.DOCKERHUB_URL }}
+
+            ==================================================
+
+            VERSION:
             ${{ env.VERSION }}
 
-            Commit:
+            COMMIT SHA:
             ${{ env.COMMIT }}
 
-            Branch:
+            BRANCH:
             ${{ env.BRANCH }}
 
-            UTC:
+            TRIGGERED BY:
+            ${{ github.actor }}
+
+            EVENT:
+            ${{ github.event_name }}
+
+            ==================================================
+
+            ⏱ DEPLOY TIME (UTC):
             ${{ env.DEPLOY_TIME_UTC }}
 
-            IST:
+            ⏱ DEPLOY TIME (IST):
             ${{ env.DEPLOY_TIME_IST }}
 
-            Live URL:
-            https://backend-auth-service-ks6f.onrender.com
+            ==================================================
 
+            STATUS:
+            ${{ env.DEPLOY_OK }}
+
+            🎯 SERVICE STATUS: LIVE
 
       # ===================================================
       # ❌ FAILURE EMAIL
       # ===================================================
       - name: Send Deployment Failure Email
-
         if: failure()
-
         uses: dawidd6/action-send-mail@v3
-
         with:
-
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
@@ -179,25 +154,20 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
 
-          subject: |
-            ❌ DEPLOYMENT FAILED | ${{ env.VERSION }}
+          subject: "❌ DEPLOY FAILED | Backend Auth Service v${{ env.VERSION }}"
 
           to: ${{ secrets.MAIL_TO }}
           cc: ${{ secrets.MAIL_CC }}
 
-          from: GitHub Actions Deployment
+          from: GitHub Actions CD
 
           body: |
+            ❌ DEPLOYMENT FAILED
 
-            ❌ Render deployment failed.
+            Repo: ${{ github.repository }}
+            Version: ${{ env.VERSION }}
+            Commit: ${{ github.sha }}
+            Triggered By: ${{ github.actor }}
+            Event: ${{ github.event_name }}
 
-            Version:
-            ${{ env.VERSION }}
-
-            Commit:
-            ${{ env.COMMIT }}
-
-            Branch:
-            ${{ env.BRANCH }}
-
-            Check Render + GitHub Actions logs immediately.
+            Check Render logs + GitHub Actions logs immediately.
