@@ -63,6 +63,13 @@ class RequestFormatter(logging.Formatter):
 # =====================================================
 def create_app(testing: bool = False):
     app = Flask(__name__)
+
+    # Thase are commented out debug prints to avoid cluttering logs, 
+    # but can be uncommented for troubleshooting:-
+    # print("TEST-123")
+    # print("CWD =", repr(cwd))
+    # print("TEST-456")
+    
     app.config.from_object(Config)
 
     init_sentry()
@@ -110,10 +117,20 @@ def create_app(testing: bool = False):
         "%(asctime)s [%(levelname)s] [REQ:%(request_id)s] %(message)s"
     ))
 
-    if not app.logger.handlers:
-        app.logger.addHandler(handler)
+    app.logger.addHandler(handler)
+    
+    stream_handler = logging.StreamHandler()
+
+    stream_handler.setFormatter(
+        RequestFormatter(
+            "%(asctime)s [%(levelname)s] [REQ:%(request_id)s] %(message)s"
+        )
+    )
+
+    app.logger.addHandler(stream_handler)
 
     app.logger.setLevel(logging.INFO)
+    app.logger.propagate = False
 
     # =====================================================
     # 📦 ROUTES

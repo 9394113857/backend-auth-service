@@ -23,8 +23,15 @@ auth_bp = Blueprint("auth", __name__)
 # ------------------------------------------------
 @auth_bp.get("/")
 def health():
-    current_app.logger.info(f"[REQ:{g.request_id}] Health check called")
-    return jsonify({"status": "auth-service UP"}), 200
+
+    current_app.logger.info(
+        "Health check called"
+    )
+
+    return jsonify({
+        "status": "auth-service UP",
+        "request_id": g.request_id
+    }), 200
 
 # This is a test route to trigger an error and verify logging:-  
 @auth_bp.route("/sentry-test", methods=["GET"])
