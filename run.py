@@ -12,5 +12,13 @@ if __name__ == "__main__":
 # venv\Scripts\activate
 # set FLASK_APP=run.py
 # flask run --host=0.0.0.0 --port=5001
+#######################################################################################
+# 1. This command with debug mode will automatically reload the server 
+# 2. when you make changes to the code, 
+# 3. which is very convenient during development. 
+# 4. However, remember to disable debug mode in production for security reasons.
+# flask run --host=0.0.0.0 --port=5001 --debug
+########################################################################################
+# Note: If you have set the environment variables FLASK_RUN_HOST and FLASK_RUN_PORT, you can simply run:
 # flask run --port 5001 # This will only work if you have set FLASK_RUN_HOST=0.0.0.0 and FLASK_RUN_PORT=5001 in your environment variables
     

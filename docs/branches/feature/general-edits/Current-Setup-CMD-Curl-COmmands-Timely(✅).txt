@@ -1,0 +1,187 @@
+REM ==================================================
+REM 🚀 STEP 1 - ENVIRONMENT SETUP
+REM ==================================================
+
+SET AUTh_BASE_URL=http://127.0.0.1:5001
+
+REM ==================================================
+REM 🚀 STEP 2 - CUSTOMER CREDENTIALS
+REM ==================================================
+
+#SET EMAIL=[customer21@gmail.com](mailto:customer21@gmail.com)
+
+SET EMAIL=customer21@gmail.com
+SET PASSWORD=customer21@123
+
+REM ==================================================
+REM 🚀 STEP 3 - VERIFY VARIABLES
+REM ==================================================
+
+echo %AUTH_BASE_URL%
+echo %PRODUCT_BASE_URL%
+echo %CART_BASE_URL%
+echo %EMAIL%
+echo %PASSWORD%
+
+REM ==================================================
+REM 🚀 STEP 4 - CUSTOMER LOGIN
+REM ==================================================
+
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
+-H "Content-Type: application/json" ^
+-d "{\"email\":\"%EMAIL%\",\"password\":\"%PASSWORD%\"}"
+
+REM ==================================================
+REM 🚀 STEP 5 - COPY ACCESS_TOKEN FROM LOGIN RESPONSE
+REM ==================================================
+
+SET ACCESS_TOKEN=PASTE_ACCESS_TOKEN_HERE
+
+REM ==================================================
+REM 🚀 STEP 6 - COPY REFRESH_TOKEN FROM LOGIN RESPONSE
+REM ==================================================
+
+SET REFRESH_TOKEN=PASTE_REFRESH_TOKEN_HERE
+
+
+REM ==================================================
+REM 🚀 STEP 7 - VERIFY ACCESS_TOKEN
+REM ==================================================
+
+echo %ACCESS_TOKEN%
+
+REM ==================================================
+REM 🚀 STEP 8 - VERIFY REFRESH_TOKEN
+REM ==================================================
+
+echo %REFRESH_TOKEN%
+
+
+REM ==================================================
+REM 🚀 STEP 8 - PROFILE
+REM ==================================================
+
+curl http://localhost:5001/api/v1/auth/profile ^
+-H "Authorization: Bearer %ACCESS_TOKEN%"
+
+
+REM ==================================================
+REM 🚀 STEP 9 - PROFIEL AGAIN (Wait 70 Seconds)
+REM ==================================================
+
+Because:
+JWT_ACCESS_TOKEN_EXPIRES = timedelta(
+    minutes=1
+)
+
+# After ~70 seconds:
+curl http://localhost:5001/api/v1/auth/profile ^
+-H "Authorization: Bearer %ACCESS_TOKEN%"
+
+REM ===========================================================================
+REM 🚀 STEP 10 - REFRESH TOKEN HIT FIRST ans SAVE new token in the Next Step:-
+REM ===========================================================================
+
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/refresh ^
+-H "Authorization: Bearer %REFRESH_TOKEN%"
+
+REM ==================================================
+REM 🚀 STEP 11 - Store New Access Token 
+REM ==================================================
+
+SET NEW_ACCESS_TOKEN=PASTE_NEW_ACCESS_TOKEN_HERE
+
+
+REM ==================================================
+REM 🚀 STEP 12 - Hit Profile Using New Token 
+REM ==================================================
+
+curl http://localhost:5001/api/v1/auth/profile ^
+-H "Authorization: Bearer %NEW_ACCESS_TOKEN%"
+
+
+REM ==================================================
+REM 🚀 STEP 12 - LOGOUT 
+REM ==================================================
+
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/logout ^
+-H "Content-Type: application/json" ^
+-H "Authorization: Bearer %NEW_ACCESS_TOKEN%" ^
+-d "{\"refresh_token\":\"%REFRESH_TOKEN%\"}"
+
+REM ==================================================
+REM 🚀 STEP 13 - Verify Refresh Token Revoked 
+REM ==================================================
+
+curl -X POST %AUTH_BASE_URL%/api/v1/auth/refresh ^
+-H "Authorization: Bearer %REFRESH_TOKEN%"
+
+REM =====================
+REM Final Flow:-
+REM =====================
+
+STEP 4  Login
+STEP 5  Set ACCESS_TOKEN
+STEP 6  Set REFRESH_TOKEN
+STEP 7  Verify ACCESS_TOKEN
+STEP 8  Verify REFRESH_TOKEN
+STEP 9  Profile
+STEP 10 Wait 70 sec → Profile fails
+STEP 10A Refresh Token → get NEW_ACCESS_TOKEN
+STEP 10B Profile with NEW_ACCESS_TOKEN
+STEP 11 Logout
+STEP 12 Refresh again → 401
+
+=============================================================================
+
+# Run the app now:-
+flask run --host=0.0.0.0 --port=5001
+
+# Run the app now with specific:-
+flask run --host=0.0.0.0 --port=5001 --debug
+
+==============================================================================
+Recommended for local development.
+Benefits:
+
+✅ Auto reload on code changes
+✅ Full traceback in browser
+✅ Easier debugging
+
+and test:
+
+Login
+Profile
+Wait 70 sec
+Refresh
+Logout
+Refresh again
+===========================================================
+End of cuurent flow ✅
+===========================================================
+============================
+# Additional/Extra Notes:-
+============================
+Never deploy with:
+
+debug=True
+
+or
+
+--debug
+
+Production should be:
+
+Render
+Gunicorn
+debug=False
+
+So bro, using:
+
+flask run --host=0.0.0.0 --port=5003 --debug
+
+for local JWT testing is perfectly fine. 🚀
+
+
+
+
