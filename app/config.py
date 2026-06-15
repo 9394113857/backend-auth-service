@@ -20,7 +20,7 @@ class Config:
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jwt-secret-key")
     
     # -------------------------------------------------
-    # This expiration is just for testing. 
+    # This expiration is just for testing.  
     # In production, you would want to set 
     # it to something like 15 minutes or 1 hour.
     # -------------------------------------------------
