@@ -162,9 +162,13 @@ def refresh():
 @jwt_required()
 def logout():
 
-    data = request.get_json() or {}
+    data = request.get_json(
+        silent=True
+    ) or {}
 
-    refresh_token = data.get("refresh_token")
+    refresh_token = data.get(
+        "refresh_token"
+    )
 
     # Blacklist access token
     access_jti = get_jwt()["jti"]
