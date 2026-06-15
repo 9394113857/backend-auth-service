@@ -13,7 +13,7 @@ from .models.token_blacklist import TokenBlocklist
 from .errors.handlers import register_error_handlers
 
 # =====================================================
-# 🚀 SENTRY
+# 🚀 SENTRY   
 # =====================================================
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration

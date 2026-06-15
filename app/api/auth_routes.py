@@ -138,6 +138,8 @@ def profile():
 @jwt_required(refresh=True)
 def refresh():
 
+    print("REFRESH ROUTE HIT")
+    
     user_id = get_jwt_identity()
 
     access_token = create_access_token(

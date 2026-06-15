@@ -14,7 +14,7 @@ class Config:
     """
 
     # -------------------------------------------------
-    # SECURITY KEYS USED FOR JWT AND OTHER ENCRYPTION
+    # SECURITY KEYS USED FOR JWT AND OTHER ENCRYPTION 
     # -------------------------------------------------
     SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jwt-secret-key")
@@ -22,7 +22,7 @@ class Config:
     # -------------------------------------------------
     # This expiration is just for testing.  
     # In production, you would want to set 
-    # it to something like 15 minutes or 1 hour.
+    # it to something like 15 minutes or 1 hour.  
     # -------------------------------------------------
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(
         minutes=1 # Production: 15 minutes or 1 or 2 hour, depending on your needs
