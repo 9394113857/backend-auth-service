@@ -25,7 +25,7 @@ class Config:
     # it to something like 15 minutes or 1 hour.
     # -------------------------------------------------
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(
-        minutes=15 # Production: 15 minutes or 1 or 2 hour, depending on your needs
+        minutes=1 # Production: 15 minutes or 1 or 2 hour, depending on your needs
     )
 
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(
