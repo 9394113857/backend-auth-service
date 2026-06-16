@@ -1,0 +1,29 @@
+The next step is Angular integration (store both tokens, interceptor, auto-refresh on 401, auto-logout if refresh fails).
+
+
+Enterprise-Level Version
+
+Some companies additionally store:
+
+user_id
+refresh_token_family
+session_id
+
+and on logout revoke:
+
+ALL refresh tokens
+ALL access tokens
+ALL devices
+
+Example:
+
+Laptop
+Phone
+Tablet
+
+all logged out together.
+
+That's more advanced session management.
+
+
+
