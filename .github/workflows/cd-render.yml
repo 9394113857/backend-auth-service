@@ -1,22 +1,19 @@
-name: 🚀 CD - Render Deploy
+name: 🚀 CD - Render Release Deploy
 
 on:
-  workflow_dispatch:
-
   push:
     tags:
       - "v*"
 
-  schedule:
-    - cron: "30 21 * * *" # 03:00 AM IST daily
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  release:
     runs-on: ubuntu-latest
 
     steps:
       # ==================================================
-      # 📦 CHECKOUT CODE
+      # 📦 CHECKOUT
       # ==================================================
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -25,72 +22,90 @@ jobs:
           fetch-tags: true
 
       # ==================================================
-      # 🔧 SET METADATA (SAFE + FINAL VERSION LOGIC)
+      # 🔧 SET METADATA (TAG ONLY)
       # ==================================================
       - name: Set Metadata
         shell: bash
         run: |
           set -e
 
-          LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
-
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/}"
-          else
-            VERSION="$LATEST_TAG"
-          fi
-
+          VERSION=${GITHUB_REF#refs/tags/}
           IMAGE="pythoncodelife/backend-auth-service:${VERSION}"
 
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
-          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-          echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
 
           echo "RENDER_URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
           echo "DOCKERHUB_URL=https://hub.docker.com/r/pythoncodelife/backend-auth-service/tags" >> $GITHUB_ENV
 
-          echo "DEPLOY_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-          echo "DEPLOY_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
-
       # ==================================================
-      # 🚀 TRIGGER RENDER DEPLOY
+      # 🐳 DOCKER LOGIN
       # ==================================================
-      - name: Trigger Render Deployment
+      - name: Docker Login
         run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
+            -u "${{ secrets.DOCKERHUB_USERNAME }}" \
+            --password-stdin
 
       # ==================================================
-      # ⏳ WAIT
+      # 🐳 BUILD IMAGE
       # ==================================================
-      - name: Wait Startup
-        run: sleep 20
-
-      # ==================================================
-      # ❤️ HEALTH CHECK
-      # ==================================================
-      - name: Health Check
+      - name: Build Docker Image
         run: |
-          for i in {1..10}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ env.RENDER_URL }}")
-            echo "Attempt $i → HTTP $STATUS"
-
-            if [ "$STATUS" = "200" ]; then
-              echo "DEPLOY_OK=true" >> $GITHUB_ENV
-              exit 0
-            fi
-
-            sleep 10
-          done
-
-          echo "DEPLOY_OK=false" >> $GITHUB_ENV
-          exit 1
+          docker build -t $IMAGE .
 
       # ==================================================
-      # 🎉 SUCCESS EMAIL
+      # 📤 PUSH IMAGE
       # ==================================================
-      - name: Send Deployment Success Email
-        if: success()
+      - name: Push Docker Image
+        run: |
+          docker push $IMAGE
+
+      # ==================================================
+      # 🏷️ PUSH LATEST TAG
+      # ==================================================
+      - name: Push Latest Tag
+        run: |
+          docker tag $IMAGE pythoncodelife/backend-auth-service:latest
+          docker push pythoncodelife/backend-auth-service:latest
+
+      # ==================================================
+      # 🧾 BUILD EMAIL BODY (IMPORTANT FIX)
+      # ==================================================
+      - name: Build Email Body
+        run: |
+          cat > email.txt << EOF
+🚀 RELEASE DEPLOYED SUCCESS 🎉
+
+==================================================
+
+🌐 LIVE SERVICE URL
+${RENDER_URL}
+
+🐳 DOCKER IMAGE
+${IMAGE}
+
+🐳 DOCKER HUB TAGS
+${DOCKERHUB_URL}
+
+==================================================
+
+📦 VERSION: ${VERSION}
+🔗 COMMIT: ${GITHUB_SHA}
+
+==================================================
+
+🎯 STATUS: PRODUCTION DEPLOYED 🚀
+EOF
+
+          echo "EMAIL_BODY<<EOF" >> $GITHUB_ENV
+          cat email.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # ==================================================
+      # 📧 SEND EMAIL
+      # ==================================================
+      - name: Send Release Email
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -100,77 +115,11 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
 
-          subject: "🚀 DEPLOY SUCCESS | Backend Auth Service ${{ env.VERSION }} 🎉"
+          subject: "🚀 RELEASE DEPLOYED | Backend Auth Service ${{ env.VERSION }} 🎉"
 
           to: ${{ secrets.MAIL_TO }}
           cc: ${{ secrets.MAIL_CC }}
 
           from: GitHub Actions CD
 
-          body: |
-            🚀 DEPLOYMENT SUCCESS 🎉
-
-            ==================================================
-
-            🌐 LIVE SERVICE URL
-            ${ { env.RENDER_URL } }
-
-            🐳 DOCKER IMAGE
-            ${ { env.IMAGE } }
-
-            🐳 DOCKER HUB TAGS
-            ${ { env.DOCKERHUB_URL } }
-
-            ==================================================
-
-            📦 VERSION: ${{ env.VERSION }}
-            🔗 COMMIT: ${{ env.COMMIT }}
-            🌿 BRANCH: ${{ env.BRANCH }}
-
-            ==================================================
-
-            ⏱ UTC TIME: ${{ env.DEPLOY_TIME_UTC }}
-            🇮🇳 IST TIME: ${{ env.DEPLOY_TIME_IST }}
-
-            ==================================================
-
-            🟢 STATUS: LIVE & HEALTHY
-
-            🎯 Backend Auth Service deployed successfully!
-
-      # ==================================================
-      # ❌ FAILURE EMAIL
-      # ==================================================
-      - name: Send Deployment Failure Email
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-          subject: "❌ DEPLOY FAILED | Backend Auth Service ${{ env.VERSION }} 💥"
-
-          to: ${{ secrets.MAIL_TO }}
-          cc: ${{ secrets.MAIL_CC }}
-
-          from: GitHub Actions CD
-
-          body: |
-            ❌ DEPLOYMENT FAILED 💥
-
-            Repo: ${{ github.repository }}
-            Version: ${{ env.VERSION }}
-            Commit: ${{ github.sha }}
-            Branch: ${{ github.ref_name }}
-
-            🌐 Service: ${{ env.RENDER_URL }}
-            🐳 Image: ${{ env.IMAGE }}
-
-            ⏱ Time UTC: ${{ env.DEPLOY_TIME_UTC }}
-            🇮🇳 Time IST: ${{ env.DEPLOY_TIME_IST }}
-
-            🚨 Check Render + GitHub Actions logs immediately
+          body: ${{ env.EMAIL_BODY }}
