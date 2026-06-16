@@ -12,18 +12,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ==================================================
-      # 📦 CHECKOUT
-      # ==================================================
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      # ==================================================
-      # 🔧 SET METADATA (TAG ONLY)
-      # ==================================================
+      # ==========================
+      # 🔧 METADATA
+      # ==========================
       - name: Set Metadata
         shell: bash
         run: |
@@ -38,73 +35,40 @@ jobs:
           echo "RENDER_URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
           echo "DOCKERHUB_URL=https://hub.docker.com/r/pythoncodelife/backend-auth-service/tags" >> $GITHUB_ENV
 
-      # ==================================================
+      # ==========================
       # 🐳 DOCKER LOGIN
-      # ==================================================
+      # ==========================
       - name: Docker Login
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
             -u "${{ secrets.DOCKERHUB_USERNAME }}" \
             --password-stdin
 
-      # ==================================================
-      # 🐳 BUILD IMAGE
-      # ==================================================
+      # ==========================
+      # 🐳 BUILD
+      # ==========================
       - name: Build Docker Image
         run: |
           docker build -t $IMAGE .
 
-      # ==================================================
-      # 📤 PUSH IMAGE
-      # ==================================================
+      # ==========================
+      # 📤 PUSH
+      # ==========================
       - name: Push Docker Image
         run: |
           docker push $IMAGE
 
-      # ==================================================
-      # 🏷️ PUSH LATEST TAG
-      # ==================================================
+      # ==========================
+      # 🏷️ PUSH LATEST
+      # ==========================
       - name: Push Latest Tag
         run: |
           docker tag $IMAGE pythoncodelife/backend-auth-service:latest
           docker push pythoncodelife/backend-auth-service:latest
 
-      # ==================================================
-      # 🧾 BUILD EMAIL BODY (IMPORTANT FIX)
-      # ==================================================
-      - name: Build Email Body
-        run: |
-          cat > email.txt << EOF
-🚀 RELEASE DEPLOYED SUCCESS 🎉
-
-==================================================
-
-🌐 LIVE SERVICE URL
-${RENDER_URL}
-
-🐳 DOCKER IMAGE
-${IMAGE}
-
-🐳 DOCKER HUB TAGS
-${DOCKERHUB_URL}
-
-==================================================
-
-📦 VERSION: ${VERSION}
-🔗 COMMIT: ${GITHUB_SHA}
-
-==================================================
-
-🎯 STATUS: PRODUCTION DEPLOYED 🚀
-EOF
-
-          echo "EMAIL_BODY<<EOF" >> $GITHUB_ENV
-          cat email.txt >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      # ==================================================
-      # 📧 SEND EMAIL
-      # ==================================================
+      # ==========================
+      # 📧 SIMPLE EMAIL (SAFE - NO YAML BREAK)
+      # ==========================
       - name: Send Release Email
         uses: dawidd6/action-send-mail@v3
         with:
@@ -115,11 +79,30 @@ EOF
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
 
-          subject: "🚀 RELEASE DEPLOYED | Backend Auth Service ${{ env.VERSION }} 🎉"
+          subject: "🚀 RELEASE DEPLOYED | ${{ env.VERSION }} 🎉"
 
           to: ${{ secrets.MAIL_TO }}
           cc: ${{ secrets.MAIL_CC }}
 
           from: GitHub Actions CD
 
-          body: ${{ env.EMAIL_BODY }}
+          body: |
+            🚀 RELEASE SUCCESS 🎉
+
+            =======================================
+
+            🌐 LIVE SERVICE
+            ${{ env.RENDER_URL }}
+
+            🐳 DOCKER IMAGE
+            ${{ env.IMAGE }}
+
+            🐳 DOCKER HUB
+            ${{ env.DOCKERHUB_URL }}
+
+            =======================================
+
+            📦 VERSION: ${{ env.VERSION }}
+            🔗 COMMIT: ${{ github.sha }}
+
+            🎯 STATUS: DEPLOYED SUCCESSFULLY 🚀
