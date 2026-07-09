@@ -1,0 +1,240 @@
+🔷 Interviewer Question 1:
+“Explain this register_user() function flow”
+✅ Expected Answer (Points Format)
+1.	This function handles business logic for user registration. 
+2.	It separates controller/routes from database operations. 
+3.	Creates a new User object using SQLAlchemy ORM. ***
+4.	Password is hashed using set_password() before storing. 
+5.	User data is added using db.session.add(). ***
+6.	Changes are permanently stored using db.session.commit(). 
+7.	Logging is added for request tracing using request_id. 
+8.	Duplicate email handling is managed using IntegrityError. 
+9.	Database rollback is done to maintain consistency. 
+10.	Function returns proper JSON response with HTTP status codes. 
+________________________________________
+🔷 Interviewer Question 2:
+“Why use Service Layer / Business Logic Layer?”
+✅ Expected Answer
+1.	Keeps routes/controllers clean. 
+2.	Improves code reusability. 
+3.	Easier unit testing. 
+4.	Separation of concerns. 
+5.	Database logic remains centralized. 
+6.	Easier maintenance in microservices architecture. 
+7.	Better scalability for large applications. 
+________________________________________
+🔷 Interviewer Question 3:
+“Why use SQLAlchemy ORM instead of raw SQL?”
+✅ Expected Answer
+1.	ORM reduces manual SQL writing. 
+2.	Prevents SQL injection risks. 
+3.	Easier model relationships. 
+4.	Database-independent code. 
+5.	Cleaner Pythonic syntax. 
+6.	Supports migrations and session management. 
+________________________________________
+
+
+==================================================================================
+
+
+🔷 Interviewer Question 4:
+“Why use try-except with IntegrityError?”
+✅ Expected Answer
+1.	Handles duplicate entries safely. 
+2.	Prevents application crash. 
+3.	Gives user-friendly API response. 
+4.	Maintains database consistency. 
+5.	Used for unique constraint violations like duplicate email. 
+________________________________________
+“Why rollback after exception?”
+✅ Expected Answer
+1.	SQLAlchemy session enters failed state after exception. 
+2.	Rollback resets transaction. 
+3.	Prevents partial/inconsistent DB commits. 
+4.	Ensures atomic transaction handling. 
+________________________________________
+
+🔷 “Why rollback important?”
+✅ Answer
+
+After failed database commit:
+
+db.session.commit()
+
+session becomes invalid.
+
+So:
+
+db.session.rollback()
+
+resets transaction safely.
+
+🔷 Real Backend Production Use Cases
+User Registration
+Seller Signup
+Customer Signup
+Product SKU uniqueness
+Order ID uniqueness
+Email uniqueness
+🔷 Core Concepts Covered
+
+✅ try-except
+✅ IntegrityError
+✅ Functions
+✅ Runtime Input
+✅ Lists
+✅ Condition Checking
+✅ Exception Handling
+✅ Database Concepts
+✅ UNIQUE Constraints
+✅ Rollback Concepts
+✅ Backend API Logic
+
+This is actually VERY good practice before Flask backend interviews.
+
+
+==================================================================================
+
+🔷 Interviewer Question 6:
+“What is g.request_id used for?”
+✅ Expected Answer
+1.	Flask g object stores request-scoped data. 
+2.	request_id helps trace logs per request. 
+3.	Useful in debugging distributed systems/microservices. 
+4.	Helps in centralized logging systems like ELK/Splunk. 
+________________________________________
+🔷 Interviewer Question 7:
+“Why hash password before storing?”
+✅ Expected Answer
+1.	Plain passwords should never be stored. 
+2.	Hashing improves security. 
+3.	Even DB leaks won't expose actual passwords. 
+4.	Usually implemented using bcrypt/werkzeug security. 
+________________________________________
+🔷 Interviewer Question 8:
+“What HTTP status codes are used here?”
+
+✅ Expected Answer
+
+•	201 → Resource created successfully 
+•	400 → Bad request / duplicate user ***
+________________________________________
+🔷 Interviewer Question 9:
+
+“What design pattern is used here?”
+
+✅ Expected Answer
+
+This follows:
+
+1.	Service Layer Pattern 
+2.	Repository-like DB handling 
+3.	MVC architecture concepts 
+4.	Separation of Concerns principle
+________________________________________
+🔷 If Interviewer Says: ****
+
+“Write small snippet for duplicate handling”
+from sqlalchemy.exc import IntegrityError
+
+try:
+    db.session.add(user)
+    db.session.commit()
+
+except IntegrityError:
+    db.session.rollback()
+    return {"message": "Duplicate entry"}, 400
+________________________________________
+------------------------------------------------------------------------------------
+practice ✅\Interview-Folder ✅\main-branch-codes ✅🚀\password_hashing_example.py
+------------------------------------------------------------------------------------
+🔷 If Interviewer Says: **** 
+
+“Write password hashing example”
+from werkzeug.security import generate_password_hash
+
+hashed_password = generate_password_hash(password)
+
+--------------------------------------------------------------
+------------- Explanation of above py file -------------------
+--------------------------------------------------------------
+🔷 Code Explanation (Interview Style)
+✅ Import
+from werkzeug.security import generate_password_hash
+
+Imports password hashing utility from Werkzeug.
+
+✅ Input Password
+password = input("Enter Password: ")
+
+Simulates user signup password entry.
+
+✅ Generate Hash
+hashed_password = generate_password_hash(password)
+
+Converts plain password into secure hashed value.
+
+✅ Why Important?
+
+Instead of storing:
+
+mysecret123
+
+we store:
+
+pbkdf2:sha256:.....
+
+Improves security.
+
+🔷 Real Interview Answer
+“Write password hashing example”
+from werkzeug.security import generate_password_hash
+
+hashed_password = generate_password_hash(password)
+✅ Explanation
+Converts plain password into secure hash.
+Used during user registration.
+Prevents storing plain passwords.
+Improves backend authentication security.
+________________________________________
+🔷 If Interviewer Says:
+“Write logging example”
+current_app.logger.info(
+    f"User created successfully: {user.email}"
+)
+________________________________________
+🔷 Python Concepts Used Here
+________________________________________
+•	Functions 
+•	Exception Handling 
+•	OOP 
+•	ORM 
+•	Context Objects 
+•	Transactions 
+•	Logging 
+•	Return Tuples 
+•	Dependency Injection 
+________________________________________
+🔷 SQL Concepts Used Here
+•	INSERT operation 
+•	UNIQUE constraint 
+•	Transactions 
+•	COMMIT 
+•	ROLLBACK 
+•	ACID properties 
+________________________________________
+🔷 DevOps / Production Concepts
+•	Structured logging 
+•	Request tracing 
+•	API observability 
+•	Transaction safety 
+•	Error monitoring 
+•	Scalable service architecture 
+________________________________________
+🔷 Real Interview Closing Line
+You can confidently say:
+“I separated route handling from business logic using a service layer.
+SQLAlchemy ORM manages transactions, password hashing secures credentials, and IntegrityError handling ensures proper rollback and user-friendly responses.”
+That sounds very strong in backend interviews.
+

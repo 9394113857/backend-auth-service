@@ -2,12 +2,14 @@
 # 🟦 AUTH ROUTES – API LAYER (REQUEST/RESPONSE)  
 # =====================================================
 
-from flask import Blueprint, app, request, jsonify, current_app, g
+from flask import Blueprint, request, jsonify, current_app, g
 from flask_jwt_extended import (
     create_access_token,
+    create_refresh_token,
     jwt_required,
     get_jwt_identity,
-    get_jwt
+    get_jwt,
+    decode_token
 )
 
 from ..services.auth_service import register_user
@@ -23,8 +25,15 @@ auth_bp = Blueprint("auth", __name__)
 # ------------------------------------------------
 @auth_bp.get("/")
 def health():
-    current_app.logger.info(f"[REQ:{g.request_id}] Health check called")
-    return jsonify({"status": "auth-service UP"}), 200
+
+    current_app.logger.info(
+        "Health check called"
+    )
+
+    return jsonify({
+        "status": "auth-service UP",
+        "request_id": g.request_id
+    }), 200
 
 # This is a test route to trigger an error and verify logging:-  
 @auth_bp.route("/sentry-test", methods=["GET"])
@@ -83,14 +92,23 @@ def angular_login():
         )
         return jsonify({"message": "Invalid email or password"}), 401
 
-    token = create_access_token(identity=str(user.id))
+    # These tokens are created with the user's ID as the identity. 
+    # You can also include additional claims if needed.
+    access_token = create_access_token(
+        identity=str(user.id)
+    )
+
+    refresh_token = create_refresh_token(
+        identity=str(user.id)
+    )
 
     current_app.logger.info(
         f"[REQ:{g.request_id}] Login success user_id={user.id}"
     )
 
     return jsonify({
-        "access_token": token,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
         "userId": user.id,
         "role": user.role
     }), 200
@@ -109,26 +127,85 @@ def profile():
         f"[REQ:{g.request_id}] Profile accessed user_id={user_id}"
     )
 
-    return jsonify({"user_id": user_id}), 200
+    return jsonify({
+        "user_id": user_id
+    }), 200
+    
+# ------------------------------------------------
+# REFRESH TOKEN
+# ------------------------------------------------
+@auth_bp.post("/refresh")
+@jwt_required(refresh=True)
+def refresh():
+
+    print("REFRESH ROUTE HIT")
+    
+    user_id = get_jwt_identity()
+
+    access_token = create_access_token(
+        identity=user_id
+    )
+
+    current_app.logger.info(
+        f"[REQ:{g.request_id}] Refresh token used user_id={user_id}"
+    )
+
+    return jsonify({
+        "access_token": access_token
+    }), 200
 
 
 # ------------------------------------------------
-# LOGOUT
+# LOGOUT ROUTE
 # ------------------------------------------------
 @auth_bp.post("/logout")
 @jwt_required()
 def logout():
 
-    jti = get_jwt()["jti"]
+    data = request.get_json(
+        silent=True
+    ) or {}
 
-    db.session.add(TokenBlocklist(jti=jti))
+    refresh_token = data.get(
+        "refresh_token"
+    )
+
+    # Blacklist access token
+    access_jti = get_jwt()["jti"]
+
+    db.session.add(
+        TokenBlocklist(jti=access_jti)
+    )
+
+    # Blacklist refresh token
+    if refresh_token:
+        try:
+
+            decoded = decode_token(
+                refresh_token
+            )
+
+            refresh_jti = decoded["jti"]
+
+            db.session.add(
+                TokenBlocklist(jti=refresh_jti)
+            )
+
+        except Exception:
+
+            current_app.logger.warning(
+                f"[REQ:{g.request_id}] Invalid refresh token during logout"
+            )
+
     db.session.commit()
 
     current_app.logger.info(
-        f"[REQ:{g.request_id}] Logout success"
+        f"[REQ:{g.request_id}] Logout successful"
     )
 
-    return jsonify({"message": "Logged out successfully"}), 200
+    return jsonify({
+        "message": "Successfully logged out"
+    }), 200
 
 
 # =====================================================

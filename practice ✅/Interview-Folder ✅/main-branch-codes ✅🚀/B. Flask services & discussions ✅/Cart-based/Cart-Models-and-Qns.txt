@@ -1,0 +1,350 @@
+Now REAL backend interview Questions & Answers 👇
+
+🔷 CART ITEM MODEL – Interview Questions
+✅ Q1:
+“What is CartItem model?”
+Answer
+
+Represents temporary shopping cart data for users.
+
+Stores:
+
+selected products
+variants
+quantity
+pricing
+
+before checkout.
+
+✅ Q2:
+“Why separate CartItem table?”
+Answer
+
+Cart is temporary user session-like data.
+
+Should remain separate from:
+
+orders
+products
+payments
+
+Improves architecture clarity.
+
+✅ Q3:
+“Why store user_id in cart?”
+Answer
+
+Links cart items to authenticated user.
+
+Each user has independent cart.
+
+✅ Q4:
+“Why product_id and variant_id both stored?”
+Answer
+
+Supports:
+
+product reference
+exact variant selection
+
+Example:
+
+iPhone
+black color variant
+✅ Q5:
+“Why store name/color/price inside cart?”
+Answer
+
+Snapshot-based cart design.
+
+Useful because:
+
+product may change later
+price may update later
+product name may change
+
+Cart preserves selected item details.
+
+✅ Q6:
+“Why quantity field important?”
+Answer
+
+Tracks number of units selected.
+
+Used during:
+
+checkout
+stock validation
+total calculations
+✅ Q7:
+“Why created_at field?”
+Answer
+
+Tracks cart item creation time.
+
+Useful for:
+
+analytics
+abandoned cart tracking
+cleanup jobs
+✅ Q8:
+“Why default=datetime.utcnow?”
+Answer
+
+Automatically inserts UTC timestamp.
+
+Improves:
+
+timezone consistency
+distributed system compatibility
+🔷 ORDER MODEL – Interview Questions
+✅ Q9:
+“What is Order model?”
+Answer
+
+Represents finalized customer purchase.
+
+Stores:
+
+user info
+total price
+status
+address
+contact details
+✅ Q10:
+“Why separate Order and OrderItem tables?”
+Answer
+
+One order can contain multiple products.
+
+Relationship:
+
+one order
+many order items
+
+Normalized database design.
+
+✅ Q11:
+“Why contact and address stored in order?”
+Answer
+
+Captures shipping snapshot at purchase time.
+
+Important because:
+user profile data may change later.
+
+✅ Q12:
+“Why total_price stored?”
+Answer
+
+Stores final order total snapshot.
+
+Prevents future price changes affecting old orders.
+
+✅ Q13:
+“Why status field?”
+Answer
+
+Tracks order lifecycle.
+
+Examples:
+
+placed
+shipped
+delivered
+cancelled
+✅ Q14:
+“Why default='placed'?”
+Answer
+
+New orders automatically start in:
+placed state.
+
+Prevents NULL status values.
+
+✅ Q15:
+“Why stock_restored field?”
+Answer
+
+Prevents duplicate inventory restoration.
+
+Example:
+
+cancel order once only
+avoid restoring stock multiple times
+✅ Q16:
+“Why Boolean field useful here?”
+Answer
+
+Tracks true/false business state.
+
+Used for:
+
+flags
+status tracking
+validation logic
+🔷 ORDER ITEM MODEL – Interview Questions
+✅ Q17:
+“What is OrderItem model?”
+Answer
+
+Represents individual products inside an order.
+
+Stores:
+
+product info
+quantity
+pricing
+✅ Q18:
+“Why separate OrderItem table?”
+Answer
+
+Supports multi-product orders.
+
+Without OrderItem:
+one order could store only one product.
+
+✅ Q19:
+“Why order_id stored?”
+Answer
+
+Links item to parent order.
+
+Represents:
+One-to-Many relationship.
+
+✅ Q20:
+“Why store price inside OrderItem?”
+Answer
+
+Captures purchase-time price snapshot.
+
+Important because:
+future product prices may change.
+
+✅ Q21:
+“Why quantity stored in OrderItem?”
+Answer
+
+Tracks purchased quantity per product.
+
+Used for:
+
+billing
+inventory deduction
+invoices
+🔷 COMMON E-COMMERCE INTERVIEW QUESTIONS
+✅ Q22:
+“Difference between CartItem and OrderItem?”
+Answer
+
+CartItem:
+
+temporary
+editable
+pre-checkout
+
+OrderItem:
+
+finalized
+immutable purchase record
+post-checkout
+✅ Q23:
+“Why cart deleted after checkout?”
+Answer
+
+Cart converts into finalized order.
+
+Prevents:
+
+duplicate checkout
+stale cart data
+✅ Q24:
+“What is snapshot-based design?”
+Answer
+
+Stores product details at transaction time.
+
+Protects historical order consistency.
+
+Example:
+
+old order still shows old price
+
+even if product updated later.
+
+✅ Q25:
+“Why not directly reference Product table during order display?”
+Answer
+
+Product data may change later.
+
+Orders should preserve historical purchase information.
+
+✅ Q26:
+“What database concepts used here?”
+Answer
+Primary Keys
+Normalization
+One-to-Many relationships
+Snapshot storage
+Transactional design
+Audit/history tracking
+✅ Q27:
+“What backend architecture concepts used here?”
+Answer
+E-commerce workflow
+Inventory management
+Checkout systems
+Order lifecycle
+Cart lifecycle
+Service-oriented design
+✅ Q28:
+“What production improvements possible?”
+Answer
+
+Possible improvements:
+
+foreign keys
+indexes
+decimal pricing
+order status enums
+soft deletes
+audit logs
+event-driven inventory updates
+🔷 VERY IMPORTANT REAL INTERVIEW QUESTIONS
+✅ Q29:
+“Why Float not ideal for prices?”
+Answer
+
+Float may cause precision issues.
+
+Decimal preferred for:
+
+money
+billing
+payments
+✅ Q30:
+“Why UTC timestamps important?”
+Answer
+
+Prevents timezone inconsistencies.
+
+Important in:
+
+global applications
+microservices
+distributed systems
+🔷 Real Production Concepts Covered
+
+✅ Cart Systems
+✅ Checkout Systems
+✅ Order Management
+✅ Inventory Tracking
+✅ Snapshot Storage
+✅ ORM Models
+✅ Database Normalization
+✅ E-commerce Architecture
+✅ UTC Time Handling
+✅ Order Lifecycle
+✅ Historical Data Preservation

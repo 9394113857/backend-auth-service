@@ -1,0 +1,331 @@
+🔷 ANGULAR PROJECT STRUCTURE – Interview Questions & Answers
+✅ src/styles.css
+Q1:
+“What is styles.css in Angular?”
+Answer
+
+Global stylesheet for Angular application.
+
+Applies styles across entire application.
+
+Q2:
+“Difference between component CSS and styles.css?”
+Answer
+
+Component CSS:
+
+local styles
+
+styles.css:
+
+global styles
+Q3:
+“What kind of styles usually placed in styles.css?”
+Answer
+
+Examples:
+
+global themes
+Bootstrap imports
+body styles
+reusable utility classes
+🔷 angular.json
+Q4:
+“What is angular.json?”
+Answer
+
+Main Angular CLI configuration file.
+
+Controls:
+
+build settings
+assets
+styles
+scripts
+environments
+Q5:
+“Why angular.json important?”
+Answer
+
+Central configuration for Angular project.
+
+Used during:
+
+build
+serve
+production deployment
+Q6:
+“What configurations exist inside angular.json?”
+Answer
+
+Examples:
+
+styles
+assets
+build options
+output path
+optimization
+Q7:
+“How Bootstrap added in Angular project?”
+Answer
+
+Usually added inside:
+
+angular.json
+
+under styles/scripts section.
+
+🔷 .gitignore
+Q8:
+“What is .gitignore?”
+Answer
+
+Specifies files/folders Git should ignore.
+
+Q9:
+“Why .gitignore important?”
+Answer
+
+Prevents committing:
+
+node_modules
+secrets
+build files
+temporary files
+Q10:
+“Why node_modules ignored?”
+Answer
+
+Very large folder.
+
+Dependencies can reinstall using:
+
+npm install
+🔷 tsconfig.json
+Q11:
+“What is tsconfig.json?”
+Answer
+
+TypeScript compiler configuration file.
+
+Controls TypeScript compilation behavior.
+
+Q12:
+“Why tsconfig.json important?”
+Answer
+
+Defines:
+
+compiler options
+strict typing
+module handling
+target JavaScript version
+Q13:
+“What is strict mode in TypeScript?”
+Answer
+
+Enforces stronger type checking.
+
+Improves:
+
+code quality
+bug prevention
+🔷 src/assets
+Q14:
+“What is assets folder in Angular?”
+Answer
+
+Stores static files.
+
+Examples:
+
+images
+icons
+JSON files
+fonts
+Q15:
+“Why assets folder used?”
+Answer
+
+Provides centralized location for static resources.
+
+🔷 src/data.type.ts
+Q16:
+“What is data.type.ts?”
+Answer
+
+TypeScript model/interface definition file.
+
+Used for:
+
+API response types
+object structures
+type safety
+Q17:
+“Why interfaces important in Angular?”
+Answer
+
+Provides:
+
+type checking
+IntelliSense
+cleaner API models
+Q18:
+“What type of data stored in data.type.ts?”
+Answer
+
+Examples:
+
+Product models
+User models
+Order models
+API response interfaces
+🔷 src/app/app-routing.module.ts
+Q19:
+“What is app-routing.module.ts?”
+Answer
+
+Defines Angular application routes/navigation.
+
+Q20:
+“Why separate routing module?”
+Answer
+
+Keeps navigation logic modular and clean.
+
+Q21:
+“What is Route configuration?”
+Answer
+
+Maps:
+URL path → component
+
+Q22:
+“What is RouterModule.forRoot()?”
+Answer
+
+Registers application routes globally.
+
+Q23:
+“How protected routes implemented?”
+Answer
+
+Using:
+
+Auth Guards
+route protection
+
+inside routing module.
+
+🔷 src/app/app.module.ts
+Q24:
+“What is app.module.ts?”
+Answer
+
+Root Angular module.
+
+Main entry module for application.
+
+Q25:
+“Why app.module.ts important?”
+Answer
+
+Registers:
+
+components
+services
+modules
+dependencies
+Q26:
+“What modules commonly imported in app.module.ts?”
+Answer
+
+Examples:
+
+BrowserModule
+HttpClientModule
+FormsModule
+RouterModule
+Q27:
+“Why HttpClientModule imported?”
+Answer
+
+Enables backend API communication.
+
+🔷 src/index.html
+Q28:
+“What is index.html in Angular?”
+Answer
+
+Main HTML entry point of Angular application.
+
+Q29:
+“What is <app-root>?”
+Answer
+
+Root Angular component selector.
+
+Angular injects application inside it.
+
+Q30:
+“Why index.html usually minimal?”
+Answer
+
+Angular dynamically renders UI components.
+
+🔷 OVERALL ANGULAR STRUCTURE QUESTIONS
+Q31:
+“Why Angular project structure important?”
+Answer
+
+Provides:
+
+scalability
+maintainability
+modular frontend architecture
+Q32:
+“What frontend architecture concepts used?”
+Answer
+modular structure
+routing
+components
+services
+type safety
+SPA architecture
+Q33:
+“How Angular frontend communicates with Flask backend?”
+Answer
+
+Using:
+
+HttpClient
+REST APIs
+JSON requests/responses
+Q34:
+“What files important during Angular build process?”
+Answer
+angular.json
+tsconfig.json
+app.module.ts
+routing module
+🔷 VERY IMPORTANT FULL-STACK QUESTION
+Q35:
+“Explain Angular application startup flow.”
+Answer
+index.html loads
+Angular bootstraps app.module.ts
+Routing initializes
+Components render
+Services communicate with backend APIs
+🔷 REAL PRODUCTION CONCEPTS COVERED
+
+✅ Angular Project Structure
+✅ TypeScript Configuration
+✅ Routing
+✅ Root Modules
+✅ Global Styling
+✅ Asset Management
+✅ SPA Architecture
+✅ API Integration
+✅ Type Safety
+✅ Frontend Modular Design

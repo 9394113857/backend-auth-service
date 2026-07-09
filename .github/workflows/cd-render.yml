@@ -1,257 +1,173 @@
-# =========================================================
-# 🚀 CD PIPELINE - RENDER DEPLOYMENT
-# =========================================================
-#
-# PURPOSE:
-# - Trigger Render deployment
-# - Wait for deployment startup
-# - Run health checks
-# - Send deployment email notifications
-#
-# =========================================================
-
 name: 🚀 CD - Render Deploy
 
-
-# =========================================================
-# 🔥 WORKFLOW TRIGGERS
-# =========================================================
 on:
-
-  # -------------------------------------------------------
-  # 👨‍💻 MANUAL TRIGGER
-  # -------------------------------------------------------
   workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
-
-  # -------------------------------------------------------
-  # ⏰ CRON SCHEDULE
-  #
-  # 30 20 * * *
-  #
-  # UTC  : 08:30 PM
-  # IST  : 02:00 AM
-  # -------------------------------------------------------
-  schedule:
-    - cron: "30 20 * * *"
-
-
-
-# =========================================================
-# 🚀 JOBS
-# =========================================================
 jobs:
-
   deploy:
-
-    # -----------------------------------------------------
-    # 🐧 RUNNER
-    # -----------------------------------------------------
     runs-on: ubuntu-latest
 
-
-    # =====================================================
-    # 🚀 STEPS
-    # =====================================================
     steps:
-
-
       # ===================================================
-      # 📦 STEP 1 - CHECKOUT CODE
+      # 📦 CHECKOUT
       # ===================================================
-      - name: Checkout
-
+      - name: Checkout Code
         uses: actions/checkout@v4
-
-
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       # ===================================================
-      # 🕒 STEP 2 - DEPLOYMENT METADATA
+      # 🔧 METADATA
       # ===================================================
-      - name: Set Deployment Metadata
-
+      - name: Set Metadata
         run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          IMAGE="pythoncodelife/backend-auth-service:${VERSION}"
+
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
+          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "BRANCH=release" >> $GITHUB_ENV
 
           echo "DEPLOY_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-
           echo "DEPLOY_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
 
-
-
-      # ===================================================
-      # ⏳ STEP 3 - WAIT FOR IMAGE SYNC
-      # ===================================================
-      #
-      # WHY?
-      #
-      # DockerHub may take few seconds
-      # before image becomes globally available.
-      #
-      # ===================================================
-      - name: Wait for Docker Image
-
-        run: |
-
-          echo "⏳ Waiting for Docker image sync..."
-
-          sleep 30
-
-
+          echo "RENDER_URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
+          echo "DOCKERHUB_URL=https://hub.docker.com/r/pythoncodelife/backend-auth-service/tags" >> $GITHUB_ENV
 
       # ===================================================
-      # 🚀 STEP 4 - TRIGGER RENDER DEPLOYMENT
+      # 🚀 TRIGGER RENDER DEPLOY
       # ===================================================
       - name: Trigger Render Deployment
-
         run: |
-
-          echo "🚀 Triggering Render deployment..."
-
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
-
-
       # ===================================================
-      # ⏳ STEP 5 - WAIT FOR SERVICE STARTUP
+      # ⏳ WAIT FOR STARTUP
       # ===================================================
-      - name: Wait for Startup
-
+      - name: Wait Startup
         run: |
-
-          sleep 50
-
-
+          sleep 70
 
       # ===================================================
-      # ❤️ STEP 6 - HEALTH CHECK
-      # ===================================================
-      #
-      # WHY IMPORTANT?
-      #
-      # Ensures deployed service:
-      # - started correctly
-      # - responds properly
-      # - production is healthy
-      #
+      # ❤️ HEALTH CHECK
       # ===================================================
       - name: Health Check
-
         run: |
-
-          URL="https://backend-auth-service-ks6f.onrender.com"
-
-          echo "🔍 Checking service health..."
-
           for i in {1..10}; do
-
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
-
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $RENDER_URL)
             echo "Attempt $i → HTTP $STATUS"
 
             if [ "$STATUS" = "200" ]; then
-
-              echo "🟢 Service is healthy"
-
+              echo "DEPLOY_OK=true" >> $GITHUB_ENV
               exit 0
-
             fi
 
             sleep 10
-
           done
 
-          echo "🔴 Deployment failed"
-
+          echo "DEPLOY_OK=false" >> $GITHUB_ENV
           exit 1
 
-
-
       # ===================================================
-      # 📧 STEP 7 - EMAIL SUCCESS
+      # 📧 SUCCESS EMAIL (FULL CONTEXT)
       # ===================================================
-      - name: Email Success
-
+      - name: Send Deployment Success Email
         if: success()
-
         uses: dawidd6/action-send-mail@v3
-
         with:
-
           server_address: smtp.gmail.com
-
-          server_port: 587
+          server_port: 465
+          secure: true
 
           username: ${{ secrets.MAIL_USERNAME }}
-
           password: ${{ secrets.MAIL_PASSWORD }}
 
-          subject: "🚀 Render CD SUCCESS - Backend Auth Service"
+          subject: "🚀 DEPLOY SUCCESS | Backend Auth Service v${{ env.VERSION }}"
 
           to: ${{ secrets.MAIL_TO }}
-
           cc: ${{ secrets.MAIL_CC }}
 
-          from: ${{ secrets.MAIL_USERNAME }}
+          from: GitHub Actions CD
 
           body: |
+            🚀 DEPLOYMENT SUCCESS
 
-            🚀 Render Deployment SUCCESS
+            ==================================================
 
-            🌐 URL:
-            https://backend-auth-service-ks6f.onrender.com
+            🌐 LIVE SERVICE
+            ${{ env.RENDER_URL }}
 
-            🕒 UTC:
+            🐳 DOCKER IMAGE
+            ${{ env.IMAGE }}
+
+            🐳 DOCKER HUB TAGS
+            ${{ env.DOCKERHUB_URL }}
+
+            ==================================================
+
+            VERSION:
+            ${{ env.VERSION }}
+
+            COMMIT SHA:
+            ${{ env.COMMIT }}
+
+            BRANCH:
+            ${{ env.BRANCH }}
+
+            TRIGGERED BY:
+            ${{ github.actor }}
+
+            EVENT:
+            ${{ github.event_name }}
+
+            ==================================================
+
+            ⏱ DEPLOY TIME (UTC):
             ${{ env.DEPLOY_TIME_UTC }}
 
-            🇮🇳 IST:
+            ⏱ DEPLOY TIME (IST):
             ${{ env.DEPLOY_TIME_IST }}
 
-            🟢 Health check passed
-            ✅ Latest Docker image deployed successfully
+            ==================================================
 
+            STATUS:
+            ${{ env.DEPLOY_OK }}
 
+            🎯 SERVICE STATUS: LIVE
 
       # ===================================================
-      # ❌ STEP 8 - EMAIL FAILURE
+      # ❌ FAILURE EMAIL
       # ===================================================
-      - name: Email Failure
-
+      - name: Send Deployment Failure Email
         if: failure()
-
         uses: dawidd6/action-send-mail@v3
-
         with:
-
           server_address: smtp.gmail.com
-
-          server_port: 587
+          server_port: 465
+          secure: true
 
           username: ${{ secrets.MAIL_USERNAME }}
-
           password: ${{ secrets.MAIL_PASSWORD }}
 
-          subject: "❌ Render CD FAILURE - Backend Auth Service"
+          subject: "❌ DEPLOY FAILED | Backend Auth Service v${{ env.VERSION }}"
 
           to: ${{ secrets.MAIL_TO }}
-
           cc: ${{ secrets.MAIL_CC }}
 
-          from: ${{ secrets.MAIL_USERNAME }}
+          from: GitHub Actions CD
 
           body: |
+            ❌ DEPLOYMENT FAILED
 
-            ❌ Render Deployment FAILED
+            Repo: ${{ github.repository }}
+            Version: ${{ env.VERSION }}
+            Commit: ${{ github.sha }}
+            Triggered By: ${{ github.actor }}
+            Event: ${{ github.event_name }}
 
-            🌐 URL:
-            https://backend-auth-service-ks6f.onrender.com
-
-            🕒 UTC:
-            ${{ env.DEPLOY_TIME_UTC }}
-
-            🇮🇳 IST:
-            ${{ env.DEPLOY_TIME_IST }}
-
-            Please check:
-            - GitHub Actions logs
-            - Render logs
-            - Health checks
+            Check Render logs + GitHub Actions logs immediately.
