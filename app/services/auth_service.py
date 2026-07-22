@@ -88,16 +88,12 @@ def register_user(
     # ------------------------------------------------
     # LOG SUCCESSFUL REGISTRATION
     # ------------------------------------------------
-    current_app.logger.info(
-        f"User created id={user.id} email={user.email}"
-    )
+    current_app.logger.info(f"User created id={user.id} email={user.email}")
 
     # ------------------------------------------------
     # SUCCESS RESPONSE
     # ------------------------------------------------
-    return {
-        "message": "Registration successful. Please verify your email."
-    }, 201
+    return {"message": "Registration successful. Please verify your email."}, 201
 
 
 # =========================================================
@@ -119,9 +115,7 @@ def authenticate_user(email: str, password: str):
     # CHECK EMAIL VERIFIED
     # ------------------------------------------------
     if not user.is_verified:
-        return {
-            "error": "Please verify your email before login"
-        }, 403
+        return {"error": "Please verify your email before login"}, 403
 
     # ------------------------------------------------
     # CHECK PASSWORD
@@ -141,3 +135,6 @@ def authenticate_user(email: str, password: str):
         "access_token": access_token,
         "role": user.role,
         "userId": user.id,
+        "firstName": user.first_name,
+        "lastName": user.last_name,
+    }, 200
