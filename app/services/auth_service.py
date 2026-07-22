@@ -137,4 +137,4 @@ def authenticate_user(email: str, password: str):
         "userId": user.id,
         "firstName": user.first_name,
         "lastName": user.last_name,
-    }, 200
+    }, 200 
