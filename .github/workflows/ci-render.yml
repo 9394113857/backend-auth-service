@@ -11,6 +11,7 @@ on:
 
   workflow_dispatch:
 
+
 jobs:
   build:
     name: CI Build - ${{ github.ref_name }}
@@ -27,6 +28,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+
       # ===================================================
       # 🐍 SETUP PYTHON
       # ===================================================
@@ -34,6 +36,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
 
       # ===================================================
       # 📚 INSTALL DEPENDENCIES
@@ -43,6 +46,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
+
 
       # ===================================================
       # 🧪 RUN TESTS
@@ -56,45 +60,51 @@ jobs:
         run: |
           PYTHONPATH=. pytest -v
 
+
       # ===================================================
-      # 🔧 SET METADATA (FIXED BRANCH LOGIC)
+      # 🔧 SET METADATA
       # ===================================================
       - name: Set Metadata
         run: |
-          # Commit SHA
+
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
-          # Branch logic FIX:
-          # If tag build → show "main"
-          # Else → real branch name
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             echo "BRANCH=main" >> $GITHUB_ENV
           else
             echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
           fi
 
-          # Build timestamps
           echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+
           echo "BUILD_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
 
-          # Version + image logic
+
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+
             VERSION=${GITHUB_REF#refs/tags/}
+
             echo "TYPE=TAG RELEASE" >> $GITHUB_ENV
             echo "VERSION=${VERSION}" >> $GITHUB_ENV
             echo "IMAGE=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_ENV
+
           else
+
             echo "TYPE=BRANCH BUILD" >> $GITHUB_ENV
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
             echo "IMAGE=N/A" >> $GITHUB_ENV
+
           fi
+
 
       # ===================================================
       # 📄 BUILD INFO FILE
       # ===================================================
       - name: Generate Build Info
         run: |
+
           cat > build_info.json << EOF
+
           {
             "version": "${VERSION}",
             "commit": "${COMMIT}",
@@ -102,17 +112,20 @@ jobs:
             "build_time_utc": "${BUILD_TIME_UTC}",
             "build_time_ist": "${BUILD_TIME_IST}"
           }
+
           EOF
+
 
       # ===================================================
       # 🐳 DOCKER LOGIN (TAGS ONLY)
       # ===================================================
       - name: Docker Login
         if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
-            -u "${{ secrets.DOCKERHUB_USERNAME }}" \
-            --password-stdin
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
 
       # ===================================================
       # 🐳 BUILD IMAGE (TAGS ONLY)
@@ -120,24 +133,75 @@ jobs:
       - name: Build Docker Image
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          docker build -t $IMAGE .
+
+          docker build \
+            -t pythoncodelife/backend-auth-service:${VERSION} .
+
 
       # ===================================================
-      # 📤 PUSH IMAGE (TAGS ONLY)
+      # 📤 PUSH VERSION IMAGE
       # ===================================================
-      - name: Push Docker Image
+      - name: Push Version Image
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          docker push $IMAGE
+
+          docker push \
+            pythoncodelife/backend-auth-service:${VERSION}
+
 
       # ===================================================
-      # 🏷️ PUSH LATEST IMAGE (TAGS ONLY)
+      # 🏷️ CREATE LATEST TAG
+      # ===================================================
+      - name: Create Latest Tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+
+          docker tag \
+          pythoncodelife/backend-auth-service:${VERSION} \
+          pythoncodelife/backend-auth-service:latest
+
+
+      # ===================================================
+      # 📤 PUSH LATEST IMAGE
       # ===================================================
       - name: Push Latest Image
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          docker tag $IMAGE pythoncodelife/backend-auth-service:latest
-          docker push pythoncodelife/backend-auth-service:latest
+
+          docker push \
+          pythoncodelife/backend-auth-service:latest
+
+
+      # ===================================================
+      # ⏳ WAIT FOR DOCKER REGISTRY SYNC
+      # ===================================================
+      - name: Wait For Docker Registry Sync
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+
+          echo "Waiting for Docker registry synchronization..."
+          sleep 120
+
+
+      # ===================================================
+      # 🚀 TRIGGER CD DEPLOYMENT
+      # ===================================================
+      - name: Trigger CD Deployment
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.CD_TRIGGER_TOKEN }}
+
+          repository: ${{ github.repository }}
+
+          event-type: deploy-release
+
+          client-payload: |
+            {
+              "version": "${{ env.VERSION }}"
+            }
+
+
 
       # ===================================================
       # 📧 SUCCESS EMAIL
@@ -145,32 +209,81 @@ jobs:
       - name: Send Success Email
         if: success()
         uses: dawidd6/action-send-mail@v3
+
         with:
+
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
+
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
+
           subject: "✅ CI SUCCESS | Backend Auth Service"
+
           to: ${{ secrets.MAIL_TO }}
           cc: ${{ secrets.MAIL_CC }}
+
           from: GitHub Actions CI/CD
+
+
           body: |
-            CI SUCCESS
 
-            Repository: ${{ github.repository }}
-            Branch: ${{ env.BRANCH }}
-            Tag/Ref: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Event: ${{ github.event_name }}
-            Triggered By: ${{ github.actor }}
+            ✅ CI SUCCESS
 
-            Type: ${{ env.TYPE }}
-            Version: ${{ env.VERSION }}
-            Image: ${{ env.IMAGE }}
+            ==================================================
 
-            UTC Time: ${{ env.BUILD_TIME_UTC }}
-            IST Time: ${{ env.BUILD_TIME_IST }}
+            Repository:
+            ${{ github.repository }}
+
+            Branch:
+            ${{ env.BRANCH }}
+
+            Tag/Ref:
+            ${{ github.ref_name }}
+
+            Commit:
+            ${{ github.sha }}
+
+            Event:
+            ${{ github.event_name }}
+
+            Triggered By:
+            ${{ github.actor }}
+
+
+            ==================================================
+
+            Type:
+            ${{ env.TYPE }}
+
+            Version:
+            ${{ env.VERSION }}
+
+            Docker Image:
+            ${{ env.IMAGE }}
+
+
+            ==================================================
+
+            Build Time UTC:
+            ${{ env.BUILD_TIME_UTC }}
+
+            Build Time IST:
+            ${{ env.BUILD_TIME_IST }}
+
+
+            ==================================================
+
+            Status:
+            SUCCESS
+
+
+            Docker image pushed successfully.
+
+            CD deployment triggered successfully.
+
+
 
       # ===================================================
       # ❌ FAILURE EMAIL
@@ -178,23 +291,74 @@ jobs:
       - name: Send Failure Email
         if: failure()
         uses: dawidd6/action-send-mail@v3
+
         with:
+
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
+
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
+
           subject: "❌ CI FAILED | Backend Auth Service"
+
           to: ${{ secrets.MAIL_TO }}
           cc: ${{ secrets.MAIL_CC }}
-          from: GitHub Actions CI/CD
-          body: |
-            CI FAILED
 
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Event: ${{ github.event_name }}
-            Triggered By: ${{ github.actor }}
+          from: GitHub Actions CI/CD
+
+
+          body: |
+
+            ❌ CI FAILED
+
+
+            ==================================================
+
+            Repository:
+            ${{ github.repository }}
+
+            Branch:
+            ${{ github.ref_name }}
+
+            Commit:
+            ${{ github.sha }}
+
+            Event:
+            ${{ github.event_name }}
+
+            Triggered By:
+            ${{ github.actor }}
+
+
+            ==================================================
+
+            Type:
+            ${{ env.TYPE }}
+
+            Version:
+            ${{ env.VERSION }}
+
+            Docker Image:
+            ${{ env.IMAGE }}
+
+
+            ==================================================
+
+            Build Time UTC:
+            ${{ env.BUILD_TIME_UTC }}
+
+            Build Time IST:
+            ${{ env.BUILD_TIME_IST }}
+
+
+            ==================================================
+
+            STATUS:
+            FAILED
+
 
             Check GitHub Actions logs for details.
+
+            Docker push and CD deployment were not executed.
