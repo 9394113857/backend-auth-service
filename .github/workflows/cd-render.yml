@@ -3,19 +3,25 @@ name: 🚀 CD - Backend Auth Service Render
 
 on:
 
+
   # ===================================================
   # 🖐️ MANUAL DEPLOYMENT
   # ===================================================
+
   workflow_dispatch:
 
 
 
   # ===================================================
-  # ⏰ DAILY DEPLOYMENT CHECK
-  # 2 AM IST = 20:30 UTC previous day
+  # ⏰ DAILY 2 AM IST
+  # 20:30 UTC
   # ===================================================
+
   schedule:
+
     - cron: "30 20 * * *"
+
+
 
 
 
@@ -23,8 +29,9 @@ jobs:
 
 
   # ===================================================
-  # 🚀 DEPLOYMENT JOB
+  # 🚀 DEPLOYMENT
   # ===================================================
+
   deploy:
 
 
@@ -38,28 +45,39 @@ jobs:
     steps:
 
 
+
       # ===================================================
       # 📦 CHECKOUT
       # ===================================================
+
       - name: Checkout Code
+
 
         uses: actions/checkout@v4
 
+
         with:
+
           fetch-depth: 0
+
           fetch-tags: true
 
 
 
+
+
       # ===================================================
-      # 🔧 SET METADATA
+      # 🔧 METADATA
       # ===================================================
+
       - name: Set Deployment Metadata
+
 
         run: |
 
 
           if [[ "${GITHUB_REF}" == refs/tags/* ]]
+
           then
 
             VERSION=${GITHUB_REF#refs/tags/}
@@ -78,7 +96,14 @@ jobs:
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
 
-          echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          echo "BRANCH=main" >> $GITHUB_ENV
+
+
+
+          echo "SERVICE_URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
+
+
+          echo "HEALTH_URL=https://backend-auth-service-ks6f.onrender.com/" >> $GITHUB_ENV
 
 
 
@@ -89,43 +114,53 @@ jobs:
 
 
 
-          echo "SERVICE_URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
 
 
 
       # ===================================================
-      # 🚀 TRIGGER RENDER DEPLOYMENT
+      # 🚀 TRIGGER RENDER
       # ===================================================
+
       - name: Trigger Render Deployment
 
+
         run: |
+
 
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
 
 
+
       # ===================================================
-      # ⏳ WAIT FOR STARTUP
+      # ⏳ WAIT
       # ===================================================
-      - name: Wait For Application Startup
+
+      - name: Wait For Deployment
+
 
         run: |
 
-          echo "Waiting for Render deployment..."
+
+          echo "Waiting for Render..."
 
           sleep 70
+
+
 
 
 
       # ===================================================
       # ❤️ HEALTH CHECK
       # ===================================================
+
       - name: Health Check
+
 
         run: |
 
 
-          echo "Checking application health..."
+          echo "Checking health..."
 
 
           for i in {1..10}
@@ -136,10 +171,11 @@ jobs:
             STATUS=$(curl -s \
             -o /dev/null \
             -w "%{http_code}" \
-            "${{ secrets.APPLICATION_HEALTH_URL }}")
+            "${{ env.HEALTH_URL }}")
 
 
-            echo "Attempt $i → HTTP $STATUS"
+
+            echo "Attempt $i -> HTTP $STATUS"
 
 
 
@@ -147,15 +183,19 @@ jobs:
 
             then
 
+
               echo "DEPLOY_STATUS=SUCCESS" >> $GITHUB_ENV
 
+
               exit 0
+
 
             fi
 
 
 
             sleep 10
+
 
 
           done
@@ -170,15 +210,19 @@ jobs:
 
 
 
+
       # ===================================================
-      # 📧 DEPLOY SUCCESS EMAIL
+      # 📧 SUCCESS EMAIL
       # ===================================================
+
       - name: Send Deployment Success Email
+
 
         if: success()
 
 
         uses: dawidd6/action-send-mail@v3
+
 
 
         with:
@@ -189,6 +233,7 @@ jobs:
           server_port: 465
 
           secure: true
+
 
 
           username: ${{ secrets.MAIL_USERNAME }}
@@ -217,7 +262,7 @@ jobs:
             🚀 DEPLOYMENT SUCCESS
 
 
-            =================================================
+            =====================================
 
 
             🌐 SERVICE
@@ -225,12 +270,20 @@ jobs:
             Backend Auth Service
 
 
-            🔗 URL
+
+            🔗 APPLICATION URL
 
             ${{ env.SERVICE_URL }}
 
 
-            =================================================
+
+            ❤️ HEALTH URL
+
+            ${{ env.HEALTH_URL }}
+
+
+
+            =====================================
 
 
             🏷️ VERSION
@@ -238,9 +291,11 @@ jobs:
             ${{ env.VERSION }}
 
 
+
             🔖 COMMIT
 
             ${{ env.COMMIT }}
+
 
 
             🌿 BRANCH
@@ -248,9 +303,11 @@ jobs:
             ${{ env.BRANCH }}
 
 
+
             ⚡ TRIGGER
 
             ${{ github.event_name }}
+
 
 
             👤 TRIGGERED BY
@@ -258,7 +315,8 @@ jobs:
             ${{ github.actor }}
 
 
-            =================================================
+
+            =====================================
 
 
             ⏰ DEPLOY TIME UTC
@@ -266,9 +324,11 @@ jobs:
             ${{ env.DEPLOY_TIME_UTC }}
 
 
+
             ⏰ DEPLOY TIME IST
 
             ${{ env.DEPLOY_TIME_IST }}
+
 
 
             ❤️ HEALTH STATUS
@@ -278,9 +338,13 @@ jobs:
 
 
 
+
+
+
       # ===================================================
-      # ❌ DEPLOY FAILURE EMAIL
+      # 📧 FAILURE EMAIL
       # ===================================================
+
       - name: Send Deployment Failure Email
 
 
@@ -299,6 +363,7 @@ jobs:
           server_port: 465
 
           secure: true
+
 
 
           username: ${{ secrets.MAIL_USERNAME }}
@@ -327,7 +392,7 @@ jobs:
             ❌ DEPLOYMENT FAILED
 
 
-            =================================================
+            =====================================
 
 
             Repository:
@@ -335,14 +400,17 @@ jobs:
             ${{ github.repository }}
 
 
+
             Version:
 
             ${{ env.VERSION }}
 
 
+
             Commit:
 
-            ${{ github.sha }}
+            ${{ env.COMMIT }}
+
 
 
             Branch:
@@ -350,24 +418,27 @@ jobs:
             ${{ env.BRANCH }}
 
 
+
             Trigger:
 
             ${{ github.event_name }}
 
 
-            Triggered By:
 
-            ${{ github.actor }}
+            Health URL:
 
-
-
-            =================================================
+            ${{ env.HEALTH_URL }}
 
 
-            Please check:
 
-            ❌ GitHub Actions logs
+            Status:
 
-            ❌ Render deployment logs
+            ❌ FAILED
 
-            ❌ Application health endpoint
+
+
+            Check:
+
+            - GitHub Actions logs
+            - Render logs
+            - Application health endpoint
