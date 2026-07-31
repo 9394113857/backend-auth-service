@@ -321,11 +321,9 @@ jobs:
       
           docker run --rm \
           ${{ needs.build-and-test.outputs.image }} \
-          ls -la /app    
-      
+          sh -c "ls -la /app && echo '--- build info ---' && cat /app/build_info.json"  
+            
                 
-
-
 
       # ===================================================
       # 📤 PUSH VERSION IMAGE
