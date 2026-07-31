@@ -6,13 +6,10 @@ on:
   push:
     branches:
       - "**"
-
     tags:
       - "v*"
 
-
   pull_request:
-
 
   workflow_dispatch:
 
@@ -28,11 +25,10 @@ jobs:
   build-and-test:
 
 
-    name: 🧪 Build & Test - ${{ github.ref_name }}
+    name: 🧪 Build & Test
 
 
     runs-on: ubuntu-latest
-
 
 
     outputs:
@@ -44,7 +40,6 @@ jobs:
 
 
     steps:
-
 
 
       # ===================================================
@@ -85,7 +80,7 @@ jobs:
 
         run: |
 
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
 
           pip install -r requirements.txt
 
@@ -116,6 +111,7 @@ jobs:
 
 
 
+
       # ===================================================
       # 🔧 METADATA
       # ===================================================
@@ -129,6 +125,9 @@ jobs:
 
 
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+
+
+          echo "BRANCH=main" >> $GITHUB_ENV
 
 
 
@@ -146,10 +145,12 @@ jobs:
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
 
+
             echo "IMAGE=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_ENV
 
 
             echo "image=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_OUTPUT
+
 
 
           else
@@ -164,11 +165,9 @@ jobs:
             echo "image=N/A" >> $GITHUB_OUTPUT
 
 
+
           fi
 
-
-
-          echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
 
 
           echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
@@ -181,117 +180,26 @@ jobs:
 
 
       # ===================================================
-      # 📧 CI SUCCESS EMAIL
+      # 📄 BUILD INFO
       # ===================================================
 
-      - name: Send CI Success Email
-
-        if: success()
-
-        uses: dawidd6/action-send-mail@v3
+      - name: Generate Build Info
 
 
-        with:
+        run: |
 
 
-          server_address: smtp.gmail.com
+          cat > build_info.json << EOF
 
-          server_port: 465
+{
+  "version": "${VERSION}",
+  "commit": "${COMMIT}",
+  "branch": "${BRANCH}",
+  "build_time_utc": "${BUILD_TIME_UTC}",
+  "build_time_ist": "${BUILD_TIME_IST}"
+}
 
-          secure: true
-
-
-          username: ${{ secrets.MAIL_USERNAME }}
-
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-
-          subject: "✅ CI SUCCESS | Backend Auth Service"
-
-
-          to: ${{ secrets.MAIL_TO }}
-
-          cc: ${{ secrets.MAIL_CC }}
-
-
-          from: GitHub Actions CI/CD
-
-
-
-          body: |
-
-
-            ✅ CI SUCCESS
-
-
-            Repository:
-            ${{ github.repository }}
-
-
-            Version:
-            ${{ env.VERSION }}
-
-
-            Commit:
-            ${{ env.COMMIT }}
-
-
-            Branch:
-            ${{ env.BRANCH }}
-
-
-
-      # ===================================================
-      # ❌ CI FAILURE EMAIL
-      # ===================================================
-
-      - name: Send CI Failure Email
-
-        if: failure()
-
-        uses: dawidd6/action-send-mail@v3
-
-
-        with:
-
-
-          server_address: smtp.gmail.com
-
-          server_port: 465
-
-          secure: true
-
-
-          username: ${{ secrets.MAIL_USERNAME }}
-
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-
-          subject: "❌ CI FAILED | Backend Auth Service"
-
-
-          to: ${{ secrets.MAIL_TO }}
-
-          cc: ${{ secrets.MAIL_CC }}
-
-
-          from: GitHub Actions CI/CD
-
-
-
-          body: |
-
-
-            ❌ CI FAILED
-
-
-            Repository:
-            ${{ github.repository }}
-
-
-            Commit:
-            ${{ github.sha }}
-
+EOF
 
 
 
@@ -299,7 +207,7 @@ jobs:
 
 
   # ===================================================
-  # 🐳 DOCKER RELEASE
+  # 🐳 DOCKER RELEASE ONLY FOR TAGS
   # ===================================================
 
   docker-release:
@@ -313,9 +221,7 @@ jobs:
       - build-and-test
 
 
-
     if: startsWith(github.ref, 'refs/tags/')
-
 
 
     runs-on: ubuntu-latest
@@ -323,7 +229,6 @@ jobs:
 
 
     steps:
-
 
 
       # ===================================================
@@ -337,10 +242,11 @@ jobs:
 
 
       # ===================================================
-      # 🐳 LOGIN
+      # 🔐 LOGIN
       # ===================================================
 
       - name: Docker Login
+
 
         run: |
 
@@ -354,7 +260,7 @@ jobs:
 
 
       # ===================================================
-      # 📄 GENERATE BUILD INFO
+      # 📄 CREATE BUILD INFO AGAIN
       # ===================================================
 
       - name: Generate Build Info
@@ -363,25 +269,27 @@ jobs:
         run: |
 
 
+          echo "VERSION=${{ needs.build-and-test.outputs.version }}" >> $GITHUB_ENV
+
+
+          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+
+
+          echo "BRANCH=main" >> $GITHUB_ENV
+
+
+
           cat > build_info.json << EOF
 
+{
+  "version": "${{ needs.build-and-test.outputs.version }}",
+  "commit": "${GITHUB_SHA}",
+  "branch": "main",
+  "build_time_utc": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+  "build_time_ist": "$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')"
+}
 
-          {
-            "version": "${{ needs.build-and-test.outputs.version }}",
-            "commit": "${GITHUB_SHA}",
-            "branch": "${GITHUB_REF_NAME}",
-            "build_time_utc": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
-            "build_time_ist": "$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')"
-          }
-
-
-          EOF
-
-
-
-          echo "===== BUILD INFO ====="
-
-          cat build_info.json
+EOF
 
 
 
@@ -426,7 +334,7 @@ jobs:
       # 📤 PUSH VERSION
       # ===================================================
 
-      - name: Push Docker Image
+      - name: Push Version Image
 
 
         run: |
@@ -434,6 +342,7 @@ jobs:
 
           docker push \
           ${{ needs.build-and-test.outputs.image }}
+
 
 
 
@@ -454,6 +363,86 @@ jobs:
           pythoncodelife/backend-auth-service:latest
 
 
-
           docker push \
           pythoncodelife/backend-auth-service:latest
+
+
+
+
+
+      # ===================================================
+      # 📧 DOCKER RELEASE EMAIL
+      # ===================================================
+
+      - name: Send Docker Release Email
+
+
+        if: success()
+
+
+        uses: dawidd6/action-send-mail@v3
+
+
+        with:
+
+
+          server_address: smtp.gmail.com
+
+          server_port: 465
+
+          secure: true
+
+
+          username: ${{ secrets.MAIL_USERNAME }}
+
+          password: ${{ secrets.MAIL_PASSWORD }}
+
+
+
+          subject: "🐳 DOCKER RELEASE SUCCESS | Backend Auth Service ${{ needs.build-and-test.outputs.version }}"
+
+
+
+          to: ${{ secrets.MAIL_TO }}
+
+          cc: ${{ secrets.MAIL_CC }}
+
+
+          from: GitHub Actions CI/CD
+
+
+
+          body: |
+
+
+            🐳 DOCKER RELEASE SUCCESS
+
+
+            Repository:
+
+            ${{ github.repository }}
+
+
+            Version:
+
+            ${{ needs.build-and-test.outputs.version }}
+
+
+            Commit:
+
+            ${{ github.sha }}
+
+
+            Branch:
+
+            main
+
+
+            Docker Image:
+
+            ${{ needs.build-and-test.outputs.image }}
+
+
+            Trigger:
+
+            ${{ github.event_name }}
