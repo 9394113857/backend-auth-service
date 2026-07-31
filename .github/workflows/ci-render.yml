@@ -312,6 +312,19 @@ jobs:
           docker build \
           -t ${{ needs.build-and-test.outputs.image }} .
 
+      # ===================================================
+      # 🔍 CHECK IMAGE CONTENTS
+      # ===================================================
+      - name: Check Docker Image Files
+      
+        run: |
+      
+          docker run --rm \
+          ${{ needs.build-and-test.outputs.image }} \
+          ls -la /app    
+      
+                
+
 
 
       # ===================================================
