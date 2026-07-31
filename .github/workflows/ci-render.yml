@@ -1,118 +1,171 @@
-name: 🚀 CI - Backend Auth Service Render      
+name: 🚀 CI - Backend Auth Service Render
+
 
 on:
 
   push:
     branches:
       - "**"
+
     tags:
       - "v*"
 
+
   pull_request:
+
 
   workflow_dispatch:
 
 
+
 jobs:
+
 
   # ===================================================
   # 🧪 BUILD + TEST
   # ===================================================
+
   build-and-test:
 
+
     name: 🧪 Build & Test - ${{ github.ref_name }}
+
 
     runs-on: ubuntu-latest
 
 
+
     outputs:
+
       version: ${{ steps.metadata.outputs.version }}
+
       image: ${{ steps.metadata.outputs.image }}
+
 
 
     steps:
 
 
+
       # ===================================================
       # 📦 CHECKOUT
       # ===================================================
+
       - name: Checkout Code
+
         uses: actions/checkout@v4
+
         with:
+
           fetch-depth: 0
+
           fetch-tags: true
 
 
+
       # ===================================================
-      # 🐍 SETUP PYTHON
+      # 🐍 PYTHON
       # ===================================================
+
       - name: Setup Python
+
         uses: actions/setup-python@v5
+
         with:
+
           python-version: "3.11"
 
 
+
       # ===================================================
-      # 📚 INSTALL DEPENDENCIES
+      # 📚 INSTALL
       # ===================================================
+
       - name: Install Dependencies
+
         run: |
+
           pip install --upgrade pip
+
           pip install -r requirements.txt
+
           pip install pytest
 
 
+
       # ===================================================
-      # 🧪 TESTS
+      # 🧪 TEST
       # ===================================================
+
       - name: Run Tests
+
         env:
+
           DATABASE_URL: sqlite:///test.db
+
           JWT_SECRET_KEY: testing-secret
+
           SECRET_KEY: testing-secret
+
           FLASK_ENV: testing
 
+
         run: |
+
           PYTHONPATH=. pytest -v
+
 
 
       # ===================================================
       # 🔧 METADATA
       # ===================================================
+
       - name: Set Metadata
+
         id: metadata
 
+
         run: |
+
 
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
 
+
           if [[ "${GITHUB_REF}" == refs/tags/* ]]
+
           then
+
 
             VERSION=${GITHUB_REF#refs/tags/}
 
-            echo "TYPE=TAG RELEASE" >> $GITHUB_ENV
+
             echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
 
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
+
             echo "IMAGE=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_ENV
+
 
             echo "image=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_OUTPUT
 
 
           else
 
-            echo "TYPE=BRANCH BUILD" >> $GITHUB_ENV
 
             echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
 
+
             echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
 
             echo "image=N/A" >> $GITHUB_OUTPUT
 
+
           fi
+
 
 
           echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
@@ -125,64 +178,54 @@ jobs:
 
 
 
-      # ===================================================
-      # 📄 BUILD INFO
-      # ===================================================
-      - name: Generate Build Info
-
-        run: |
-
-          cat > build_info.json << EOF
-
-          {
-            "version": "${VERSION}",
-            "commit": "${COMMIT}",
-            "branch": "${BRANCH}",
-            "build_time_utc": "${BUILD_TIME_UTC}",
-            "build_time_ist": "${BUILD_TIME_IST}"
-          }
-
-          EOF
-
 
 
       # ===================================================
       # 📧 CI SUCCESS EMAIL
       # ===================================================
+
       - name: Send CI Success Email
 
         if: success()
 
         uses: dawidd6/action-send-mail@v3
 
+
         with:
 
+
           server_address: smtp.gmail.com
+
           server_port: 465
+
           secure: true
 
+
           username: ${{ secrets.MAIL_USERNAME }}
+
           password: ${{ secrets.MAIL_PASSWORD }}
+
 
           subject: "✅ CI SUCCESS | Backend Auth Service"
 
+
           to: ${{ secrets.MAIL_TO }}
+
           cc: ${{ secrets.MAIL_CC }}
+
 
           from: GitHub Actions CI/CD
 
 
+
           body: |
+
 
             ✅ CI SUCCESS
 
 
             Repository:
             ${{ github.repository }}
-
-
-            Branch:
-            ${{ env.BRANCH }}
 
 
             Version:
@@ -193,50 +236,51 @@ jobs:
             ${{ env.COMMIT }}
 
 
-            Event:
-            ${{ github.event_name }}
-
-
-            Triggered By:
-            ${{ github.actor }}
-
-
-            Build UTC:
-            ${{ env.BUILD_TIME_UTC }}
-
-
-            Build IST:
-            ${{ env.BUILD_TIME_IST }}
+            Branch:
+            ${{ env.BRANCH }}
 
 
 
       # ===================================================
       # ❌ CI FAILURE EMAIL
       # ===================================================
+
       - name: Send CI Failure Email
 
         if: failure()
 
         uses: dawidd6/action-send-mail@v3
 
+
         with:
 
+
           server_address: smtp.gmail.com
+
           server_port: 465
+
           secure: true
 
+
           username: ${{ secrets.MAIL_USERNAME }}
+
           password: ${{ secrets.MAIL_PASSWORD }}
+
 
           subject: "❌ CI FAILED | Backend Auth Service"
 
+
           to: ${{ secrets.MAIL_TO }}
+
           cc: ${{ secrets.MAIL_CC }}
+
 
           from: GitHub Actions CI/CD
 
 
+
           body: |
+
 
             ❌ CI FAILED
 
@@ -249,18 +293,15 @@ jobs:
             ${{ github.sha }}
 
 
-            Trigger:
-            ${{ github.event_name }}
 
 
-            Actor:
-            ${{ github.actor }}
 
 
 
   # ===================================================
-  # 🐳 DOCKER RELEASE (TAG ONLY)
+  # 🐳 DOCKER RELEASE
   # ===================================================
+
   docker-release:
 
 
@@ -268,10 +309,13 @@ jobs:
 
 
     needs:
+
       - build-and-test
 
 
+
     if: startsWith(github.ref, 'refs/tags/')
+
 
 
     runs-on: ubuntu-latest
@@ -281,10 +325,13 @@ jobs:
     steps:
 
 
+
       # ===================================================
       # 📦 CHECKOUT
       # ===================================================
+
       - name: Checkout Code
+
         uses: actions/checkout@v4
 
 
@@ -292,9 +339,11 @@ jobs:
       # ===================================================
       # 🐳 LOGIN
       # ===================================================
+
       - name: Docker Login
 
         run: |
+
 
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
           -u "${{ secrets.DOCKERHUB_USERNAME }}" \
@@ -302,103 +351,109 @@ jobs:
 
 
 
+
+
+      # ===================================================
+      # 📄 GENERATE BUILD INFO
+      # ===================================================
+
+      - name: Generate Build Info
+
+
+        run: |
+
+
+          cat > build_info.json << EOF
+
+
+          {
+            "version": "${{ needs.build-and-test.outputs.version }}",
+            "commit": "${GITHUB_SHA}",
+            "branch": "${GITHUB_REF_NAME}",
+            "build_time_utc": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+            "build_time_ist": "$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')"
+          }
+
+
+          EOF
+
+
+
+          echo "===== BUILD INFO ====="
+
+          cat build_info.json
+
+
+
+
+
       # ===================================================
       # 🏗️ BUILD IMAGE
       # ===================================================
+
       - name: Build Docker Image
 
+
         run: |
+
 
           docker build \
           -t ${{ needs.build-and-test.outputs.image }} .
 
+
+
+
+
       # ===================================================
-      # 🔍 CHECK IMAGE CONTENTS
+      # 🔍 VERIFY IMAGE
       # ===================================================
+
       - name: Check Docker Image Files
-      
+
+
         run: |
-      
+
+
           docker run --rm \
           ${{ needs.build-and-test.outputs.image }} \
-          sh -c "ls -la /app && echo '--- build info ---' && cat /app/build_info.json"  
-            
-                
+          sh -c "ls -la /app && echo '--- build info ---' && cat /app/build_info.json"
+
+
+
+
 
       # ===================================================
-      # 📤 PUSH VERSION IMAGE
+      # 📤 PUSH VERSION
       # ===================================================
+
       - name: Push Docker Image
 
+
         run: |
+
 
           docker push \
           ${{ needs.build-and-test.outputs.image }}
 
 
 
+
+
       # ===================================================
       # 🏷️ PUSH LATEST
       # ===================================================
+
       - name: Push Latest Image
 
+
         run: |
+
 
           docker tag \
           ${{ needs.build-and-test.outputs.image }} \
           pythoncodelife/backend-auth-service:latest
 
 
+
           docker push \
           pythoncodelife/backend-auth-service:latest
-
-
-
-      # ===================================================
-      # 📧 DOCKER RELEASE EMAIL
-      # ===================================================
-      - name: Send Docker Release Email
-
-        if: success()
-
-        uses: dawidd6/action-send-mail@v3
-
-
-        with:
-
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-          subject: "🐳 DOCKER RELEASE SUCCESS | Backend Auth Service"
-
-
-          to: ${{ secrets.MAIL_TO }}
-          cc: ${{ secrets.MAIL_CC }}
-
-
-          from: GitHub Actions CI/CD
-
-
-          body: |
-
-            🐳 DOCKER RELEASE SUCCESS
-
-
-            Image:
-            ${{ needs.build-and-test.outputs.image }}
-
-
-            Version:
-            ${{ needs.build-and-test.outputs.version }}
-
-
-            Commit:
-            ${{ github.sha }}
-
-
-            Trigger:
-            ${{ github.event_name }}
