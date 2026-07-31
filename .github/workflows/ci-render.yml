@@ -4,14 +4,19 @@ name: 🚀 CI - Backend Auth Service Render
 on:
 
   push:
+
     branches:
       - "**"
+
     tags:
       - "v*"
 
+
   pull_request:
 
+
   workflow_dispatch:
+
 
 
 
@@ -42,10 +47,6 @@ jobs:
     steps:
 
 
-      # ===================================================
-      # 📦 CHECKOUT
-      # ===================================================
-
       - name: Checkout Code
 
         uses: actions/checkout@v4
@@ -58,10 +59,6 @@ jobs:
 
 
 
-      # ===================================================
-      # 🐍 PYTHON
-      # ===================================================
-
       - name: Setup Python
 
         uses: actions/setup-python@v5
@@ -71,10 +68,6 @@ jobs:
           python-version: "3.11"
 
 
-
-      # ===================================================
-      # 📚 INSTALL
-      # ===================================================
 
       - name: Install Dependencies
 
@@ -87,10 +80,6 @@ jobs:
           pip install pytest
 
 
-
-      # ===================================================
-      # 🧪 TEST
-      # ===================================================
 
       - name: Run Tests
 
@@ -112,11 +101,12 @@ jobs:
 
 
 
+
       # ===================================================
-      # 🔧 METADATA
+      # 🏷️ METADATA
       # ===================================================
 
-      - name: Set Metadata
+      - name: Set Build Metadata
 
         id: metadata
 
@@ -126,8 +116,12 @@ jobs:
 
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
-
           echo "BRANCH=main" >> $GITHUB_ENV
+
+
+          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+
+          echo "BUILD_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
 
 
 
@@ -143,10 +137,6 @@ jobs:
 
 
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-
-
-            echo "IMAGE=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_ENV
 
 
             echo "image=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_OUTPUT
@@ -167,13 +157,6 @@ jobs:
 
 
           fi
-
-
-
-          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-
-
-          echo "BUILD_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
 
 
 
@@ -207,7 +190,7 @@ EOF
 
 
   # ===================================================
-  # 🐳 DOCKER RELEASE ONLY FOR TAGS
+  # 🐳 DOCKER RELEASE ONLY TAGS
   # ===================================================
 
   docker-release:
@@ -231,19 +214,51 @@ EOF
     steps:
 
 
-      # ===================================================
-      # 📦 CHECKOUT
-      # ===================================================
-
       - name: Checkout Code
 
         uses: actions/checkout@v4
 
 
 
-      # ===================================================
-      # 🔐 LOGIN
-      # ===================================================
+      # ===============================================
+      # CREATE BUILD INFO
+      # ===============================================
+
+      - name: Generate Build Info
+
+
+        run: |
+
+
+          VERSION=${{ needs.build-and-test.outputs.version }}
+
+
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+
+          echo "BRANCH=main" >> $GITHUB_ENV
+
+
+
+          cat > build_info.json << EOF
+
+{
+  "version": "${VERSION}",
+  "commit": "${GITHUB_SHA}",
+  "branch": "main",
+  "build_time_utc": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+  "build_time_ist": "$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')"
+}
+
+EOF
+
+
+
+
+      # ===============================================
+      # LOGIN
+      # ===============================================
 
       - name: Docker Login
 
@@ -259,45 +274,9 @@ EOF
 
 
 
-      # ===================================================
-      # 📄 CREATE BUILD INFO AGAIN
-      # ===================================================
-
-      - name: Generate Build Info
-
-
-        run: |
-
-
-          echo "VERSION=${{ needs.build-and-test.outputs.version }}" >> $GITHUB_ENV
-
-
-          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-
-
-          echo "BRANCH=main" >> $GITHUB_ENV
-
-
-
-          cat > build_info.json << EOF
-
-{
-  "version": "${{ needs.build-and-test.outputs.version }}",
-  "commit": "${GITHUB_SHA}",
-  "branch": "main",
-  "build_time_utc": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
-  "build_time_ist": "$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')"
-}
-
-EOF
-
-
-
-
-
-      # ===================================================
-      # 🏗️ BUILD IMAGE
-      # ===================================================
+      # ===============================================
+      # BUILD
+      # ===============================================
 
       - name: Build Docker Image
 
@@ -312,9 +291,9 @@ EOF
 
 
 
-      # ===================================================
-      # 🔍 VERIFY IMAGE
-      # ===================================================
+      # ===============================================
+      # VERIFY
+      # ===============================================
 
       - name: Check Docker Image Files
 
@@ -330,9 +309,9 @@ EOF
 
 
 
-      # ===================================================
-      # 📤 PUSH VERSION
-      # ===================================================
+      # ===============================================
+      # PUSH VERSION
+      # ===============================================
 
       - name: Push Version Image
 
@@ -348,9 +327,9 @@ EOF
 
 
 
-      # ===================================================
-      # 🏷️ PUSH LATEST
-      # ===================================================
+      # ===============================================
+      # PUSH LATEST
+      # ===============================================
 
       - name: Push Latest Image
 
@@ -363,6 +342,7 @@ EOF
           pythoncodelife/backend-auth-service:latest
 
 
+
           docker push \
           pythoncodelife/backend-auth-service:latest
 
@@ -370,9 +350,9 @@ EOF
 
 
 
-      # ===================================================
-      # 📧 DOCKER RELEASE EMAIL
-      # ===================================================
+      # ===============================================
+      # EMAIL ONLY TAG RELEASE
+      # ===============================================
 
       - name: Send Docker Release Email
 
@@ -381,6 +361,7 @@ EOF
 
 
         uses: dawidd6/action-send-mail@v3
+
 
 
         with:
@@ -438,7 +419,7 @@ EOF
             main
 
 
-            Docker Image:
+            Image:
 
             ${{ needs.build-and-test.outputs.image }}
 
