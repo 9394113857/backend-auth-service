@@ -13,3 +13,9 @@ venv/
 .gitignore
 
 logs/
+
+# ============================================================
+# 🚀 CI GENERATED BUILD METADATA
+# Keep build_info.json inside Docker image
+# ============================================================
+!build_info.json
