@@ -14,4 +14,16 @@ venv/
 
 logs/
 
+# Ignore my practice folder
+Enhancements and Practice folder/
+
+# Ignore this docs folder
+docs/
+
+# Ignor ethos practice folder
+practice ✅/
+
+# Ignore this randon-folder
+random-folder/
+
 
