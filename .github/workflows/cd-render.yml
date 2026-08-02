@@ -78,7 +78,12 @@ jobs:
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
 
 
-          echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]
+          then
+            echo "BRANCH=main" >> $GITHUB_ENV
+          else
+            echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          fi
 
 
 
@@ -105,16 +110,21 @@ jobs:
 
 
       # ===================================================
-      # ⏳ WAIT FOR STARTUP
+      # ⏳ WAIT FOR APPLICATION STARTUP
       # ===================================================
       - name: Wait For Application Startup
-
+      
         run: |
-
+      
           echo "Waiting for Render deployment..."
-
-          sleep 70
-
+      
+          for i in {30..1}
+          do
+            echo "Health check starts in ${i} second(s)..."
+            sleep 1
+          done
+          
+          echo "Starting Health Check..."
 
 
       # ===================================================
@@ -139,7 +149,7 @@ jobs:
             "${{ secrets.APPLICATION_HEALTH_URL }}")
 
 
-            echo "Attempt $i → HTTP $STATUS"
+            echo "Health Check Attempt $i of 10 → HTTP $STATUS"
 
 
 
@@ -147,6 +157,7 @@ jobs:
 
             then
 
+              echo "Application is healthy."
               echo "DEPLOY_STATUS=SUCCESS" >> $GITHUB_ENV
 
               exit 0
@@ -162,6 +173,7 @@ jobs:
 
 
 
+          echo "Health check failed after 10 attempts."
           echo "DEPLOY_STATUS=FAILED" >> $GITHUB_ENV
 
 
