@@ -1,464 +1,258 @@
+# =====================================================
+# 🚀 CI - Backend Auth Service Render
+# =====================================================
+
 name: 🚀 CI - Backend Auth Service Render
 
-
 on:
-
   push:
     branches:
       - "**"
-
     tags:
       - "v*"
 
-
   pull_request:
-
+    branches:
+      - "**"
 
   workflow_dispatch:
 
-
-
 jobs:
 
+  # =====================================================
+  # 🧪 TEST JOB
+  # =====================================================
 
-  # ===================================================
-  # 🧪 BUILD + TEST
-  # ===================================================
-
-  build-and-test:
-
-
-    name: 🧪 Build & Test - ${{ github.ref_name }}
-
-
+  test:
+    name: 🧪 Test Backend Auth Service
     runs-on: ubuntu-latest
-
-
-
-    outputs:
-
-      version: ${{ steps.metadata.outputs.version }}
-
-      image: ${{ steps.metadata.outputs.image }}
-
-
 
     steps:
 
-
-
-      # ===================================================
+      # =====================================
       # 📦 CHECKOUT
-      # ===================================================
+      # =====================================
 
-      - name: Checkout Code
-
+      - name: Checkout
         uses: actions/checkout@v4
 
-        with:
-
-          fetch-depth: 0
-
-          fetch-tags: true
-
-
-
-      # ===================================================
-      # 🐍 PYTHON
-      # ===================================================
+      # =====================================
+      # 🐍 SETUP PYTHON
+      # =====================================
 
       - name: Setup Python
-
         uses: actions/setup-python@v5
-
         with:
-
           python-version: "3.11"
 
-
-
-      # ===================================================
-      # 📚 INSTALL
-      # ===================================================
+      # =====================================
+      # 📚 INSTALL DEPENDENCIES
+      # =====================================
 
       - name: Install Dependencies
-
         run: |
-
-          pip install --upgrade pip
-
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-
           pip install pytest
 
-
-
-      # ===================================================
-      # 🧪 TEST
-      # ===================================================
+      # =====================================
+      # 🧪 RUN TESTS
+      # =====================================
 
       - name: Run Tests
-
         env:
-
           DATABASE_URL: sqlite:///test.db
-
           JWT_SECRET_KEY: testing-secret
-
           SECRET_KEY: testing-secret
-
           FLASK_ENV: testing
 
-
         run: |
-
           PYTHONPATH=. pytest -v
 
-
-
-      # ===================================================
-      # 🔧 METADATA
-      # ===================================================
-
-      - name: Set Metadata
-
-        id: metadata
-
-
-        run: |
-
-
-          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-
-
-
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]
-
-          then
-
-
-            VERSION=${GITHUB_REF#refs/tags/}
-
-
-            echo "VERSION=${VERSION}" >> $GITHUB_ENV
-
-
-            echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-
-            echo "IMAGE=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_ENV
-
-
-            echo "image=pythoncodelife/backend-auth-service:${VERSION}" >> $GITHUB_OUTPUT
-
-
-          else
-
-
-            echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-
-
-            echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
-
-
-            echo "image=N/A" >> $GITHUB_OUTPUT
-
-
-          fi
-
-
-
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]
-          then
-            echo "BRANCH=main" >> $GITHUB_ENV
-          else
-            echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-          fi
-
-
-          echo "BUILD_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-
-
-          echo "BUILD_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
-
-
-
-
-
-      # ===================================================
+      # =====================================
       # 📧 CI SUCCESS EMAIL
-      # ===================================================
+      # =====================================
 
-      - name: Send CI Success Email
-
+      - name: 📧 CI Success Email
         if: success()
-
         uses: dawidd6/action-send-mail@v3
 
-
         with:
-
-
           server_address: smtp.gmail.com
-
           server_port: 465
-
           secure: true
 
-
           username: ${{ secrets.MAIL_USERNAME }}
-
           password: ${{ secrets.MAIL_PASSWORD }}
 
-
-          subject: "✅ CI SUCCESS | Backend Auth Service"
-
+          subject: "🚀 CI SUCCESS - Backend Auth Service"
 
           to: ${{ secrets.MAIL_TO }}
-
           cc: ${{ secrets.MAIL_CC }}
 
-
-          from: GitHub Actions CI/CD
-
-
+          from: Backend Auth Service <${{ secrets.MAIL_USERNAME }}>
 
           body: |
+            🚀 CI SUCCESS
 
-
-            ✅ CI SUCCESS
-
+            Service:
+            Backend Auth Service
 
             Repository:
             ${{ github.repository }}
-
-
-            Version:
-            ${{ env.VERSION }}
-
-
-            Commit:
-            ${{ env.COMMIT }}
-
-
-            Branch:
-            ${{ env.BRANCH }}
-
-
-
-      # ===================================================
-      # ❌ CI FAILURE EMAIL
-      # ===================================================
-
-      - name: Send CI Failure Email
-
-        if: failure()
-
-        uses: dawidd6/action-send-mail@v3
-
-
-        with:
-
-
-          server_address: smtp.gmail.com
-
-          server_port: 465
-
-          secure: true
-
-
-          username: ${{ secrets.MAIL_USERNAME }}
-
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-
-          subject: "❌ CI FAILED | Backend Auth Service"
-
-
-          to: ${{ secrets.MAIL_TO }}
-
-          cc: ${{ secrets.MAIL_CC }}
-
-
-          from: GitHub Actions CI/CD
-
-
-
-          body: |
-
-
-            ❌ CI FAILED
-
-
-            Repository:
-            ${{ github.repository }}
-
 
             Commit:
             ${{ github.sha }}
 
+            Branch:
+            ${{ github.ref }}
 
+            Status:
+            Tests Passed
 
+      # =====================================
+      # ❌ CI FAILURE EMAIL
+      # =====================================
 
+      - name: ❌ CI Failure Email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
 
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
 
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
 
-  # ===================================================
-  # 🐳 DOCKER RELEASE
-  # ===================================================
+          subject: "🚨 CI FAILED - Backend Auth Service"
+
+          to: ${{ secrets.MAIL_TO }}
+          cc: ${{ secrets.MAIL_CC }}
+
+          from: Backend Auth Service <${{ secrets.MAIL_USERNAME }}>
+
+          body: |
+            🚨 CI FAILED
+
+            Service:
+            Backend Auth Service
+
+            Repository:
+            ${{ github.repository }}
+
+            Commit:
+            ${{ github.sha }}
+
+            Branch:
+            ${{ github.ref }}
+
+            Status:
+            Tests Failed
+
+            Check GitHub Actions logs.
+
+  # =====================================================
+  # 🐳 DOCKER RELEASE ONLY FOR TAGS
+  # =====================================================
 
   docker-release:
-
-
     name: 🐳 Docker Release
 
-
-    needs:
-
-      - build-and-test
-
-
+    needs: test
 
     if: startsWith(github.ref, 'refs/tags/')
 
-
-
     runs-on: ubuntu-latest
-
-
 
     steps:
 
-
-
-      # ===================================================
+      # =====================================
       # 📦 CHECKOUT
-      # ===================================================
+      # =====================================
 
-      - name: Checkout Code
-
+      - name: Checkout
         uses: actions/checkout@v4
 
-
-
-      # ===================================================
-      # 🐳 LOGIN
-      # ===================================================
+      # =====================================
+      # 🔐 DOCKER LOGIN
+      # =====================================
 
       - name: Docker Login
-
         run: |
-
-
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
-          -u "${{ secrets.DOCKERHUB_USERNAME }}" \
-          --password-stdin
+            -u "${{ secrets.DOCKERHUB_USERNAME }}" \
+            --password-stdin
 
+      # =====================================
+      # 🏷️ SET VERSION METADATA
+      # =====================================
 
+      - name: Set Metadata
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
 
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "APP_BRANCH=main" >> $GITHUB_ENV
 
-
-      # ===================================================
+      # =====================================
       # 📄 GENERATE BUILD INFO
-      # ===================================================
+      # =====================================
 
       - name: Generate Build Info
-
-
         run: |
-
-
-          cat > build_info.json << EOF
-
-
+          cat > build_info.json <<EOF
           {
-            "version": "${{ needs.build-and-test.outputs.version }}",
+            "version": "${APP_VERSION}",
             "commit": "${GITHUB_SHA}",
-            "branch": "${{ startsWith(github.ref, 'refs/tags/') && 'main' || github.ref_name }}",
+            "branch": "${APP_BRANCH}",
             "build_time_utc": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
             "build_time_ist": "$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')"
           }
-
-
           EOF
 
-
-
           echo "===== BUILD INFO ====="
-
           cat build_info.json
 
-
-
-
-
-      # ===================================================
-      # 🏗️ BUILD IMAGE
-      # ===================================================
+      # =====================================
+      # 🏗️ BUILD DOCKER IMAGE
+      # =====================================
 
       - name: Build Docker Image
-
-
         run: |
-
-
           docker build \
-          -t ${{ needs.build-and-test.outputs.image }} .
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/backend-auth-service:${APP_VERSION} \
+            .
 
+      # =====================================
+      # 🔍 VERIFY DOCKER IMAGE
+      # =====================================
 
-
-
-
-      # ===================================================
-      # 🔍 VERIFY IMAGE
-      # ===================================================
-
-      - name: Check Docker Image Files
-
-
+      - name: Verify Docker Image
         run: |
-
-
           docker run --rm \
-          ${{ needs.build-and-test.outputs.image }} \
-          sh -c "ls -la /app && echo '--- build info ---' && cat /app/build_info.json"
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-auth-service:${APP_VERSION} \
+            sh -c "ls -la /app && echo '--- build info ---' && cat /app/build_info.json"
 
+      # =====================================
+      # 📤 PUSH VERSION IMAGE
+      # =====================================
 
-
-
-
-      # ===================================================
-      # 📤 PUSH VERSION
-      # ===================================================
-
-      - name: Push Docker Image
-
-
+      - name: Push Version Image
         run: |
-
-
           docker push \
-          ${{ needs.build-and-test.outputs.image }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-auth-service:${APP_VERSION}
 
-
-
-
-
-      # ===================================================
+      # =====================================
       # 🏷️ PUSH LATEST
-      # ===================================================
+      # =====================================
 
-      - name: Push Latest Image
-
-
+      - name: Push Latest
         run: |
-
-
           docker tag \
-          ${{ needs.build-and-test.outputs.image }} \
-          pythoncodelife/backend-auth-service:latest
-
-
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-auth-service:${APP_VERSION} \
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-auth-service:latest
 
           docker push \
-          pythoncodelife/backend-auth-service:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-auth-service:latest
