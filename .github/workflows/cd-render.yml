@@ -1,385 +1,249 @@
-name: 🚀 CD - Backend Auth Service Render
+# =====================================================
+# 🚀 CD - Backend Auth Service Render
+# =====================================================
 
+name: 🚀 CD - Backend Auth Service Render
 
 on:
 
-  # ===================================================
+  # =====================================================
   # 🖐️ MANUAL DEPLOYMENT
-  # ===================================================
+  # =====================================================
+
   workflow_dispatch:
 
+  # =====================================================
+  # ⏰ DAILY DEPLOYMENT
+  # 2:00 AM IST = 20:30 UTC previous day
+  # =====================================================
 
-
-  # ===================================================
-  # ⏰ DAILY DEPLOYMENT CHECK
-  # 2 AM IST = 20:30 UTC previous day
-  # ===================================================
   schedule:
     - cron: "30 20 * * *"
 
-
-
 jobs:
 
-
-  # ===================================================
+  # =====================================================
   # 🚀 DEPLOYMENT JOB
-  # ===================================================
+  # =====================================================
+
   deploy:
-
-
     name: 🚀 Deploy Backend Auth Service
-
 
     runs-on: ubuntu-latest
 
-
-
     steps:
 
-
-      # ===================================================
+      # =====================================================
       # 📦 CHECKOUT
-      # ===================================================
-      - name: Checkout Code
+      # =====================================================
 
+      - name: Checkout
         uses: actions/checkout@v4
-
         with:
           fetch-depth: 0
           fetch-tags: true
 
+      # =====================================================
+      # 🏷️ VERSION METADATA
+      # =====================================================
 
-
-      # ===================================================
-      # 🔧 SET METADATA
-      # ===================================================
-      - name: Set Deployment Metadata
-
+      - name: Detect Deployment Metadata
         run: |
 
+          TAGS=($(git tag --sort=-v:refname))
 
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]
+          if [ ${#TAGS[@]} -eq 0 ]
           then
-
-            VERSION=${GITHUB_REF#refs/tags/}
-
+            VERSION="latest"
           else
-
-            VERSION="manual"
-
+            VERSION=${TAGS[0]}
           fi
 
-
-
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-
-
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-
-
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]
-          then
-            echo "BRANCH=main" >> $GITHUB_ENV
-          else
-            echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-          fi
-
-
+          echo "BRANCH=main" >> $GITHUB_ENV
 
           echo "DEPLOY_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
 
-
           echo "DEPLOY_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
-
-
 
           echo "SERVICE_URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
 
+          echo "======================================"
+          echo "🚀 Backend Auth Service Deployment"
+          echo "======================================"
 
+          echo "Version: $VERSION"
+          echo "Commit:  ${GITHUB_SHA}"
+          echo "Branch:  main"
 
-      # ===================================================
+      # =====================================================
       # 🚀 TRIGGER RENDER DEPLOYMENT
-      # ===================================================
-      - name: Trigger Render Deployment
+      # =====================================================
 
+      - name: Trigger Render Deploy
         run: |
+
+          echo "🚀 Triggering Render Deployment..."
 
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
-
-
-      # ===================================================
+      # =====================================================
       # ⏳ WAIT FOR APPLICATION STARTUP
-      # ===================================================
-      - name: Wait For Application Startup
-      
+      # =====================================================
+
+      - name: Wait For Startup
         run: |
-      
-          echo "Waiting for Render deployment..."
-      
-          for i in {30..1}
-          do
-            echo "Health check starts in ${i} second(s)..."
-            sleep 1
-          done
-          
-          echo "Starting Health Check..."
 
+          echo "Waiting for application startup..."
 
-      # ===================================================
+          sleep 30
+
+      # =====================================================
       # ❤️ HEALTH CHECK
-      # ===================================================
-      - name: Health Check
+      # =====================================================
 
+      - name: Health Check
         run: |
 
-
-          echo "Checking application health..."
-
+          echo "🔍 Checking Backend Auth Service Health..."
 
           for i in {1..10}
-
           do
 
-
             STATUS=$(curl -s \
-            -o /dev/null \
-            -w "%{http_code}" \
-            "${{ secrets.APPLICATION_HEALTH_URL }}")
+              -o /dev/null \
+              -w "%{http_code}" \
+              "${{ secrets.APPLICATION_HEALTH_URL }}")
 
-
-            echo "Health Check Attempt $i of 10 → HTTP $STATUS"
-
-
+            echo "Attempt $i → HTTP $STATUS"
 
             if [ "$STATUS" = "200" ]
-
             then
 
-              echo "Application is healthy."
+              echo "🟢 Backend Auth Service Healthy"
+
               echo "DEPLOY_STATUS=SUCCESS" >> $GITHUB_ENV
 
               exit 0
 
             fi
 
-
-
             sleep 10
-
 
           done
 
-
-
-          echo "Health check failed after 10 attempts."
           echo "DEPLOY_STATUS=FAILED" >> $GITHUB_ENV
 
+          echo "🔴 Backend Auth Service health check failed"
 
           exit 1
 
+      # =====================================================
+      # 📧 DEPLOYMENT SUCCESS EMAIL
+      # =====================================================
 
-
-
-      # ===================================================
-      # 📧 DEPLOY SUCCESS EMAIL
-      # ===================================================
-      - name: Send Deployment Success Email
-
+      - name: 📧 Deployment Success Email
         if: success()
-
-
         uses: dawidd6/action-send-mail@v3
 
-
         with:
-
-
           server_address: smtp.gmail.com
-
           server_port: 465
-
           secure: true
 
-
           username: ${{ secrets.MAIL_USERNAME }}
-
           password: ${{ secrets.MAIL_PASSWORD }}
 
-
-
-          subject: "🚀 DEPLOY SUCCESS | Backend Auth Service ${{ env.VERSION }}"
-
-
+          subject: "🚀 CD SUCCESS | Backend Auth Service ${{ env.VERSION }}"
 
           to: ${{ secrets.MAIL_TO }}
-
           cc: ${{ secrets.MAIL_CC }}
 
-
-
-          from: GitHub Actions CD
-
-
+          from: Backend Auth Service <${{ secrets.MAIL_USERNAME }}>
 
           body: |
-
-
             🚀 DEPLOYMENT SUCCESS
 
-
-            =================================================
-
-
-            🌐 SERVICE
-
+            Service:
             Backend Auth Service
 
-
-            🔗 URL
-
+            URL:
             ${{ env.SERVICE_URL }}
 
-
-            =================================================
-
-
-            🏷️ VERSION
-
-            ${{ env.VERSION }}
-
-
-            🔖 COMMIT
-
-            ${{ env.COMMIT }}
-
-
-            🌿 BRANCH
-
-            ${{ env.BRANCH }}
-
-
-            ⚡ TRIGGER
-
-            ${{ github.event_name }}
-
-
-            👤 TRIGGERED BY
-
-            ${{ github.actor }}
-
-
-            =================================================
-
-
-            ⏰ DEPLOY TIME UTC
-
-            ${{ env.DEPLOY_TIME_UTC }}
-
-
-            ⏰ DEPLOY TIME IST
-
-            ${{ env.DEPLOY_TIME_IST }}
-
-
-            ❤️ HEALTH STATUS
-
-            ${{ env.DEPLOY_STATUS }}
-
-
-
-
-      # ===================================================
-      # ❌ DEPLOY FAILURE EMAIL
-      # ===================================================
-      - name: Send Deployment Failure Email
-
-
-        if: failure()
-
-
-        uses: dawidd6/action-send-mail@v3
-
-
-
-        with:
-
-
-          server_address: smtp.gmail.com
-
-          server_port: 465
-
-          secure: true
-
-
-          username: ${{ secrets.MAIL_USERNAME }}
-
-          password: ${{ secrets.MAIL_PASSWORD }}
-
-
-
-          subject: "❌ DEPLOY FAILED | Backend Auth Service"
-
-
-
-          to: ${{ secrets.MAIL_TO }}
-
-          cc: ${{ secrets.MAIL_CC }}
-
-
-
-          from: GitHub Actions CD
-
-
-
-          body: |
-
-
-            ❌ DEPLOYMENT FAILED
-
-
-            =================================================
-
-
-            Repository:
-
-            ${{ github.repository }}
-
-
             Version:
-
             ${{ env.VERSION }}
-
 
             Commit:
-
-            ${{ github.sha }}
-
+            ${{ env.COMMIT }}
 
             Branch:
-
             ${{ env.BRANCH }}
 
-
             Trigger:
-
             ${{ github.event_name }}
 
-
             Triggered By:
-
             ${{ github.actor }}
 
+            Deploy Time UTC:
+            ${{ env.DEPLOY_TIME_UTC }}
 
+            Deploy Time IST:
+            ${{ env.DEPLOY_TIME_IST }}
 
-            =================================================
+            Health:
+            ${{ env.DEPLOY_STATUS }}
 
+      # =====================================================
+      # ❌ DEPLOYMENT FAILURE EMAIL
+      # =====================================================
+
+      - name: ❌ Deployment Failure Email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+
+          subject: "🚨 CD FAILED | Backend Auth Service"
+
+          to: ${{ secrets.MAIL_TO }}
+          cc: ${{ secrets.MAIL_CC }}
+
+          from: Backend Auth Service <${{ secrets.MAIL_USERNAME }}>
+
+          body: |
+            🚨 DEPLOYMENT FAILED
+
+            Service:
+            Backend Auth Service
+
+            URL:
+            ${{ env.SERVICE_URL }}
+
+            Version:
+            ${{ env.VERSION }}
+
+            Commit:
+            ${{ github.sha }}
+
+            Branch:
+            ${{ env.BRANCH }}
+
+            Trigger:
+            ${{ github.event_name }}
+
+            Triggered By:
+            ${{ github.actor }}
 
             Please check:
 
             ❌ GitHub Actions logs
-
             ❌ Render deployment logs
-
             ❌ Application health endpoint

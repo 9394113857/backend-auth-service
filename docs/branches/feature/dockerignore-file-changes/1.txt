@@ -1,0 +1,22 @@
+# 1️⃣ Review the changes first
+git diff -- .github/workflows/ci-render.yml .github/workflows/cd-render.yml
+
+If everything looks correct:
+
+# 2️⃣ Stage both files
+git add .github/workflows/ci-render.yml .github/workflows/cd-render.yml
+
+# 3️⃣ Check staging
+git status
+
+# 4️⃣ Commit
+git commit -m "Update Auth Service CI/CD workflows"
+
+# 5️⃣ Push your feature branch
+git push origin feature/dockerignore-file-changes
+
+Then GitHub Actions should run the CI workflow because you pushed to the feature branch.
+
+Because you're pushing a normal branch, not a v* tag.
+
+Don't create a tag yet. First verify that the normal feature-branch CI passes. Then we can test the Docker/tag path, and after that test the CD/Render path separately.
