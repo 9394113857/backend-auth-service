@@ -4,7 +4,7 @@
 
 name: 🚀 CD - Backend Auth Service Render
 
-run-name: 🚀 Deploy ${{ github.event_name }} | ${{ github.ref_name }} | ${{ github.actor }}
+run-name: 🚀 Deploy ${{ github.event_name }} | ${{ github.event.workflow_run.head_branch || github.ref_name }} | ${{ github.actor }}
 
 on:
 
@@ -15,12 +15,16 @@ on:
   workflow_dispatch:
 
   # =====================================================
-  # ⏰ DAILY DEPLOYMENT
-  # 2:00 AM IST = 20:30 UTC previous day
+  # 🚀 AUTOMATIC DEPLOYMENT
+  # Runs ONLY after the CI workflow (including Docker release)
+  # completes successfully for a version tag.
   # =====================================================
 
-  schedule:
-    - cron: "30 20 * * *"
+  workflow_run:
+    workflows:
+      - "🚀 CI - Backend Auth Service Render"
+    types:
+      - completed
 
 jobs:
 
@@ -31,17 +35,30 @@ jobs:
   deploy:
     name: 🚀 Deploy Backend Auth Service
 
+    # For automatic runs, require a successful tag-push CI run.
+    # The CI workflow's docker-release job is part of that run and
+    # must succeed for the overall run conclusion to be success.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        startsWith(github.event.workflow_run.head_branch, 'v')
+      )
+
     runs-on: ubuntu-latest
 
     steps:
 
       # =====================================================
-      # 📦 CHECKOUT
+      # 📦 CHECKOUT THE RELEASED COMMIT
       # =====================================================
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           fetch-depth: 0
           fetch-tags: true
 
@@ -50,33 +67,33 @@ jobs:
       # =====================================================
 
       - name: Detect Deployment Metadata
+        env:
+          DEPLOYMENT_TRIGGER: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
 
-          TAGS=($(git tag --sort=-v:refname))
-
-          if [ ${#TAGS[@]} -eq 0 ]
-          then
-            VERSION="latest"
+          if [ "$DEPLOYMENT_TRIGGER" = "workflow_run" ]; then
+            VERSION="$RELEASE_TAG"
+            COMMIT="$RELEASE_SHA"
           else
-            VERSION=${TAGS[0]}
+            VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "latest")
+            COMMIT="$GITHUB_SHA"
           fi
 
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
-          echo "BRANCH=main" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "COMMIT=$COMMIT" >> "$GITHUB_ENV"
+          echo "BRANCH=main" >> "$GITHUB_ENV"
 
-          echo "DEPLOY_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-
-          echo "DEPLOY_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> $GITHUB_ENV
-
-          echo "SERVICE_URL=https://backend-auth-service-ks6f.onrender.com" >> $GITHUB_ENV
+          echo "DEPLOY_TIME_UTC=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+          echo "DEPLOY_TIME_IST=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')" >> "$GITHUB_ENV"
+          echo "SERVICE_URL=https://backend-auth-service-ks6f.onrender.com" >> "$GITHUB_ENV"
 
           echo "======================================"
           echo "🚀 Backend Auth Service Deployment"
           echo "======================================"
-
           echo "Version: $VERSION"
-          echo "Commit:  ${GITHUB_SHA}"
+          echo "Commit:  $COMMIT"
           echo "Branch:  main"
 
       # =====================================================
@@ -87,8 +104,7 @@ jobs:
         run: |
 
           echo "🚀 Triggering Render Deployment..."
-
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+          curl --fail --show-error --silent -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
       # =====================================================
       # ⏳ WAIT FOR APPLICATION STARTUP
@@ -98,7 +114,6 @@ jobs:
         run: |
 
           echo "Waiting for application startup..."
-
           sleep 30
 
       # =====================================================
@@ -112,35 +127,25 @@ jobs:
 
           for i in {1..10}
           do
-
             STATUS=$(curl -s \
               -o /dev/null \
               -w "%{http_code}" \
               "${{ secrets.APPLICATION_HEALTH_URL }}")
 
             REMAINING=$((10 - i))
-            
             echo "❤️ Health Check Attempt $i/10 → HTTP $STATUS | ⏳ Remaining: $REMAINING"
 
-            if [ "$STATUS" = "200" ]
-            then
-
+            if [ "$STATUS" = "200" ]; then
               echo "🟢 Backend Auth Service Healthy"
-
-              echo "DEPLOY_STATUS=SUCCESS" >> $GITHUB_ENV
-
+              echo "DEPLOY_STATUS=SUCCESS" >> "$GITHUB_ENV"
               exit 0
-
             fi
 
             sleep 10
-
           done
 
-          echo "DEPLOY_STATUS=FAILED" >> $GITHUB_ENV
-
+          echo "DEPLOY_STATUS=FAILED" >> "$GITHUB_ENV"
           echo "🔴 Backend Auth Service health check failed"
-
           exit 1
 
       # =====================================================
@@ -235,7 +240,7 @@ jobs:
             ${{ env.VERSION }}
 
             Commit:
-            ${{ github.sha }}
+            ${{ env.COMMIT }}
 
             Branch:
             ${{ env.BRANCH }}
